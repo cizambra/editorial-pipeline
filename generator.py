@@ -547,6 +547,8 @@ PLATFORM_PERSONAS: Dict[str, Any] = {
     },
 }
 
+THUMBNAIL_PROMPT = ""
+
 
 PLATFORM_PROMPTS = {
     "linkedin": {
@@ -1061,13 +1063,23 @@ def run_full_pipeline_stream(
                     add(pool.submit(_do_refl_social_en), "refl_social_en")
 
                 # If companion was checkpointed, replay it and immediately
-                # submit its derivatives — no need to wait for related.
+                # submit its derivatives.
                 if vals["companion"]:
                     push("companion_en", cp["companion_en"])
                     _submit_companion_derivatives(
                         pool, add, emit, prog, vals, cp,
                         include_spanish, article_url,
                     )
+                else:
+                    prog("Generating paid companion…")
+                    related_snap = vals["related"] or []
+                    def _do_companion(r=related_snap):
+                        text = generate_companion(reflection, reflection_title, article_url, template, r)
+                        title = _extract_title(text) or f"{reflection_title} — Companion"
+                        prog("Paid companion generated", done=True)
+                        emit("companion_en", {"content": text, "title": title})
+                        return text, title
+                    add(pool.submit(_do_companion), "companion")
 
                 # ── FIRST_COMPLETED event loop ────────────────────────────
                 while pending:
@@ -1083,19 +1095,7 @@ def run_full_pipeline_stream(
 
                         if name == "related":
                             vals["related"] = result
-                            if vals["companion"]:
-                                # Already submitted above from checkpoint
-                                pass
-                            else:
-                                prog("Generating paid companion…")
-                                related_snap = result
-                                def _do_companion(r=related_snap):
-                                    text = generate_companion(reflection, reflection_title, article_url, template, r)
-                                    title = _extract_title(text) or f"{reflection_title} — Companion"
-                                    prog("Paid companion generated", done=True)
-                                    emit("companion_en", {"content": text, "title": title})
-                                    return text, title
-                                add(pool.submit(_do_companion), "companion")
+                            pass
 
                         elif name == "refl_es":
                             vals["reflection_es"] = result
