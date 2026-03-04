@@ -6,7 +6,7 @@ One-button tool: upload your reflection → get companion, translations, and rep
 
 ### 1. Install dependencies
 ```bash
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 ### 2. Configure environment
@@ -24,7 +24,7 @@ Then edit `.env` with your keys (open it in Notepad or any text editor):
 
 ### 3. Get your Buffer profile IDs
 ```bash
-python get_buffer_profiles.py
+python3 get_buffer_profiles.py
 ```
 Copy the IDs for LinkedIn, Instagram, and Threads into your `.env`.
 
@@ -34,7 +34,7 @@ or upload it via the Settings panel in the UI.
 
 ### 5. Run
 ```bash
-python main.py
+python3 main.py
 ```
 Then open [http://localhost:8000](http://localhost:8000).
 

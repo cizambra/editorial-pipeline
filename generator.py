@@ -26,6 +26,8 @@ finishes — no waiting for unrelated tasks like refl_es to complete first.
 Estimated wall time: ~60-80s vs ~200s sequential.
 """
 
+from __future__ import annotations
+
 import os
 import re
 import json
@@ -35,6 +37,7 @@ import unicodedata
 from urllib.parse import urlsplit, urlunsplit
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COMPLETED
+from typing import Any, Dict, List, Optional, Tuple
 
 import anthropic
 from dotenv import load_dotenv
@@ -50,7 +53,7 @@ MODEL = "claude-sonnet-4-5-20250929"
 
 # ─── Token tracking ──────────────────────────────────────────────────────────
 
-_run_tokens: dict = {"input": 0, "output": 0, "cache_write": 0, "cache_read": 0}
+_run_tokens: Dict[str, int] = {"input": 0, "output": 0, "cache_write": 0, "cache_read": 0}
 _token_lock = threading.Lock()
 
 _PRICE_IN       = 3.0   / 1_000_000   # $3/MTok    input (cache miss)
@@ -65,7 +68,7 @@ def reset_token_log() -> None:
         _run_tokens = {"input": 0, "output": 0, "cache_write": 0, "cache_read": 0}
 
 
-def get_token_summary() -> dict:
+def get_token_summary() -> Dict[str, Any]:
     with _token_lock:
         inp = _run_tokens["input"]
         out = _run_tokens["output"]
@@ -111,7 +114,7 @@ def _call_claude(
 
 # ─── 1. Related Articles ─────────────────────────────────────────────────────
 
-def find_related_articles(reflection: str, articles: list[dict]) -> list[dict]:
+def find_related_articles(reflection: str, articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     articles_list = "\n".join(
         f"{i+1}. {a['title']} — {a['summary'][:200]} ({a['url']})"
         for i, a in enumerate(articles)
@@ -298,7 +301,7 @@ def generate_companion(
     reflection_title: str,
     reflection_url: str,
     template: str,
-    related_articles: list[dict],
+    related_articles: List[Dict[str, Any]],
 ) -> str:
     related_str = "\n".join(
         f"- {a['title']}: {a['reason']} ({a['url']})"
@@ -455,7 +458,7 @@ def build_spanish_reflection_context(
     reflection_title: str,
     article_url: str,
     translated_reflection: str = "",
-) -> dict:
+) -> Dict[str, Any]:
     """Derive the Spanish title from the translated reflection when possible."""
     translated_title = _extract_title(translated_reflection).strip()
     if not translated_title:
@@ -466,7 +469,7 @@ def build_spanish_reflection_context(
     }
 
 
-def _initial_pipeline_values(checkpoint: dict) -> dict:
+def _initial_pipeline_values(checkpoint: Dict[str, Any]) -> Dict[str, Any]:
     """Build the mutable pipeline state from a checkpoint payload."""
     return {
         "related": checkpoint.get("related_articles"),
@@ -484,7 +487,7 @@ def _initial_pipeline_values(checkpoint: dict) -> dict:
     }
 
 
-def _ensure_spanish_reflection_context(vals: dict, reflection_title: str, article_url: str) -> None:
+def _ensure_spanish_reflection_context(vals: Dict[str, Any], reflection_title: str, article_url: str) -> None:
     """Populate Spanish title/URL once and reuse them across derivative tasks."""
     if vals["reflection_es_title"]:
         return
@@ -525,7 +528,7 @@ What the writing never does:
 
 # ─── Platform Personas ────────────────────────────────────────────────────────
 
-PLATFORM_PERSONAS: dict = {
+PLATFORM_PERSONAS: Dict[str, Any] = {
     "linkedin": {
         "audience": "Mid-career professionals (30–45) who perform well at work but struggle with consistency, parenting, or relationships outside it. They follow self-discipline content because the gap between professional performance and personal consistency bothers them. Skeptical of corporate speak and motivational fluff.",
         "funnel_stage": "Awareness → Consideration. Many are discovering the brand. Lead with professional-personal tension; the Adaptable Discipline framework is the payoff, not the hook.",
@@ -660,7 +663,7 @@ def _extract_hooks(raw_text: str) -> list[str]:
     return hooks
 
 
-def check_hook_diversity(results: dict) -> dict:
+def check_hook_diversity(results: Dict[str, Any]) -> Dict[str, Any]:
     """
     Check if any platform has posts with too-similar opening hooks.
     Returns {platform: True/False} where True = diversity issue detected.
@@ -701,7 +704,7 @@ def _build_platform_user(
     text: str,
     title: str,
     article_url: str,
-    config: dict,
+    config: Dict[str, Any],
     language: str,
     tone: str,
     platform: str = "",
@@ -759,7 +762,7 @@ def generate_repurposed_content(
     article_url: str = "",
     language: str = "english",
     repurpose_note: str = "",
-) -> dict:
+) -> Dict[str, Any]:
     """
     Generates repurposed content for all 4 platforms IN PARALLEL.
     All 4 Claude API calls run simultaneously in a thread pool.
@@ -767,7 +770,7 @@ def generate_repurposed_content(
     """
     tone = _tone_instruction()
 
-    def call_platform(platform: str, config: dict) -> tuple[str, str]:
+    def call_platform(platform: str, config: Dict[str, Any]) -> Tuple[str, str]:
         user = _build_platform_user(
             text, title, article_url, config, language, tone,
             platform=platform, repurpose_note=repurpose_note,
@@ -814,7 +817,7 @@ def generate_repurposed_from_archive(
     original_date: str = "",
     angle_note: str = "",
     language: str = "english",
-) -> dict:
+) -> Dict[str, Any]:
     """
     Generate fresh social posts from an archived / previously published article.
     Adds a repurpose framing note so Claude understands the context:
@@ -847,7 +850,7 @@ def generate_companion_only(
     template: str,
     article_url: str = "",
     include_spanish: bool = True,
-) -> dict:
+) -> Dict[str, Any]:
     """
     Generate only the paid companion flow:
     companion EN, and optionally companion ES.
@@ -879,14 +882,14 @@ def generate_companion_only(
 
 # ─── 5. Config overrides ─────────────────────────────────────────────────────
 
-def apply_config_overrides(config: dict) -> None:
+def apply_config_overrides(config: Dict[str, Any]) -> None:
     """
     Update module-level prompt constants from a config dict.
     Called at startup (from saved config file) and after a UI save.
     Keys: "voice_brief", "companion_voice_brief", "spanish_style_guide",
           "tone_level", "platform_personas"
     """
-    global VOICE_BRIEF, COMPANION_VOICE_BRIEF, SPANISH_STYLE_GUIDE, PLATFORM_PERSONAS
+    global VOICE_BRIEF, COMPANION_VOICE_BRIEF, SPANISH_STYLE_GUIDE, PLATFORM_PERSONAS, THUMBNAIL_PROMPT
     if "voice_brief" in config:
         VOICE_BRIEF = config["voice_brief"]
     if "companion_voice_brief" in config:
@@ -899,14 +902,17 @@ def apply_config_overrides(config: dict) -> None:
         for platform, persona in config["platform_personas"].items():
             if platform in PLATFORM_PERSONAS and isinstance(persona, dict):
                 PLATFORM_PERSONAS[platform].update(persona)
+    if "thumbnail_prompt" in config:
+        THUMBNAIL_PROMPT = config["thumbnail_prompt"]
 
 
-def get_current_prompts() -> dict:
+def get_current_prompts() -> Dict[str, Any]:
     """Return current effective values of the editable prompt constants."""
     return {
         "voice_brief": VOICE_BRIEF,
         "companion_voice_brief": COMPANION_VOICE_BRIEF,
         "spanish_style_guide": SPANISH_STYLE_GUIDE,
+        "thumbnail_prompt": THUMBNAIL_PROMPT,
         "tone_level": TONE_LEVEL,
         "platform_personas": PLATFORM_PERSONAS,
     }
@@ -915,7 +921,7 @@ def get_current_prompts() -> dict:
 # ─── 6. Full Pipeline (streaming with parallelism) ───────────────────────────
 
 def _submit_companion_derivatives(
-    pool, add, emit, prog, vals: dict, cp: dict,
+    pool, add, emit, prog, vals: Dict[str, Any], cp: Dict[str, Any],
     include_spanish: bool, article_url: str,
 ) -> None:
     """
@@ -954,10 +960,10 @@ def run_full_pipeline_stream(
     reflection: str,
     reflection_title: str,
     template: str,
-    articles: list[dict],
+    articles: List[Dict[str, Any]],
     article_url: str = "",
     include_spanish: bool = True,
-    checkpoint: dict = None,
+    checkpoint: Optional[Dict[str, Any]] = None,
     on_step_complete=None,
     cancel_event: threading.Event = None,
 ):
@@ -1012,7 +1018,7 @@ def run_full_pipeline_stream(
                 vals = _initial_pipeline_values(cp)
 
                 # pending maps Future → task-name string
-                pending: dict = {}
+                pending: Dict[str, Any] = {}
 
                 def add(fut, name: str) -> None:
                     pending[fut] = name

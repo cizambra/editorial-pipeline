@@ -5,6 +5,8 @@ Uses the Substack public API (/api/v1/posts) to fetch ALL posts with pagination,
 falling back to RSS if the API is unavailable. Articles are cached locally.
 """
 
+from __future__ import annotations
+
 import feedparser
 import json
 import os
@@ -12,9 +14,10 @@ import re
 import requests
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List
 
 CACHE_FILE = Path(__file__).parent / "articles_cache.json"
-_MEM_CACHE: dict[str, object] = {
+_MEM_CACHE: Dict[str, Any] = {
     "mtime": None,
     "articles": None,
 }
@@ -34,7 +37,7 @@ _HEADERS = {
 
 # ── Public cache read ─────────────────────────────────────────────────────────
 
-def fetch_articles(force_refresh: bool = False) -> list[dict]:
+def fetch_articles(force_refresh: bool = False) -> List[Dict[str, Any]]:
     """
     Returns the full cached article index.
     Rebuilds from the Substack API on first call or when force_refresh=True.
@@ -55,7 +58,7 @@ def fetch_articles(force_refresh: bool = False) -> list[dict]:
 
 # ── Full re-index ─────────────────────────────────────────────────────────────
 
-def refresh_index() -> list[dict]:
+def refresh_index() -> List[Dict[str, Any]]:
     """
     Fetches EVERY post from the Substack API (paginated) and rebuilds the cache.
     Falls back to RSS if the API is unreachable.
@@ -79,7 +82,7 @@ def refresh_index() -> list[dict]:
 
 # ── Incremental index (add new posts only) ────────────────────────────────────
 
-def index_new_articles() -> dict:
+def index_new_articles() -> Dict[str, Any]:
     """
     Fetches only the newest posts from the API and merges them into the cache.
     Returns {'added': int, 'total': int, 'articles': list}.
@@ -122,7 +125,7 @@ def index_new_articles() -> dict:
 
 # ── Substack API helpers ──────────────────────────────────────────────────────
 
-def _fetch_all_via_api() -> list[dict]:
+def _fetch_all_via_api() -> List[Dict[str, Any]]:
     """Paginate through /api/v1/posts until exhausted."""
     articles = []
     offset   = 0
@@ -138,7 +141,7 @@ def _fetch_all_via_api() -> list[dict]:
     return articles
 
 
-def _fetch_api_page(offset: int, limit: int) -> list[dict]:
+def _fetch_api_page(offset: int, limit: int) -> List[Dict[str, Any]]:
     """Fetch one page from the Substack API; returns [] on failure."""
     url = f"{SUBSTACK_BASE.rstrip('/')}/api/v1/posts"
     params = {"limit": limit, "offset": offset}
@@ -176,7 +179,7 @@ def _fetch_api_page(offset: int, limit: int) -> list[dict]:
     return articles
 
 
-def _fetch_via_rss() -> list[dict]:
+def _fetch_via_rss() -> List[Dict[str, Any]]:
     """Fallback: parse the RSS feed (limited to ~20 posts)."""
     print(f"[scraper] Fetching RSS from {RSS_URL}…")
     feed = feedparser.parse(RSS_URL)
@@ -196,7 +199,7 @@ def _fetch_via_rss() -> list[dict]:
 
 # ── Article content fetcher ───────────────────────────────────────────────────
 
-def fetch_article_content(url: str) -> dict:
+def fetch_article_content(url: str) -> Dict[str, Any]:
     """
     Fetches the full text of a public Substack article by URL.
     Returns dict with 'title' and 'markdown'.

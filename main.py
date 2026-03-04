@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 """
 main.py - FastAPI backend for the Editorial Pipeline.
 Run with: python -m uvicorn main:app --reload
@@ -9,12 +11,14 @@ import json
 import threading
 from pathlib import Path
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
+import re
 
 load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
@@ -44,7 +48,7 @@ COMPANION_DAY = int(os.getenv("COMPANION_DAY", 3))
 COMPANION_TIME = os.getenv("COMPANION_TIME", "08:00")
 
 # Global cancel event - replaced each run
-_cancel_event: threading.Event | None = None
+_cancel_event: Optional[threading.Event] = None
 _cancel_lock = threading.Lock()
 _CHECKPOINT_PERSIST_KEYS = {
     "related_articles",
@@ -67,6 +71,43 @@ _IMG_PRICE_HIGH   = 0.250   # per image, high quality
 
 # --- Routes ------------------------------------------------------------------
 
+def _slugify_text(value: str) -> str:
+    value = (value or "").strip().lower()
+    value = re.sub(r"[^a-z0-9]+", "-", value)
+    return value.strip("-")[:120]
+
+
+def _extract_file_metadata(filename: str, content: str) -> Dict[str, str]:
+    text = content or ""
+    title = ""
+    slug = ""
+    article_url = ""
+
+    frontmatter = re.match(r"^---\n(.*?)\n---\n?", text, flags=re.DOTALL)
+    if frontmatter:
+        for line in frontmatter.group(1).splitlines():
+            key, _, value = line.partition(":")
+            value = value.strip().strip('"').strip("'")
+            lowered = key.strip().lower()
+            if lowered == "slug" and value:
+                slug = _slugify_text(value)
+            elif lowered in {"url", "article_url"} and value:
+                article_url = value
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("# "):
+            title = stripped[2:].strip()
+            break
+
+    if not title:
+        stem = Path(filename or "document").stem
+        title = re.sub(r"[-_]+", " ", stem).strip().title()
+
+    if not slug:
+        slug = _slugify_text(title or Path(filename or "document").stem)
+    return {"title": title, "slug": slug, "article_url": article_url}
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     with open("static/index.html", encoding="utf-8") as f:
@@ -80,6 +121,16 @@ async def get_articles():
     try:
         articles = scraper.fetch_articles()
         return {"articles": articles, "count": len(articles)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/files/inspect")
+async def inspect_uploaded_file(file: UploadFile = File(...)):
+    try:
+        raw = await file.read()
+        text = raw.decode("utf-8", errors="ignore")
+        return _extract_file_metadata(file.filename or "document.md", text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -196,13 +247,17 @@ class SaveThumbnailRequest(BaseModel):
 
 @app.post("/api/thumbnails/save")
 async def save_thumbnail(req: SaveThumbnailRequest):
-    new_id = storage.save_thumbnail(req.article_title, req.article_url, req.concept_name, req.image_b64)
-    return {"id": new_id, "message": "Saved"}
+    saved = storage.save_thumbnail(req.article_title, req.article_url, req.concept_name, req.image_b64)
+    return {
+        "id": saved["id"],
+        "created": saved["created"],
+        "message": "Saved" if saved["created"] else "Already saved",
+    }
 
 
 @app.get("/api/thumbnails")
-async def list_thumbnails():
-    return {"thumbnails": storage.list_thumbnails()}
+async def list_thumbnails(q: str = "", limit: int = 100):
+    return {"thumbnails": storage.list_thumbnails(query=q, limit=limit)}
 
 
 @app.get("/api/thumbnails/{thumb_id}")
@@ -380,6 +435,7 @@ async def repurpose_from_archive(body: dict):
     angle_note    = body.get("angle_note", "")
     language      = body.get("language", "english")
     tone_level    = body.get("tone_level")
+    save_to_history = bool(body.get("save_to_history", False))
 
     if not text or not title:
         raise HTTPException(status_code=400, detail="text and title are required")
@@ -399,6 +455,15 @@ async def repurpose_from_archive(body: dict):
             language=language,
         )
         token_summary = generator.get_token_summary()
+        if save_to_history:
+            lang_key = "es" if str(language).lower().startswith("spanish") else "en"
+            data = {
+                "reflection": {
+                    lang_key: text,
+                    f"repurposed_{lang_key}": results,
+                }
+            }
+            storage.save_run(title, article_url, data, token_summary)
         return {
             "social": results,
             "tokens": token_summary,
@@ -457,7 +522,7 @@ async def generate_companion_only(body: dict):
 
 class ThumbnailRequest(BaseModel):
     title: str
-    prompt_override: str | None = None   # optional custom prompt from settings
+    prompt_override: Optional[str] = None   # optional custom prompt from settings
 
 
 class ThumbnailConceptsRequest(BaseModel):
@@ -467,7 +532,7 @@ class ThumbnailConceptsRequest(BaseModel):
 
 
 class ThumbnailImagesRequest(BaseModel):
-    concepts: list[dict]         # [{index, name, scene, dalle_prompt}, ...]
+    concepts: List[Dict[str, Any]]         # [{index, name, scene, dalle_prompt}, ...]
 
 
 _CONCEPTS_SYSTEM = """\
@@ -577,7 +642,7 @@ _DALLE_STYLE_SUFFIX = (
 )
 
 
-async def _generate_one_dalle(httpx_client, api_key: str, prompt: str, index: int) -> dict:
+async def _generate_one_dalle(httpx_client, api_key: str, prompt: str, index: int) -> Dict[str, Any]:
     """Call gpt-image-1 for a single concept. Medium quality for concept exploration."""
     resp = await httpx_client.post(
         "https://api.openai.com/v1/images/generations",
@@ -625,7 +690,7 @@ async def generate_thumbnail_concepts(req: ThumbnailConceptsRequest):
     if not api_key:
         raise HTTPException(status_code=400, detail="OPENAI_API_KEY not set in .env")
 
-    def sse(event: str, data: dict) -> str:
+    def sse(event: str, data: Dict[str, Any]) -> str:
         return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
     async def stream():
@@ -733,7 +798,7 @@ async def generate_thumbnail_images(req: ThumbnailImagesRequest):
     if not api_key:
         raise HTTPException(status_code=400, detail="OPENAI_API_KEY not set in .env")
 
-    def sse(event: str, data: dict) -> str:
+    def sse(event: str, data: Dict[str, Any]) -> str:
         return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
     async def stream():
@@ -871,7 +936,7 @@ async def reddit_struggles():
       event: error     - {message: str}
       event: done      - {}
     """
-    def sse(event: str, data: dict) -> str:
+    def sse(event: str, data: Dict[str, Any]) -> str:
         return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
     async def stream():
@@ -1035,7 +1100,7 @@ def _build_pipeline_stream(
     article_url: str,
     include_spanish: bool,
     schedule_to_buffer: bool,
-    checkpoint_data: dict = None,
+    checkpoint_data: Optional[Dict[str, Any]] = None,
     tone_level: int = None,
 ):
     """

@@ -3,9 +3,12 @@ buffer_client.py — Buffer API client for scheduling social media posts.
 Handles LinkedIn, Instagram, and Threads.
 """
 
+from __future__ import annotations
+
 import os
 import requests
 from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
 BUFFER_API = "https://api.bufferapp.com/1"
 ACCESS_TOKEN = os.getenv("BUFFER_ACCESS_TOKEN", "")
@@ -17,7 +20,7 @@ PROFILE_IDS = {
 }
 
 
-def get_profiles() -> list[dict]:
+def get_profiles() -> List[Dict[str, Any]]:
     """Fetch all connected Buffer profiles. Useful for initial setup."""
     resp = requests.get(
         f"{BUFFER_API}/profiles.json",
@@ -27,7 +30,7 @@ def get_profiles() -> list[dict]:
     return resp.json()
 
 
-def schedule_post(platform: str, text: str, scheduled_at: datetime) -> dict:
+def schedule_post(platform: str, text: str, scheduled_at: datetime) -> Dict[str, Any]:
     """
     Schedule a post to a specific platform via Buffer.
 
@@ -56,12 +59,12 @@ def schedule_post(platform: str, text: str, scheduled_at: datetime) -> dict:
 
 
 def schedule_all_repurposed(
-    repurposed_en: dict,
-    repurposed_es: dict,
+    repurposed_en: Dict[str, Any],
+    repurposed_es: Dict[str, Any],
     base_date: datetime,
     hour: int = 9,
     minute: int = 0,
-) -> dict:
+) -> Dict[str, Any]:
     """
     Schedules English and Spanish posts for LinkedIn, Instagram, and Threads.
     English posts go on base_date, Spanish posts go the next day.
@@ -100,7 +103,7 @@ def schedule_all_repurposed(
     return results
 
 
-def queue_post(platform: str, text: str) -> dict:
+def queue_post(platform: str, text: str) -> Dict[str, Any]:
     """
     Add a post to Buffer's queue (next available slot, no fixed schedule time).
 

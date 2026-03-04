@@ -9,16 +9,18 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import hashlib
 from datetime import datetime
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 import time
+from typing import Any, Dict, List, Optional, Tuple
 
 HISTORY_DB_PATH = Path("run_history.db")
 CONFIG_PATH = Path("config_overrides.json")
 CHECKPOINT_PATH = Path("pipeline_checkpoint.json")
 _DASHBOARD_CACHE_TTL_SECONDS = 30
-_dashboard_cache: dict[str, object] = {
+_dashboard_cache: Dict[str, Any] = {
     "key": None,
     "value": None,
     "expires_at": 0.0,
@@ -31,7 +33,7 @@ def _connect() -> sqlite3.Connection:
     return conn
 
 
-def _load_json_file(path: Path) -> dict:
+def _load_json_file(path: Path) -> Dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -40,7 +42,7 @@ def _load_json_file(path: Path) -> dict:
         return {}
 
 
-def _save_json_file(path: Path, data: dict) -> None:
+def _save_json_file(path: Path, data: Dict[str, Any]) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
@@ -77,6 +79,7 @@ def init_db() -> None:
                 article_title TEXT NOT NULL,
                 article_url   TEXT DEFAULT '',
                 concept_name  TEXT DEFAULT '',
+                image_hash    TEXT DEFAULT '',
                 image_b64     TEXT NOT NULL
             )
         """)
@@ -121,28 +124,37 @@ def init_db() -> None:
             )
         """)
 
+        for col, coltype in [
+            ("image_hash", "TEXT DEFAULT ''"),
+        ]:
+            try:
+                conn.execute(f"ALTER TABLE thumbnails ADD COLUMN {col} {coltype}")
+            except Exception:
+                pass
+
         conn.execute("CREATE INDEX IF NOT EXISTS idx_runs_timestamp ON runs(timestamp DESC)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_runs_article_url ON runs(article_url)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_thumbnails_timestamp ON thumbnails(timestamp DESC)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_thumbnails_lookup ON thumbnails(article_title, article_url, concept_name, image_hash)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_image_costs_source ON image_costs(source)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_feedback_platform ON post_feedback(platform)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_ideas_status_source_updated ON ideas(status, source, updated_at DESC)")
 
 
-def load_config() -> dict:
+def load_config() -> Dict[str, Any]:
     return _load_json_file(CONFIG_PATH)
 
 
-def save_config(config: dict) -> None:
+def save_config(config: Dict[str, Any]) -> None:
     _save_json_file(CONFIG_PATH, config)
 
 
-def load_checkpoint() -> dict | None:
+def load_checkpoint() -> Dict[str, Any]:
     data = _load_json_file(CHECKPOINT_PATH)
     return data or None
 
 
-def save_checkpoint(data: dict) -> None:
+def save_checkpoint(data: Dict[str, Any]) -> None:
     _save_json_file(CHECKPOINT_PATH, data)
 
 
@@ -151,7 +163,7 @@ def clear_checkpoint() -> None:
         CHECKPOINT_PATH.unlink()
 
 
-def save_run(title: str, article_url: str, data: dict, token_summary: dict | None = None) -> None:
+def save_run(title: str, article_url: str, data: Dict[str, Any], token_summary: Optional[Dict[str, Any]] = None) -> None:
     ts = token_summary or {}
     with _connect() as conn:
         conn.execute(
@@ -169,7 +181,7 @@ def save_run(title: str, article_url: str, data: dict, token_summary: dict | Non
         )
 
 
-def _get_social_payload(source_data: dict, lang: str) -> dict:
+def _get_social_payload(source_data: Dict[str, Any], lang: str) -> Dict[str, Any]:
     if not isinstance(source_data, dict):
         return {}
     value = source_data.get(f"repurposed_{lang}")
@@ -181,7 +193,7 @@ def _get_social_payload(source_data: dict, lang: str) -> dict:
     return {}
 
 
-def _count_social_posts(payload: dict) -> int:
+def _count_social_posts(payload: Dict[str, Any]) -> int:
     total = 0
     for value in payload.values():
         if not value or not isinstance(value, str):
@@ -190,7 +202,7 @@ def _count_social_posts(payload: dict) -> int:
     return total
 
 
-def _marketing_summary(data: dict) -> dict:
+def _marketing_summary(data: Dict[str, Any]) -> Dict[str, Any]:
     assets = []
     total_posts = 0
     for source, source_label in (("reflection", "Reflection"), ("companion", "Companion")):
@@ -225,7 +237,7 @@ def record_image_cost(source: str, count: int, price_per_image: float) -> float:
     return total
 
 
-def get_dashboard_data(articles: list[dict]) -> dict:
+def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
     cache_key = _dashboard_cache_key(articles)
     now = time.time()
     if (
@@ -320,7 +332,7 @@ def get_dashboard_data(articles: list[dict]) -> dict:
     return result
 
 
-def list_history_runs(limit: int = 50) -> list[dict]:
+def list_history_runs(limit: int = 50) -> List[Dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute(
             "SELECT id, timestamp, title, article_url, tokens_in, tokens_out, cost_usd "
@@ -341,7 +353,7 @@ def list_history_runs(limit: int = 50) -> list[dict]:
     ]
 
 
-def list_marketing_runs(limit: int = 100) -> list[dict]:
+def list_marketing_runs(limit: int = 100) -> List[Dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute(
             "SELECT id, timestamp, title, article_url, data_json, cost_usd "
@@ -369,7 +381,7 @@ def list_marketing_runs(limit: int = 100) -> list[dict]:
     return results
 
 
-def get_history_run(run_id: int) -> dict | None:
+def get_history_run(run_id: int) -> Optional[Dict[str, Any]]:
     with _connect() as conn:
         row = conn.execute(
             "SELECT id, timestamp, title, article_url, data_json, tokens_in, tokens_out, cost_usd "
@@ -395,25 +407,45 @@ def delete_history_run(run_id: int) -> None:
         conn.execute("DELETE FROM runs WHERE id = ?", (run_id,))
 
 
-def save_thumbnail(article_title: str, article_url: str, concept_name: str, image_b64: str) -> int:
+def save_thumbnail(article_title: str, article_url: str, concept_name: str, image_b64: str) -> Dict[str, Any]:
+    image_hash = hashlib.sha1((image_b64 or "").encode("utf-8")).hexdigest()
     with _connect() as conn:
+        existing = conn.execute(
+            "SELECT id FROM thumbnails WHERE article_title = ? AND article_url = ? AND concept_name = ? AND image_hash = ? LIMIT 1",
+            (article_title, article_url, concept_name, image_hash),
+        ).fetchone()
+        if existing:
+            return {"id": int(existing["id"]), "created": False}
         cursor = conn.execute(
-            "INSERT INTO thumbnails (timestamp, article_title, article_url, concept_name, image_b64) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (datetime.now().isoformat(), article_title, article_url, concept_name, image_b64),
+            "INSERT INTO thumbnails (timestamp, article_title, article_url, concept_name, image_hash, image_b64) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (datetime.now().isoformat(), article_title, article_url, concept_name, image_hash, image_b64),
         )
-        return int(cursor.lastrowid)
+        return {"id": int(cursor.lastrowid), "created": True}
 
 
-def list_thumbnails() -> list[dict]:
+def list_thumbnails(query: str = "", limit: int = 100) -> List[Dict[str, Any]]:
+    params: List[Any] = []
+    sql = (
+        "SELECT id, timestamp, article_title, article_url, concept_name "
+        "FROM thumbnails"
+    )
+    if query:
+        sql += (
+            " WHERE LOWER(article_title) LIKE ?"
+            " OR LOWER(article_url) LIKE ?"
+            " OR LOWER(concept_name) LIKE ?"
+        )
+        needle = f"%{query.lower()}%"
+        params.extend([needle, needle, needle])
+    sql += " ORDER BY id DESC LIMIT ?"
+    params.append(max(1, min(limit, 250)))
     with _connect() as conn:
-        rows = conn.execute(
-            "SELECT id, timestamp, article_title, article_url, concept_name, image_b64 FROM thumbnails ORDER BY id DESC"
-        ).fetchall()
+        rows = conn.execute(sql, params).fetchall()
     return [dict(r) for r in rows]
 
 
-def get_thumbnail(thumb_id: int) -> dict | None:
+def get_thumbnail(thumb_id: int) -> Optional[Dict[str, Any]]:
     with _connect() as conn:
         row = conn.execute(
             "SELECT id, timestamp, article_title, article_url, concept_name, image_b64 FROM thumbnails WHERE id = ?",
@@ -454,7 +486,7 @@ def save_feedback(
         )
 
 
-def get_feedback_summary() -> list[dict]:
+def get_feedback_summary() -> List[Dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute(
             "SELECT platform, SUM(CASE WHEN rating=1 THEN 1 ELSE 0 END) as up, "
@@ -464,7 +496,7 @@ def get_feedback_summary() -> list[dict]:
     return [{"platform": r["platform"], "thumbs_up": r["up"], "thumbs_down": r["down"]} for r in rows]
 
 
-def list_ideas(status: str | None = None, source: str | None = None) -> list[dict]:
+def list_ideas(status: Optional[str] = None, source: Optional[str] = None) -> List[Dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute(
             "SELECT * FROM ideas ORDER BY status ASC, frequency DESC, created_at DESC"
@@ -501,7 +533,7 @@ def delete_idea(idea_id: int) -> None:
         conn.execute("DELETE FROM ideas WHERE id=?", (idea_id,))
 
 
-def save_ideas_batch(categories: list[dict], source: str = "reddit") -> dict:
+def save_ideas_batch(categories: List[Dict[str, Any]], source: str = "reddit") -> Dict[str, Any]:
     now = datetime.now().isoformat()
     saved = updated = 0
 
@@ -547,7 +579,7 @@ def save_ideas_batch(categories: list[dict], source: str = "reddit") -> dict:
     return {"saved": saved, "updated": updated}
 
 
-def _find_duplicate_idea_id(existing_themes: dict[str, int], theme: str) -> int | None:
+def _find_duplicate_idea_id(existing_themes: Dict[str, int], theme: str) -> Optional[int]:
     key = theme.lower()[:60]
     for existing_key, idea_id in existing_themes.items():
         if existing_key[:50] == key[:50]:
@@ -562,7 +594,7 @@ def _parse_article_date(value: str):
         return datetime.min
 
 
-def _dashboard_cache_key(articles: list[dict]) -> tuple:
+def _dashboard_cache_key(articles: List[Dict[str, Any]]) -> Tuple[Any, ...]:
     db_mtime = HISTORY_DB_PATH.stat().st_mtime if HISTORY_DB_PATH.exists() else 0.0
     article_fingerprint = tuple((a.get("url", ""), a.get("published", "")) for a in articles[:50])
     return (db_mtime, len(articles), article_fingerprint)
