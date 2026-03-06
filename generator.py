@@ -484,6 +484,8 @@ def _initial_pipeline_values(checkpoint: Dict[str, Any]) -> Dict[str, Any]:
         "companion_es_title": checkpoint.get("companion_es_title", ""),
         "comp_social_en": checkpoint.get("companion_social_en", {}),
         "comp_social_es": checkpoint.get("companion_social_es", {}),
+        "tags": checkpoint.get("tags", []),
+        "quotes": checkpoint.get("quotes", []),
     }
 
 
@@ -812,6 +814,100 @@ def generate_single_platform(
     return _call_platform_raw(config, user)
 
 
+PILLARS: Dict[str, str] = {
+    "Mindset": (
+        "The mental framework that makes comeback speed possible. Covers awareness of drift, "
+        "responsibility, adaptability, and self-compassion. Redefines discipline as a recoverable "
+        "system — comeback speed over streaks, setbacks as data rather than failures."
+    ),
+    "Purpose": (
+        "The compass of Adaptable Discipline. Covers the Why Stack (values → motivation → goals), "
+        "North Star, near-term aims, keystone commitments, guardrails, quit criteria, and seasons "
+        "(Build, Maintain, Recover). Aligns actions with meaningful direction."
+    ),
+    "Tools": (
+        "The scaffolding that turns intention into reliable action. Covers environment design, "
+        "protocols and playbooks, templates, automation, recovery kits, and systems thinking. "
+        "Reduces friction and makes comeback paths simple and repeatable."
+    ),
+    "Metrics": (
+        "The observability layer. Covers comeback speed measurement, detection latency, alignment "
+        "rate, flexibility ratio, and tracking for clarity without shame. Makes invisible patterns "
+        "visible to support system adjustment — not judgment."
+    ),
+}
+
+
+def tag_reflection(reflection: str, title: str) -> List[str]:
+    """Return the 2 most relevant Adaptable Discipline pillars, in priority order."""
+    pillar_text = "\n".join(f"- {name}: {desc}" for name, desc in PILLARS.items())
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=60,
+        messages=[{
+            "role": "user",
+            "content": (
+                "Tag this newsletter article with exactly 2 pillars from the Adaptable Discipline "
+                "framework, in priority order (most relevant first).\n\n"
+                f"Pillars:\n{pillar_text}\n\n"
+                f"Article title: {title}\n\n"
+                f"Article excerpt:\n{reflection[:3000]}\n\n"
+                'Respond with ONLY a JSON array of 2 names. Example: ["Mindset", "Purpose"]\n'
+                "Valid names (use exact casing): Mindset, Purpose, Tools, Metrics"
+            )
+        }],
+    )
+    raw = response.content[0].text.strip()
+    try:
+        tags = json.loads(raw)
+        valid = [t for t in tags if t in PILLARS]
+        return valid[:2]
+    except Exception:
+        found = [p for p in PILLARS if p in raw]
+        return found[:2]
+
+
+def extract_quotes(reflection: str, title: str) -> List[Dict[str, Any]]:
+    """Extract 5–8 shareable quotes/insights from an article using Claude Haiku."""
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1200,
+        messages=[{
+            "role": "user",
+            "content": (
+                "Extract 5 to 8 shareable quotes or standalone insights from this newsletter article. "
+                "These should be the sharpest, most self-contained lines — the kind that land on social media "
+                "without needing context: bold claims, counterintuitive observations, concrete rules, vivid analogies.\n\n"
+                "Avoid anything that is a summary, a transition, or only makes sense in context.\n\n"
+                f"Article title: {title}\n\n"
+                f"Article:\n{reflection[:6000]}\n\n"
+                "Respond with ONLY a JSON array of objects. Each object must have:\n"
+                '  "quote": the exact text (1–3 sentences, verbatim from the article)\n'
+                '  "context": one sentence explaining why this quote stands alone\n'
+                '  "type": one of: insight | rule | analogy | observation | question\n\n'
+                'Example: [{"quote": "...", "context": "...", "type": "insight"}, ...]\n'
+                "Output ONLY the JSON array, no other text."
+            )
+        }],
+    )
+    raw = response.content[0].text.strip()
+    try:
+        quotes = json.loads(raw)
+        if isinstance(quotes, list):
+            return [
+                {
+                    "quote_text": q.get("quote", ""),
+                    "context": q.get("context", ""),
+                    "quote_type": q.get("type", "insight"),
+                }
+                for q in quotes
+                if isinstance(q, dict) and q.get("quote")
+            ][:8]
+    except Exception:
+        pass
+    return []
+
+
 def generate_repurposed_from_archive(
     text: str,
     title: str,
@@ -891,7 +987,7 @@ def apply_config_overrides(config: Dict[str, Any]) -> None:
     Keys: "voice_brief", "companion_voice_brief", "spanish_style_guide",
           "tone_level", "platform_personas"
     """
-    global VOICE_BRIEF, COMPANION_VOICE_BRIEF, SPANISH_STYLE_GUIDE, PLATFORM_PERSONAS, THUMBNAIL_PROMPT
+    global VOICE_BRIEF, COMPANION_VOICE_BRIEF, SPANISH_STYLE_GUIDE, PLATFORM_PERSONAS
     if "voice_brief" in config:
         VOICE_BRIEF = config["voice_brief"]
     if "companion_voice_brief" in config:
@@ -904,8 +1000,6 @@ def apply_config_overrides(config: Dict[str, Any]) -> None:
         for platform, persona in config["platform_personas"].items():
             if platform in PLATFORM_PERSONAS and isinstance(persona, dict):
                 PLATFORM_PERSONAS[platform].update(persona)
-    if "thumbnail_prompt" in config:
-        THUMBNAIL_PROMPT = config["thumbnail_prompt"]
 
 
 def get_current_prompts() -> Dict[str, Any]:
@@ -914,7 +1008,6 @@ def get_current_prompts() -> Dict[str, Any]:
         "voice_brief": VOICE_BRIEF,
         "companion_voice_brief": COMPANION_VOICE_BRIEF,
         "spanish_style_guide": SPANISH_STYLE_GUIDE,
-        "thumbnail_prompt": THUMBNAIL_PROMPT,
         "tone_level": TONE_LEVEL,
         "platform_personas": PLATFORM_PERSONAS,
     }
@@ -1081,6 +1174,30 @@ def run_full_pipeline_stream(
                         return text, title
                     add(pool.submit(_do_companion), "companion")
 
+                # ── Tagging (runs in parallel with everything else) ────────
+                if vals["tags"]:
+                    push("tags", vals["tags"])
+                else:
+                    prog("Tagging reflection…")
+                    def _do_tagging():
+                        tags = tag_reflection(reflection, reflection_title)
+                        prog("Reflection tagged", done=True)
+                        emit("tags", tags)
+                        return tags
+                    add(pool.submit(_do_tagging), "tagging")
+
+                # ── Quote extraction (runs in parallel) ───────────────────
+                if vals["quotes"]:
+                    push("quotes", vals["quotes"])
+                else:
+                    prog("Extracting shareable quotes…")
+                    def _do_quotes():
+                        quotes = extract_quotes(reflection, reflection_title)
+                        prog("Quotes extracted", done=True)
+                        emit("quotes", quotes)
+                        return quotes
+                    add(pool.submit(_do_quotes), "quotes")
+
                 # ── FIRST_COMPLETED event loop ────────────────────────────
                 while pending:
                     if is_cancelled():
@@ -1150,6 +1267,10 @@ def run_full_pipeline_stream(
                                     return r
                                 add(pool.submit(_do_comp_social_es), "comp_social_es")
 
+                        elif name == "tagging":
+                            vals["tags"] = result
+                        elif name == "quotes":
+                            vals["quotes"] = result
                         elif name == "refl_social_en":
                             vals["refl_social_en"] = result
                         elif name == "refl_social_es":
@@ -1166,6 +1287,8 @@ def run_full_pipeline_stream(
                 # ── Final result event ─────────────────────────────────────
                 result = {
                     "related_articles": vals["related"],
+                    "tags": vals["tags"],
+                    "quotes": vals["quotes"],
                     "reflection": {
                         "en": reflection,
                         "es": vals["reflection_es"],

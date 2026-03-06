@@ -1,0 +1,4 @@
+/usr/bin/pip:6: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+  from pkg_resources import load_entry_point
+ERROR: Could not find a version that satisfies the requirement google-genai (from versions: none)
+ERROR: No matching distribution found for google-genai

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 get_buffer_profiles.py — Run this once to find your Buffer profile IDs.
 Usage: python get_buffer_profiles.py
@@ -20,12 +22,18 @@ resp = requests.get(
 )
 resp.raise_for_status()
 
-profiles = resp.json()
-print(f"\nFound {len(profiles)} connected profiles:\n")
+data = resp.json()
+if not isinstance(data, list):
+    print("Error: unexpected response from Buffer API:")
+    print(data)
+    exit(1)
+
+profiles = data
+print("\nFound {} connected profiles:\n".format(len(profiles)))
 for p in profiles:
-    print(f"  Platform : {p.get('service', 'unknown')}")
-    print(f"  Username : {p.get('formatted_username', '')}")
-    print(f"  ID       : {p.get('id', '')}")
-    print()
+    print("  Platform : {}".format(p.get("service", "unknown")))
+    print("  Username : {}".format(p.get("formatted_username", "")))
+    print("  ID       : {}".format(p.get("id", "")))
+    print("")
 
 print("Copy the IDs into your .env file.")

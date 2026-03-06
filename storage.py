@@ -66,6 +66,7 @@ def init_db() -> None:
             ("tokens_in", "INTEGER DEFAULT 0"),
             ("tokens_out", "INTEGER DEFAULT 0"),
             ("cost_usd", "REAL DEFAULT 0"),
+            ("tags", "TEXT DEFAULT ''"),
         ]:
             try:
                 conn.execute(f"ALTER TABLE runs ADD COLUMN {col} {coltype}")
@@ -132,6 +133,85 @@ def init_db() -> None:
             except Exception:
                 pass
 
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS article_quotes (
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id         INTEGER DEFAULT 0,
+                timestamp      TEXT NOT NULL,
+                article_title  TEXT DEFAULT '',
+                article_url    TEXT DEFAULT '',
+                quote_text     TEXT NOT NULL,
+                context        TEXT DEFAULT '',
+                quote_type     TEXT DEFAULT 'insight',
+                shared         INTEGER DEFAULT 0,
+                signal         TEXT DEFAULT 'none',
+                linkedin_post  TEXT DEFAULT '',
+                threads_post   TEXT DEFAULT '',
+                instagram_post TEXT DEFAULT ''
+            )
+        """)
+
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_quotes_run ON article_quotes(run_id)")
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS substack_batches (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp  TEXT NOT NULL,
+                note_count INTEGER DEFAULT 0
+            )
+        """)
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS substack_notes (
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                batch_id       INTEGER NOT NULL,
+                timestamp      TEXT NOT NULL,
+                issue          TEXT NOT NULL,
+                intent         TEXT NOT NULL,
+                note_text      TEXT NOT NULL,
+                shared         INTEGER DEFAULT 0,
+                signal         TEXT DEFAULT 'none',
+                linkedin_post  TEXT DEFAULT '',
+                threads_post   TEXT DEFAULT '',
+                instagram_post TEXT DEFAULT ''
+            )
+        """)
+
+        for col, coltype in [
+            ("linkedin_post",  "TEXT DEFAULT ''"),
+            ("threads_post",   "TEXT DEFAULT ''"),
+            ("instagram_post", "TEXT DEFAULT ''"),
+        ]:
+            try:
+                conn.execute(f"ALTER TABLE substack_notes ADD COLUMN {col} {coltype}")
+            except Exception:
+                pass
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS scheduled_posts (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                platform     TEXT NOT NULL,
+                text         TEXT NOT NULL,
+                image_url    TEXT DEFAULT '',
+                scheduled_at TEXT NOT NULL,
+                status       TEXT DEFAULT 'pending',
+                source_label TEXT DEFAULT '',
+                created_at   TEXT NOT NULL,
+                published_at TEXT DEFAULT '',
+                post_id      TEXT DEFAULT '',
+                error        TEXT DEFAULT ''
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_sched_status_time ON scheduled_posts(status, scheduled_at)")
+        try:
+            conn.execute("ALTER TABLE scheduled_posts ADD COLUMN timezone TEXT DEFAULT ''")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE scheduled_posts ADD COLUMN note_id INTEGER DEFAULT NULL")
+        except Exception:
+            pass
+
         conn.execute("CREATE INDEX IF NOT EXISTS idx_runs_timestamp ON runs(timestamp DESC)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_runs_article_url ON runs(article_url)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_thumbnails_timestamp ON thumbnails(timestamp DESC)")
@@ -139,6 +219,7 @@ def init_db() -> None:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_image_costs_source ON image_costs(source)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_feedback_platform ON post_feedback(platform)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_ideas_status_source_updated ON ideas(status, source, updated_at DESC)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_sn_batch ON substack_notes(batch_id)")
 
 
 def load_config() -> Dict[str, Any]:
@@ -163,12 +244,14 @@ def clear_checkpoint() -> None:
         CHECKPOINT_PATH.unlink()
 
 
-def save_run(title: str, article_url: str, data: Dict[str, Any], token_summary: Optional[Dict[str, Any]] = None) -> None:
+def save_run(title: str, article_url: str, data: Dict[str, Any], token_summary: Optional[Dict[str, Any]] = None) -> int:
     ts = token_summary or {}
+    tags_list = data.get("tags", [])
+    tags_str = ",".join(str(t) for t in tags_list) if isinstance(tags_list, list) else ""
     with _connect() as conn:
-        conn.execute(
-            "INSERT INTO runs (timestamp, title, article_url, data_json, tokens_in, tokens_out, cost_usd) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        cursor = conn.execute(
+            "INSERT INTO runs (timestamp, title, article_url, data_json, tokens_in, tokens_out, cost_usd, tags) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 datetime.now().isoformat(),
                 title,
@@ -177,8 +260,10 @@ def save_run(title: str, article_url: str, data: Dict[str, Any], token_summary: 
                 ts.get("input_tokens", 0),
                 ts.get("output_tokens", 0),
                 ts.get("estimated_cost_usd", 0),
+                tags_str,
             ),
         )
+        return int(cursor.lastrowid)
 
 
 def _get_social_payload(source_data: Dict[str, Any], lang: str) -> Dict[str, Any]:
@@ -194,12 +279,7 @@ def _get_social_payload(source_data: Dict[str, Any], lang: str) -> Dict[str, Any
 
 
 def _count_social_posts(payload: Dict[str, Any]) -> int:
-    total = 0
-    for value in payload.values():
-        if not value or not isinstance(value, str):
-            continue
-        total += len([part for part in value.split("\n---\n") if part.strip()])
-    return total
+    return sum(1 for v in payload.values() if v and isinstance(v, str) and v.strip())
 
 
 def _marketing_summary(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -251,7 +331,7 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
         runs = [
             dict(r)
             for r in conn.execute(
-                "SELECT id, timestamp, title, article_url, tokens_in, tokens_out, cost_usd, data_json "
+                "SELECT id, timestamp, title, article_url, tokens_in, tokens_out, cost_usd, data_json, tags "
                 "FROM runs ORDER BY timestamp DESC"
             ).fetchall()
         ]
@@ -301,6 +381,27 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
     this_month = datetime.now().strftime("%Y-%m")
     monthly_runs = [r for r in runs if r["timestamp"].startswith(this_month)]
 
+    # Tag distribution — count by primary tag (first) and total appearances
+    tag_primary: Dict[str, int] = {}
+    tag_total: Dict[str, int] = {}
+    for run in runs:
+        tags_str = run.get("tags", "") or ""
+        if not tags_str:
+            # Fall back to data_json for older runs without tags column populated
+            try:
+                d = json.loads(run.get("data_json") or "{}")
+                tags_list = d.get("tags", [])
+                if isinstance(tags_list, list):
+                    tags_str = ",".join(str(t) for t in tags_list)
+            except Exception:
+                pass
+        if tags_str:
+            parts = [t.strip() for t in tags_str.split(",") if t.strip()]
+            for i, tag in enumerate(parts[:2]):
+                tag_total[tag] = tag_total.get(tag, 0) + 1
+                if i == 0:
+                    tag_primary[tag] = tag_primary.get(tag, 0) + 1
+
     result = {
         "articles_total": len(articles),
         "articles_covered": len(covered),
@@ -314,6 +415,8 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
         "total_image_count": total_image_count,
         "image_cost_by_source": img_by_source,
         "platform_counts": platforms,
+        "tag_primary_counts": tag_primary,
+        "tag_total_counts": tag_total,
         "repurpose_queue": repurpose_queue[:20],
         "recent_runs": [
             {
@@ -322,8 +425,9 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
                 "timestamp": r["timestamp"],
                 "article_url": r["article_url"],
                 "cost_usd": r["cost_usd"],
+                "tags": r.get("tags", "") or "",
             }
-            for r in runs[:15]
+            for r in runs[:5]
         ],
     }
     _dashboard_cache["key"] = cache_key
@@ -335,7 +439,7 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
 def list_history_runs(limit: int = 50) -> List[Dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT id, timestamp, title, article_url, tokens_in, tokens_out, cost_usd "
+            "SELECT id, timestamp, title, article_url, tokens_in, tokens_out, cost_usd, tags "
             "FROM runs ORDER BY id DESC LIMIT ?",
             (limit,),
         ).fetchall()
@@ -348,6 +452,7 @@ def list_history_runs(limit: int = 50) -> List[Dict[str, Any]]:
             "tokens_in": r["tokens_in"] or 0,
             "tokens_out": r["tokens_out"] or 0,
             "cost_usd": r["cost_usd"] or 0,
+            "tags": r["tags"] or "",
         }
         for r in rows
     ]
@@ -587,6 +692,141 @@ def _find_duplicate_idea_id(existing_themes: Dict[str, int], theme: str) -> Opti
     return None
 
 
+def save_quotes(run_id: int, article_title: str, article_url: str, quotes: List[Dict[str, Any]]) -> List[int]:
+    """Save extracted quotes for a run. Returns list of inserted IDs."""
+    now = datetime.now().isoformat()
+    ids = []
+    with _connect() as conn:
+        for q in quotes:
+            cursor = conn.execute(
+                "INSERT INTO article_quotes (run_id, timestamp, article_title, article_url, quote_text, context, quote_type) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (run_id, now, article_title, article_url, q.get("quote_text") or q.get("quote", ""), q.get("context", ""), q.get("quote_type") or q.get("type", "insight")),
+            )
+            ids.append(int(cursor.lastrowid))
+    return ids
+
+
+def list_quote_runs(limit: int = 50) -> List[Dict[str, Any]]:
+    """Return distinct runs that have quotes, with count."""
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT run_id, article_title, article_url, MIN(timestamp) as timestamp, COUNT(*) as quote_count "
+            "FROM article_quotes GROUP BY run_id ORDER BY MIN(timestamp) DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_quotes_for_run(run_id: int) -> List[Dict[str, Any]]:
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM article_quotes WHERE run_id=? ORDER BY id ASC", (run_id,)
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def update_quote(quote_id: int, shared: Optional[bool] = None, signal: Optional[str] = None,
+                 linkedin: Optional[str] = None, threads: Optional[str] = None, instagram: Optional[str] = None) -> None:
+    fields, vals = [], []
+    if shared is not None:
+        fields.append("shared=?"); vals.append(1 if shared else 0)
+    if signal is not None:
+        fields.append("signal=?"); vals.append(signal)
+    if linkedin is not None:
+        fields.append("linkedin_post=?"); vals.append(linkedin)
+    if threads is not None:
+        fields.append("threads_post=?"); vals.append(threads)
+    if instagram is not None:
+        fields.append("instagram_post=?"); vals.append(instagram)
+    if not fields:
+        return
+    vals.append(quote_id)
+    with _connect() as conn:
+        conn.execute(f"UPDATE article_quotes SET {', '.join(fields)} WHERE id=?", vals)
+
+
+def delete_quote(quote_id: int) -> None:
+    with _connect() as conn:
+        conn.execute("DELETE FROM article_quotes WHERE id=?", (quote_id,))
+
+
+def save_substack_batch(notes: List[Dict[str, Any]]) -> int:
+    """Save a generated batch of notes. Returns the batch id."""
+    now = datetime.now().isoformat()
+    with _connect() as conn:
+        cursor = conn.execute(
+            "INSERT INTO substack_batches (timestamp, note_count) VALUES (?, ?)",
+            (now, len(notes)),
+        )
+        batch_id = int(cursor.lastrowid)
+        for note in notes:
+            conn.execute(
+                "INSERT INTO substack_notes (batch_id, timestamp, issue, intent, note_text) VALUES (?, ?, ?, ?, ?)",
+                (batch_id, now, note.get("issue", ""), note.get("intent", ""), note.get("note_text", "")),
+            )
+    return batch_id
+
+
+def list_substack_batches() -> List[Dict[str, Any]]:
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT b.id, b.timestamp, b.note_count, "
+            "SUM(CASE WHEN n.shared=1 THEN 1 ELSE 0 END) as shared_count, "
+            "SUM(CASE WHEN n.signal='positive' THEN 1 ELSE 0 END) as positive_count "
+            "FROM substack_batches b "
+            "LEFT JOIN substack_notes n ON n.batch_id = b.id "
+            "GROUP BY b.id ORDER BY b.id DESC"
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_substack_notes(batch_id: int) -> List[Dict[str, Any]]:
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM substack_notes WHERE batch_id=? ORDER BY id ASC",
+            (batch_id,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def update_substack_note(note_id: int, shared: Optional[bool] = None, signal: Optional[str] = None, note_text: Optional[str] = None) -> None:
+    fields, vals = [], []
+    if shared is not None:
+        fields.append("shared=?")
+        vals.append(1 if shared else 0)
+    if signal is not None:
+        fields.append("signal=?")
+        vals.append(signal)
+    if note_text is not None:
+        fields.append("note_text=?")
+        vals.append(note_text)
+    if not fields:
+        return
+    vals.append(note_id)
+    with _connect() as conn:
+        conn.execute(f"UPDATE substack_notes SET {', '.join(fields)} WHERE id=?", vals)
+
+
+def save_substack_repurpose(note_id: int, linkedin: str, threads: str, instagram: str) -> None:
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE substack_notes SET linkedin_post=?, threads_post=?, instagram_post=? WHERE id=?",
+            (linkedin, threads, instagram, note_id),
+        )
+
+
+def delete_substack_note(note_id: int) -> None:
+    with _connect() as conn:
+        conn.execute("DELETE FROM substack_notes WHERE id=?", (note_id,))
+
+
+def delete_substack_batch(batch_id: int) -> None:
+    with _connect() as conn:
+        conn.execute("DELETE FROM substack_notes WHERE batch_id=?", (batch_id,))
+        conn.execute("DELETE FROM substack_batches WHERE id=?", (batch_id,))
+
+
 def _parse_article_date(value: str):
     try:
         return parsedate_to_datetime(value)
@@ -598,3 +838,84 @@ def _dashboard_cache_key(articles: List[Dict[str, Any]]) -> Tuple[Any, ...]:
     db_mtime = HISTORY_DB_PATH.stat().st_mtime if HISTORY_DB_PATH.exists() else 0.0
     article_fingerprint = tuple((a.get("url", ""), a.get("published", "")) for a in articles[:50])
     return (db_mtime, len(articles), article_fingerprint)
+
+
+# ── Scheduled posts ────────────────────────────────────────────────────────────
+
+def create_scheduled_post(
+    platform: str,
+    text: str,
+    scheduled_at: str,
+    image_url: str = "",
+    source_label: str = "",
+    timezone: str = "",
+    note_id: Optional[int] = None,
+) -> int:
+    """Store a post to be published at scheduled_at (UTC ISO string). Returns the id."""
+    now = datetime.utcnow().isoformat()
+    with _connect() as conn:
+        cursor = conn.execute(
+            "INSERT INTO scheduled_posts (platform, text, image_url, scheduled_at, source_label, timezone, note_id, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (platform, text, image_url, scheduled_at, source_label, timezone, note_id, now),
+        )
+        return int(cursor.lastrowid)
+
+
+def list_scheduled_posts(status: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    """List scheduled posts, optionally filtered by status, newest scheduled_at first."""
+    sql = """
+        SELECT sp.*, sn.signal AS note_signal
+        FROM scheduled_posts sp
+        LEFT JOIN substack_notes sn ON sp.note_id = sn.id
+        {where}
+        ORDER BY sp.scheduled_at ASC LIMIT ?
+    """
+    with _connect() as conn:
+        if status:
+            rows = conn.execute(
+                sql.format(where="WHERE sp.status=?"), (status, limit)
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                sql.format(where=""), (limit,)
+            ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_due_scheduled_posts() -> List[Dict[str, Any]]:
+    """Return pending posts whose scheduled_at (UTC) has passed."""
+    now = datetime.utcnow().isoformat()
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM scheduled_posts WHERE status='pending' AND scheduled_at <= ? ORDER BY scheduled_at ASC",
+            (now,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def update_scheduled_post_status(
+    post_id: int,
+    status: str,
+    post_id_result: str = "",
+    error: str = "",
+) -> None:
+    published_at = datetime.now().isoformat() if status == "published" else ""
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE scheduled_posts SET status=?, post_id=?, error=?, published_at=? WHERE id=?",
+            (status, post_id_result, error, published_at, post_id),
+        )
+
+
+def cancel_scheduled_post(post_id: int) -> None:
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE scheduled_posts SET status='cancelled' WHERE id=? AND status='pending'",
+            (post_id,),
+        )
+
+
+def delete_scheduled_post(post_id: int) -> None:
+    with _connect() as conn:
+        conn.execute("DELETE FROM scheduled_posts WHERE id=?", (post_id,))

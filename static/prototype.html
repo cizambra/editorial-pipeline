@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Style Prototypes — Self Disciplined</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background: #111;
+      color: #fff;
+      padding: 40px 32px;
+      min-height: 100vh;
+    }
+
+    .picker-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .picker-header h1 {
+      font: 800 22px/1 "Montserrat", sans-serif;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .picker-header p {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .styles-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .style-card {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+
+    .style-card:hover {
+      border-color: #fff3;
+      transform: translateY(-2px);
+    }
+
+    .style-label {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #1a1a1a;
+    }
+
+    .style-label strong {
+      font: 700 13px/1 "Inter", sans-serif;
+      color: #fff;
+    }
+
+    .style-label span {
+      font-size: 11px;
+      color: #666;
+    }
+
+    .style-preview {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ============================================================
+       STYLE 1 — CLEAN & MINIMAL (Linear / Notion)
+    ============================================================ */
+    .s1 {
+      --bg: #f7f7f6;
+      --panel: #ffffff;
+      --sidebar-bg: #ffffff;
+      --sidebar-border: #e8e8e6;
+      --ink: #1a1a18;
+      --muted: #8c8c8a;
+      --line: #e8e8e6;
+      --accent: #c4522a;
+      --accent-soft: rgba(196,82,42,0.08);
+      --nav-bg: #f7f7f6;
+      --r: 6px;
+      font-family: "Inter", sans-serif;
+      background: var(--bg);
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .s1 .sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .s1 .brand {
+      padding: 0 16px 20px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 16px;
+    }
+
+    .s1 .brand-kicker {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .s1 .brand-name {
+      font: 700 13px/1.2 "Inter", sans-serif;
+      color: var(--ink);
+    }
+
+    .s1 .brand-name span { color: var(--accent); }
+
+    .s1 .nav-section {
+      padding: 0 8px;
+      margin-bottom: 16px;
+    }
+
+    .s1 .nav-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 8px;
+      margin-bottom: 4px;
+    }
+
+    .s1 .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: 0.1s;
+    }
+
+    .s1 .nav-item.active {
+      background: var(--accent-soft);
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .s1 .nav-item .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: var(--line);
+      flex-shrink: 0;
+    }
+
+    .s1 .nav-item.active .dot {
+      background: var(--accent);
+    }
+
+    .s1 .main {
+      flex: 1;
+      overflow: hidden;
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .s1 .page-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .s1 .page-title {
+      font: 700 15px/1 "Inter", sans-serif;
+      color: var(--ink);
+    }
+
+    .s1 .page-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .s1 .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+
+    .s1 .tab-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      padding: 0 16px;
+    }
+
+    .s1 .tabs {
+      display: flex;
+    }
+
+    .s1 .tab {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      padding: 10px 12px;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .s1 .tab.active {
+      color: var(--ink);
+      font-weight: 600;
+      border-bottom-color: var(--accent);
+    }
+
+    .s1 .lang-seg {
+      display: flex;
+      gap: 2px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 3px;
+    }
+
+    .s1 .lang-btn {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 3px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .s1 .lang-btn.active {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .s1 .card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .s1 .section-head {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .s1 .article-title {
+      font: 600 14px/1.4 "Inter", sans-serif;
+      color: var(--ink);
+    }
+
+    .s1 .article-body {
+      font-size: 11px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .s1 .meta-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .s1 .badge {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .s1 .badge-ok {
+      background: #e8f5ee;
+      color: #1c7c52;
+    }
+
+    .s1 .badge-accent {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .s1 .divider { height: 1px; background: var(--line); }
+
+    .s1 .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .s1 .col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .s1 .text-block {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      padding: 10px 12px;
+      font-size: 10px;
+      line-height: 1.6;
+      color: #555;
+    }
+
+    .s1 .mini-action {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .s1 .soc-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 10px 12px 0;
+    }
+
+    .s1 .soc-tab {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .s1 .soc-tab.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .s1 .status-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(196,82,42,0.15);
+    }
+
+    .s1 .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .s1 .status-text {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* ============================================================
+       STYLE 2 — BOLD EDITORIAL
+    ============================================================ */
+    .s2 {
+      --bg: #f2ede4;
+      --panel: #faf7f2;
+      --ink: #0d0d0b;
+      --muted: #6b6456;
+      --line: #d8d0c2;
+      --accent: #c4522a;
+      font-family: "Inter", sans-serif;
+      background: var(--bg);
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .s2 .sidebar {
+      width: 52px;
+      flex-shrink: 0;
+      background: #0d0d0b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      gap: 4px;
+    }
+
+    .s2 .brand-mark {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 900 12px "Montserrat", sans-serif;
+      color: #fff;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    .s2 .nav-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .s2 .nav-dot.active {
+      background: rgba(196,82,42,0.25);
+    }
+
+    .s2 .nav-dot-inner {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: #444;
+    }
+
+    .s2 .nav-dot.active .nav-dot-inner {
+      background: var(--accent);
+    }
+
+    .s2 .main {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .s2 .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border-bottom: 2px solid var(--ink);
+      background: var(--panel);
+    }
+
+    .s2 .top-brand {
+      font: 900 12px/1 "Montserrat", sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .s2 .top-brand span { color: var(--accent); }
+
+    .s2 .top-nav {
+      display: flex;
+      gap: 0;
+    }
+
+    .s2 .top-nav-item {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      padding: 4px 12px;
+      border-right: 1px solid var(--line);
+      cursor: pointer;
+    }
+
+    .s2 .top-nav-item:last-child { border-right: 0; }
+    .s2 .top-nav-item.active { color: var(--ink); }
+
+    .s2 .content {
+      flex: 1;
+      overflow: hidden;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .s2 .headline-row {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    .s2 .section-kicker {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+    }
+
+    .s2 .section-title {
+      font: 900 20px/1 "Montserrat", sans-serif;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    .s2 .columns {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .s2 .card {
+      background: var(--panel);
+      border: 2px solid var(--ink);
+      overflow: hidden;
+    }
+
+    .s2 .card-head {
+      background: var(--ink);
+      color: #fff;
+      padding: 7px 12px;
+      font: 800 9px/1 "Montserrat", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .s2 .card-head.accent { background: var(--accent); }
+
+    .s2 .card-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .s2 .stage-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .s2 .stage-row:last-child { border-bottom: 0; }
+
+    .s2 .stage-num {
+      font: 800 10px/1 "Montserrat", sans-serif;
+      color: var(--muted);
+      width: 16px;
+    }
+
+    .s2 .stage-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+      flex: 1;
+    }
+
+    .s2 .stage-status {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #1c7c52;
+    }
+
+    .s2 .stage-status.pending { color: var(--muted); }
+
+    .s2 .tab-row {
+      display: flex;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .s2 .tab {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 8px 12px;
+      color: var(--muted);
+      cursor: pointer;
+      border-right: 1px solid var(--line);
+    }
+
+    .s2 .tab:last-child { border-right: 0; }
+
+    .s2 .tab.active {
+      color: var(--ink);
+      background: rgba(196,82,42,0.08);
+      border-bottom: 2px solid var(--accent);
+      margin-bottom: -2px;
+    }
+
+    .s2 .article-title {
+      font: 700 12px/1.4 "Montserrat", sans-serif;
+      color: var(--ink);
+    }
+
+    .s2 .article-body {
+      font-size: 10px;
+      line-height: 1.7;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .s2 .lang-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .s2 .lang-pill {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 7px;
+      border: 2px solid var(--ink);
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .s2 .lang-pill.active {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .s2 .accent-bar {
+      height: 3px;
+      background: var(--accent);
+      width: 40px;
+      margin-bottom: 6px;
+    }
+
+    .s2 .soc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .s2 .soc-item {
+      border: 1px solid var(--line);
+      padding: 7px 8px;
+    }
+
+    .s2 .soc-platform {
+      font: 800 8px/1 "Montserrat", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .s2 .soc-text {
+      font-size: 9px;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+
+    /* ============================================================
+       STYLE 3 — WARM & REFINED (Substack-like)
+    ============================================================ */
+    .s3 {
+      --bg: #f9f4ec;
+      --panel: rgba(255,252,245,0.9);
+      --panel-2: #fffdf8;
+      --ink: #1e1610;
+      --muted: #7a6a58;
+      --line: rgba(80,56,28,0.12);
+      --accent: #c4522a;
+      --accent-soft: rgba(196,82,42,0.09);
+      font-family: "Inter", sans-serif;
+      background: var(--bg);
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .s3 .sidebar {
+      width: 190px;
+      flex-shrink: 0;
+      background: #2a1e14;
+      padding: 18px 0 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .s3 .brand {
+      padding: 0 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 14px;
+    }
+
+    .s3 .brand-kicker {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 4px;
+    }
+
+    .s3 .brand-name {
+      font: 800 14px/1 "Montserrat", sans-serif;
+      color: #fff;
+    }
+
+    .s3 .brand-name span { color: #e87040; }
+
+    .s3 .nav-group { padding: 0 8px; margin-bottom: 14px; }
+
+    .s3 .nav-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.28);
+      padding: 0 8px;
+      margin-bottom: 3px;
+    }
+
+    .s3 .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .s3 .nav-item.active {
+      background: rgba(232,112,64,0.18);
+    }
+
+    .s3 .nav-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+
+    .s3 .nav-item.active .nav-icon { background: #e87040; }
+
+    .s3 .nav-text strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .s3 .nav-text small {
+      display: block;
+      font-size: 10px;
+      color: rgba(255,255,255,0.3);
+      margin-top: 1px;
+    }
+
+    .s3 .nav-item.active .nav-text strong { color: #fff; }
+
+    .s3 .main {
+      flex: 1;
+      overflow: hidden;
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .s3 .page-header {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+
+    .s3 .rail-kicker {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .s3 .page-title {
+      font: 800 17px/1.2 "Montserrat", sans-serif;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+
+    .s3 .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(60,36,12,0.06);
+    }
+
+    .s3 .tab-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 16px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .s3 .tabs {
+      display: flex;
+    }
+
+    .s3 .tab {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 10px 12px;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .s3 .tab.active {
+      color: var(--ink);
+      border-bottom-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .s3 .lang-seg {
+      display: flex;
+      gap: 3px;
+      background: var(--line);
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .s3 .lang-btn {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 3px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .s3 .lang-btn.active {
+      background: var(--panel-2);
+      color: var(--ink);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .s3 .card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .s3 .article-meta {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .s3 .article-title {
+      font: 700 13px/1.4 "Montserrat", sans-serif;
+      color: var(--ink);
+    }
+
+    .s3 .article-body {
+      font-size: 11px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .s3 .divider { height: 1px; background: var(--line); }
+
+    .s3 .row { display: flex; gap: 12px; }
+    .s3 .col { flex: 1; min-width: 0; }
+
+    .s3 .mini-card {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .s3 .mini-card-head {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .s3 .mini-card-text {
+      font-size: 10px;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+
+    .s3 .soc-tabs {
+      display: flex;
+      gap: 5px;
+    }
+
+    .s3 .soc-tab {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .s3 .soc-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .s3 .text-area-mock {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 10px;
+      line-height: 1.6;
+      color: var(--muted);
+      min-height: 60px;
+    }
+
+    /* ============================================================
+       STYLE 4 — DARK FIRST MODERN
+    ============================================================ */
+    .s4 {
+      --bg: #0e0c0a;
+      --panel: rgba(28,22,16,0.9);
+      --panel-2: #201810;
+      --panel-3: rgba(255,255,255,0.04);
+      --ink: #f0e8df;
+      --muted: #8a7a6a;
+      --line: rgba(255,200,140,0.08);
+      --line-strong: rgba(255,200,140,0.14);
+      --accent: #f07030;
+      --accent-soft: rgba(240,112,48,0.12);
+      --accent-glow: rgba(240,112,48,0.2);
+      font-family: "Inter", sans-serif;
+      background: var(--bg);
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .s4 .sidebar {
+      width: 190px;
+      flex-shrink: 0;
+      background: rgba(16,12,8,0.95);
+      border-right: 1px solid var(--line);
+      padding: 16px 0 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .s4 .brand {
+      padding: 0 14px 14px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 14px;
+    }
+
+    .s4 .brand-kicker {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .s4 .brand-name {
+      font: 800 14px/1 "Montserrat", sans-serif;
+      color: var(--ink);
+    }
+
+    .s4 .brand-name span { color: var(--accent); }
+
+    .s4 .nav-group { padding: 0 8px; margin-bottom: 14px; }
+
+    .s4 .nav-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      padding: 0 8px;
+      margin-bottom: 3px;
+      opacity: 0.6;
+    }
+
+    .s4 .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .s4 .nav-item.active {
+      background: var(--accent-soft);
+      border-color: rgba(240,112,48,0.2);
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .s4 .nav-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: var(--line-strong);
+      flex-shrink: 0;
+    }
+
+    .s4 .nav-item.active .nav-icon {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .s4 .nav-text strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(240,232,223,0.55);
+    }
+
+    .s4 .nav-text small {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .s4 .nav-item.active .nav-text strong { color: var(--ink); }
+
+    .s4 .main {
+      flex: 1;
+      overflow: hidden;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .s4 .page-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .s4 .rail-kicker {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+
+    .s4 .page-title {
+      font: 700 15px/1.2 "Inter", sans-serif;
+      color: var(--ink);
+    }
+
+    .s4 .card {
+      background: var(--panel);
+      border: 1px solid var(--line-strong);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .s4 .tab-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-3);
+    }
+
+    .s4 .tabs { display: flex; }
+
+    .s4 .tab {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      padding: 10px 12px;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .s4 .tab.active {
+      color: var(--ink);
+      border-bottom-color: var(--accent);
+    }
+
+    .s4 .lang-seg {
+      display: flex;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .s4 .lang-btn {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 4px 9px;
+      cursor: pointer;
+      border-right: 1px solid var(--line);
+    }
+
+    .s4 .lang-btn:last-child { border-right: 0; }
+
+    .s4 .lang-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .s4 .card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .s4 .article-meta {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+
+    .s4 .article-title {
+      font: 600 13px/1.4 "Inter", sans-serif;
+      color: var(--ink);
+    }
+
+    .s4 .article-body {
+      font-size: 10px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .s4 .divider { height: 1px; background: var(--line); }
+
+    .s4 .row { display: flex; gap: 12px; }
+    .s4 .col { flex: 1; min-width: 0; }
+
+    .s4 .glow-card {
+      background: var(--panel-2);
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      padding: 10px 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .s4 .glow-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.4;
+    }
+
+    .s4 .mini-head {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .s4 .mini-text {
+      font-size: 10px;
+      line-height: 1.6;
+      color: var(--ink);
+      opacity: 0.8;
+    }
+
+    .s4 .soc-tabs {
+      display: flex;
+      gap: 4px;
+    }
+
+    .s4 .soc-tab {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 5px;
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .s4 .soc-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .s4 .text-area-mock {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 10px;
+      line-height: 1.6;
+      color: var(--muted);
+      min-height: 54px;
+    }
+
+    .s4 .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(240,112,48,0.2);
+      border-radius: 6px;
+    }
+
+    .s4 .status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    .s4 .status-text {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="picker-header">
+    <h1>Style Prototypes — Pipeline Results View</h1>
+    <p>Same view, four directions. Click any to zoom.</p>
+  </div>
+
+  <div class="styles-grid">
+
+    <!-- STYLE 1: Clean & Minimal -->
+    <div class="style-card" onclick="zoom(1)">
+      <div class="style-label">
+        <strong>A — Clean &amp; Minimal</strong>
+        <span>Linear / Notion</span>
+      </div>
+      <div class="style-preview">
+        <div class="s1" style="height:100%;">
+          <div class="sidebar">
+            <div class="brand">
+              <div class="brand-kicker">Editorial system</div>
+              <div class="brand-name">self<span>disciplined</span></div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-label">Production</div>
+              <div class="nav-item active"><div class="dot"></div>Pipeline</div>
+              <div class="nav-item"><div class="dot"></div>Marketing</div>
+              <div class="nav-item"><div class="dot"></div>Companion</div>
+              <div class="nav-item"><div class="dot"></div>Thumbnail</div>
+            </div>
+            <div class="nav-section">
+              <div class="nav-label">Operations</div>
+              <div class="nav-item"><div class="dot"></div>Dashboard</div>
+              <div class="nav-item"><div class="dot"></div>Settings</div>
+              <div class="nav-item"><div class="dot"></div>History</div>
+            </div>
+          </div>
+          <div class="main">
+            <div class="page-header">
+              <div class="page-title">Pipeline results</div>
+              <div class="page-sub">Run #48 · 4 min ago</div>
+            </div>
+            <div class="card">
+              <div class="tab-row">
+                <div class="tabs">
+                  <div class="tab">Related</div>
+                  <div class="tab active">Reflection</div>
+                  <div class="tab">Companion</div>
+                  <div class="tab">Marketing</div>
+                </div>
+                <div class="lang-seg">
+                  <div class="lang-btn active">EN</div>
+                  <div class="lang-btn">ES</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="status-row">
+                  <div class="status-dot"></div>
+                  <div class="status-text">All tasks complete</div>
+                  <div class="mini-action" style="margin-left:auto;">View run ↗</div>
+                </div>
+                <div class="divider"></div>
+                <div class="section-head">Reflection · English</div>
+                <div class="article-title">The discipline of building in silence: why the best creative work happens before the audience shows up</div>
+                <div class="article-body">Most creators try to build their audience before they've built the thing worth following. The real leverage is in the other order — ship quietly, compound privately, then emerge with something undeniable.</div>
+                <div class="meta-row">
+                  <div class="badge badge-ok">Published</div>
+                  <div class="badge badge-accent">Reflection</div>
+                  <div class="badge badge-accent">5,400 words</div>
+                </div>
+                <div class="divider"></div>
+                <div class="section-head">Social posts</div>
+                <div class="soc-tabs">
+                  <div class="soc-tab active">LinkedIn</div>
+                  <div class="soc-tab">Instagram</div>
+                  <div class="soc-tab">Threads</div>
+                  <div class="soc-tab">Substack</div>
+                </div>
+                <div class="text-block">Most people try to build their audience before they've built the thing worth following. The discipline is in the other order. Ship quietly. Compound privately. Then emerge with proof...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STYLE 2: Bold Editorial -->
+    <div class="style-card" onclick="zoom(2)">
+      <div class="style-label">
+        <strong>B — Bold Editorial</strong>
+        <span>Publishing-first, dense contrast</span>
+      </div>
+      <div class="style-preview">
+        <div class="s2" style="height:100%;">
+          <div class="sidebar">
+            <div class="brand-mark">SD</div>
+            <div class="nav-dot active"><div class="nav-dot-inner"></div></div>
+            <div class="nav-dot"><div class="nav-dot-inner"></div></div>
+            <div class="nav-dot"><div class="nav-dot-inner"></div></div>
+            <div class="nav-dot"><div class="nav-dot-inner"></div></div>
+            <div class="nav-dot"><div class="nav-dot-inner"></div></div>
+            <div class="nav-dot"><div class="nav-dot-inner"></div></div>
+          </div>
+          <div class="main">
+            <div class="top-bar">
+              <div class="top-brand">self<span>disciplined</span> / Pipeline</div>
+              <div class="top-nav">
+                <div class="top-nav-item active">Pipeline</div>
+                <div class="top-nav-item">Marketing</div>
+                <div class="top-nav-item">Companion</div>
+                <div class="top-nav-item">Settings</div>
+              </div>
+            </div>
+            <div class="content">
+              <div class="headline-row">
+                <div>
+                  <div class="section-kicker">Run #48 · completed</div>
+                  <div class="section-title">Pipeline results</div>
+                </div>
+                <div class="lang-row" style="margin-left:auto;align-self:flex-end;">
+                  <div class="lang-pill active">Original</div>
+                  <div class="lang-pill">Spanish</div>
+                </div>
+              </div>
+              <div class="columns">
+                <div class="card">
+                  <div class="card-head">Pipeline stages</div>
+                  <div class="card-body">
+                    <div class="stage-row">
+                      <div class="stage-num">01</div>
+                      <div class="stage-name">Related articles</div>
+                      <div class="stage-status">Done</div>
+                    </div>
+                    <div class="stage-row">
+                      <div class="stage-num">02</div>
+                      <div class="stage-name">Reflection</div>
+                      <div class="stage-status">Done</div>
+                    </div>
+                    <div class="stage-row">
+                      <div class="stage-num">03</div>
+                      <div class="stage-name">Companion</div>
+                      <div class="stage-status">Done</div>
+                    </div>
+                    <div class="stage-row">
+                      <div class="stage-num">04</div>
+                      <div class="stage-name">Social posts</div>
+                      <div class="stage-status">Done</div>
+                    </div>
+                    <div class="stage-row">
+                      <div class="stage-num">05</div>
+                      <div class="stage-name">Thumbnail</div>
+                      <div class="stage-status pending">Queued</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="tab-row">
+                    <div class="tab">Related</div>
+                    <div class="tab active">Reflection</div>
+                    <div class="tab">Companion</div>
+                    <div class="tab">Marketing</div>
+                  </div>
+                  <div class="card-body">
+                    <div class="accent-bar"></div>
+                    <div class="article-title">The discipline of building in silence: why the best creative work happens before the audience shows up</div>
+                    <div class="article-body">Most creators try to build their audience before they've built the thing worth following. The real leverage is in the other order — ship quietly, compound privately, then emerge with something undeniable.</div>
+                    <div class="soc-grid">
+                      <div class="soc-item">
+                        <div class="soc-platform">LinkedIn</div>
+                        <div class="soc-text">Most people try to build an audience before building the thing worth following. Real leverage is the other order...</div>
+                      </div>
+                      <div class="soc-item">
+                        <div class="soc-platform">Instagram</div>
+                        <div class="soc-text">Ship quietly. Compound privately. Emerge with proof. The sequence matters more than the content.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STYLE 3: Warm & Refined -->
+    <div class="style-card" onclick="zoom(3)">
+      <div class="style-label">
+        <strong>C — Warm &amp; Refined</strong>
+        <span>Substack-like · premium editorial</span>
+      </div>
+      <div class="style-preview">
+        <div class="s3" style="height:100%;">
+          <div class="sidebar">
+            <div class="brand">
+              <div class="brand-kicker">Editorial system</div>
+              <div class="brand-name">self<span>disciplined</span></div>
+            </div>
+            <div class="nav-group">
+              <div class="nav-label">Production</div>
+              <div class="nav-item active">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Pipeline</strong><small>Reflection to campaign</small></div>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Marketing</strong><small>Runs &amp; library</small></div>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Companion</strong><small>Paid companion only</small></div>
+              </div>
+            </div>
+            <div class="nav-group">
+              <div class="nav-label">Operations</div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Dashboard</strong></div>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Settings</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="main">
+            <div class="page-header">
+              <div class="rail-kicker">Run #48 · completed</div>
+              <div class="page-title">Pipeline results</div>
+            </div>
+            <div class="card">
+              <div class="tab-row">
+                <div class="tabs">
+                  <div class="tab">Related</div>
+                  <div class="tab active">Reflection</div>
+                  <div class="tab">Companion</div>
+                  <div class="tab">Marketing</div>
+                </div>
+                <div class="lang-seg">
+                  <div class="lang-btn active">Original</div>
+                  <div class="lang-btn">Spanish</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="article-meta">Reflection · English</div>
+                <div class="article-title">The discipline of building in silence: why the best creative work happens before the audience shows up</div>
+                <div class="article-body">Most creators try to build their audience before they've built the thing worth following. The real leverage is in the other order — ship quietly, compound privately, then emerge with something undeniable.</div>
+                <div class="divider"></div>
+                <div class="row">
+                  <div class="col">
+                    <div class="mini-card">
+                      <div class="mini-card-head">Social posts</div>
+                      <div class="soc-tabs" style="margin-bottom:8px;">
+                        <div class="soc-tab active">LinkedIn</div>
+                        <div class="soc-tab">Instagram</div>
+                        <div class="soc-tab">Threads</div>
+                      </div>
+                      <div class="mini-card-text">Most people try to build an audience before building the thing worth following. Real leverage is in the other order. Ship quietly. Compound privately. Emerge with proof...</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STYLE 4: Dark First Modern -->
+    <div class="style-card" onclick="zoom(4)">
+      <div class="style-label">
+        <strong>D — Dark-first Modern</strong>
+        <span>Dark base · orange accent</span>
+      </div>
+      <div class="style-preview">
+        <div class="s4" style="height:100%;">
+          <div class="sidebar">
+            <div class="brand">
+              <div class="brand-kicker">Editorial system</div>
+              <div class="brand-name">self<span>disciplined</span></div>
+            </div>
+            <div class="nav-group">
+              <div class="nav-label">Production</div>
+              <div class="nav-item active">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Pipeline</strong><small>Reflection to campaign</small></div>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Marketing</strong><small>Runs &amp; library</small></div>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Companion</strong><small>Paid companion only</small></div>
+              </div>
+            </div>
+            <div class="nav-group">
+              <div class="nav-label">Operations</div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Dashboard</strong></div>
+              </div>
+              <div class="nav-item">
+                <div class="nav-icon"></div>
+                <div class="nav-text"><strong>Settings</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="main">
+            <div class="page-header">
+              <div class="rail-kicker">Run #48</div>
+              <div class="page-title">Pipeline results</div>
+            </div>
+            <div class="card">
+              <div class="tab-row">
+                <div class="tabs">
+                  <div class="tab">Related</div>
+                  <div class="tab active">Reflection</div>
+                  <div class="tab">Companion</div>
+                  <div class="tab">Marketing</div>
+                </div>
+                <div class="lang-seg">
+                  <div class="lang-btn active">EN</div>
+                  <div class="lang-btn">ES</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="status-bar">
+                  <div class="status-dot"></div>
+                  <div class="status-text">All 5 tasks complete · 4 min ago</div>
+                </div>
+                <div class="divider"></div>
+                <div class="article-meta">Reflection · English</div>
+                <div class="article-title">The discipline of building in silence: why the best creative work happens before the audience shows up</div>
+                <div class="article-body">Most creators try to build their audience before they've built the thing worth following. The real leverage is the other order — ship quietly, compound privately, emerge with something undeniable.</div>
+                <div class="divider"></div>
+                <div class="row">
+                  <div class="col">
+                    <div class="glow-card">
+                      <div class="mini-head">Social posts</div>
+                      <div class="soc-tabs" style="margin-bottom:8px;">
+                        <div class="soc-tab active">LinkedIn</div>
+                        <div class="soc-tab">Instagram</div>
+                        <div class="soc-tab">Threads</div>
+                      </div>
+                      <div class="text-area-mock">Most people try to build an audience before building the thing worth following. Real leverage is in the other order...</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ZOOM OVERLAY -->
+  <div id="overlay" style="
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85);
+    z-index:100; align-items:center; justify-content:center; padding:40px;
+  " onclick="closeZoom()">
+    <div id="overlay-inner" style="
+      width:100%; max-width:1100px; height:85vh;
+      border-radius:16px; overflow:hidden; border:1px solid #333;
+    "></div>
+    <div style="position:fixed;top:20px;right:24px;font-size:12px;color:#888;">click anywhere to close</div>
+  </div>
+
+  <script>
+    const previews = document.querySelectorAll('.style-preview');
+
+    function zoom(n) {
+      const preview = previews[n - 1];
+      const inner = document.getElementById('overlay-inner');
+      inner.innerHTML = '';
+      const clone = preview.querySelector('[class^="s"]').cloneNode(true);
+      clone.style.height = '100%';
+      clone.style.width = '100%';
+      inner.appendChild(clone);
+      const ov = document.getElementById('overlay');
+      ov.style.display = 'flex';
+    }
+
+    function closeZoom() {
+      document.getElementById('overlay').style.display = 'none';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeZoom();
+    });
+  </script>
+</body>
+</html>

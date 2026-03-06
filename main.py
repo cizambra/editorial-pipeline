@@ -13,21 +13,27 @@ from pathlib import Path
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
 import re
 
 load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 import anthropic as _anthropic
 
+import uuid
 import scraper
+import imagen_client
 import generator
-import buffer_client
+import social_client
 import storage
+import substack_client
 
 # Shared Anthropic client for main.py endpoints (thumbnail concepts, Reddit analysis).
 # The beta header enables prompt caching so large stable system prompts are cached
@@ -37,7 +43,38 @@ _claude = _anthropic.Anthropic(
     default_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
 )
 
-app = FastAPI(title="Editorial Pipeline")
+# ── Background scheduler: publishes due social posts every minute ─────────────
+
+def _publish_due_posts() -> None:
+    due = storage.get_due_scheduled_posts()
+    for post in due:
+        try:
+            result = social_client.publish_post(
+                post["platform"], post["text"], post.get("image_url", "")
+            )
+            storage.update_scheduled_post_status(
+                post["id"], "published", post_id_result=result.get("post_id", "")
+            )
+            if post["platform"] == "substack_note" and post.get("note_id"):
+                storage.update_substack_note(post["note_id"], shared=True)
+        except Exception as e:
+            storage.update_scheduled_post_status(post["id"], "failed", error=str(e))
+
+
+_scheduler = BackgroundScheduler(timezone="UTC")
+_scheduler.add_job(_publish_due_posts, "interval", minutes=1, id="publish_due_posts")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    storage.init_db()
+    Path("static/generated").mkdir(parents=True, exist_ok=True)
+    _scheduler.start()
+    yield
+    _scheduler.shutdown(wait=False)
+
+
+app = FastAPI(title="Editorial Pipeline", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -55,14 +92,17 @@ _CHECKPOINT_PERSIST_KEYS = {
     "reflection_es",
     "companion_en",
     "companion_es",
+    "tags",
 }
 
 
 # Apply persisted overrides at startup
-storage.init_db()
 _startup_config = storage.load_config()
 if _startup_config:
-    generator.apply_config_overrides(_startup_config)
+    generator.apply_config_overrides({
+        k: v for k, v in _startup_config.items()
+        if k != "thumbnail_prompt"
+    })
 # --- Image pricing (gpt-image-1, 1536x1024) ----------------------------------
 # https://openai.com/api/pricing  (portrait/landscape sizes)
 _IMG_PRICE_MEDIUM = 0.063   # per image, medium quality
@@ -102,7 +142,8 @@ def _extract_file_metadata(filename: str, content: str) -> Dict[str, str]:
 
     if not title:
         stem = Path(filename or "document").stem
-        title = re.sub(r"[-_]+", " ", stem).strip().title()
+        words = re.sub(r"[-_]+", " ", stem).strip().split()
+        title = " ".join((w[0].upper() + w[1:]) if w else w for w in words)
 
     if not slug:
         slug = _slugify_text(title or Path(filename or "document").stem)
@@ -198,15 +239,23 @@ async def upload_template(file: UploadFile = File(...)):
 
 @app.get("/api/config")
 async def get_config():
-    return generator.get_current_prompts()
+    config = generator.get_current_prompts()
+    config["thumbnail_prompt"] = _CONCEPTS_SYSTEM
+    return config
 
 
 @app.post("/api/config")
 async def post_config(body: dict):
+    global _CONCEPTS_SYSTEM
     allowed = {"voice_brief", "companion_voice_brief", "spanish_style_guide", "tone_level", "platform_personas", "thumbnail_prompt"}
     filtered = {k: v for k, v in body.items() if k in allowed}
     storage.save_config(filtered)
-    generator.apply_config_overrides(filtered)
+    if "thumbnail_prompt" in filtered:
+        _CONCEPTS_SYSTEM = filtered["thumbnail_prompt"]
+    generator.apply_config_overrides({
+        k: v for k, v in filtered.items()
+        if k != "thumbnail_prompt"
+    })
     return {"message": "Config saved", "keys": list(filtered.keys())}
 
 
@@ -305,29 +354,150 @@ async def get_feedback_summary():
     return {"summary": storage.get_feedback_summary()}
 
 
-# --- Buffer ------------------------------------------------------------------
+# --- Social publishing -------------------------------------------------------
 
-@app.get("/api/buffer/profiles")
-async def get_buffer_profiles():
+@app.get("/api/social/status")
+async def get_social_status():
+    """Return which platforms are configured."""
+    return social_client.get_status()
+
+
+@app.get("/api/social/debug/threads")
+async def debug_threads():
+    """Diagnostic endpoint — makes a real Threads REST API request and returns details."""
+    import threads_client as _tc
+    session_id = os.getenv("THREADS_SESSION_ID", "")
     try:
-        profiles = buffer_client.get_profiles()
-        return {"profiles": profiles}
+        cookies = _tc._cookies()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Buffer API error: {str(e)}")
+        return {"error": f"Cookie build failed: {e}"}
+
+    kw = {"impersonate": _tc._IMPERSONATE} if _tc._IMPERSONATE else {}
+    try:
+        import time as _time
+        resp = _tc._req.post(
+            _tc._API_URL,
+            headers=_tc._headers(),
+            data={
+                "audience": "default",
+                "caption": "__debug_test__",
+                "publish_mode": "text_post",
+                "upload_id": str(int(_time.time() * 1000)),
+                "jazoest": _tc._jazoest(os.getenv("THREADS_CSRF_TOKEN", "")),
+                "text_post_app_info": '{"reply_control":0,"text_with_entities":{"entities":[],"text":"__debug_test__"}}',
+                "web_session_id": _tc._random_session_id(),
+            },
+            timeout=15,
+            **kw,
+        )
+        return {
+            "using_curl_cffi": _tc._IMPERSONATE is not None,
+            "endpoint": _tc._API_URL,
+            "ds_user_id": session_id.split("%3A")[0].split(":")[0] if session_id else "NOT SET",
+            "cookies_sent": cookies[:80] + "...",
+            "http_status": resp.status_code,
+            "content_type": resp.headers.get("content-type", ""),
+            "response_snippet": resp.text[:500],
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 
-@app.post("/api/buffer/queue")
-async def queue_to_buffer(body: dict):
-    """Add a single post to the Buffer queue (next available slot)."""
+@app.post("/api/social/publish")
+async def publish_to_social(body: dict):
+    """Publish a single post to a platform immediately."""
     platform = body.get("platform", "")
     text = body.get("text", "")
+    image_url = body.get("image_url", "")
     if not platform or not text:
         raise HTTPException(status_code=400, detail="platform and text are required")
     try:
-        result = buffer_client.queue_post(platform, text)
-        return {"message": "Queued successfully", "result": result}
+        result = social_client.publish_post(platform, text, image_url)
+        return {"message": "Published successfully", "result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/social/schedule")
+async def schedule_social_post(body: dict):
+    """Schedule a post for future publishing."""
+    platform = body.get("platform", "")
+    text = body.get("text", "")
+    scheduled_at = body.get("scheduled_at", "")   # UTC ISO datetime string
+    image_url = body.get("image_url", "")
+    source_label = body.get("source_label", "")
+    timezone_name = body.get("timezone", "")
+    note_id = body.get("note_id")
+    if not platform or not text or not scheduled_at:
+        raise HTTPException(status_code=400, detail="platform, text, and scheduled_at are required")
+    post_id = storage.create_scheduled_post(platform, text, scheduled_at, image_url, source_label, timezone_name, note_id)
+    return {"id": post_id, "scheduled_at": scheduled_at, "platform": platform}
+
+
+@app.get("/api/social/scheduled")
+async def list_scheduled():
+    """List all scheduled posts."""
+    return {"posts": storage.list_scheduled_posts()}
+
+
+@app.delete("/api/social/scheduled/{post_id}")
+async def cancel_scheduled(post_id: int):
+    storage.cancel_scheduled_post(post_id)
+    return {"ok": True}
+
+
+@app.delete("/api/social/scheduled/{post_id}/hard")
+async def delete_scheduled(post_id: int):
+    storage.delete_scheduled_post(post_id)
+    return {"ok": True}
+
+
+# --- Imagen ------------------------------------------------------------------
+
+@app.post("/api/imagen/generate")
+async def generate_imagen(body: dict):
+    """
+    Generate an Instagram image with Imagen 3.
+    Accepts { post_text, prompt, aspect_ratio }.
+    If prompt is omitted, Claude generates one from post_text.
+    Returns { local_url, prompt_used }.
+    """
+    if not imagen_client.is_configured():
+        raise HTTPException(status_code=400, detail="GOOGLE_API_KEY is not set in .env")
+
+    post_text: str = body.get("post_text", "")
+    prompt: str = body.get("prompt", "").strip()
+    aspect_ratio: str = body.get("aspect_ratio", "1:1")
+
+    if not prompt:
+        if not post_text:
+            raise HTTPException(status_code=400, detail="prompt or post_text required")
+        client = _anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=120,
+            messages=[{
+                "role": "user",
+                "content": (
+                    "Write a concise Imagen 3 prompt (max 60 words) for a photorealistic "
+                    "Instagram lifestyle photo that complements this post. "
+                    "Warm natural lighting, depth of field, authentic moment. "
+                    "No text, no words, no logos in the image.\n\nPost:\n" + post_text[:600]
+                ),
+            }],
+        )
+        prompt = msg.content[0].text.strip()
+
+    try:
+        image_bytes = imagen_client.generate_image(prompt, aspect_ratio=aspect_ratio)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    filename = uuid.uuid4().hex + ".jpg"
+    filepath = Path("static/generated") / filename
+    filepath.write_bytes(image_bytes)
+
+    return {"local_url": f"/static/generated/{filename}", "prompt_used": prompt}
 
 
 # --- Checkpoint --------------------------------------------------------------
@@ -634,6 +804,9 @@ Style constraints:
 - No complex decorative backgrounds.
 - Must feel like a stylized real-life moment.
 """
+
+if _startup_config and _startup_config.get("thumbnail_prompt"):
+    _CONCEPTS_SYSTEM = _startup_config["thumbnail_prompt"]
 
 _DALLE_STYLE_SUFFIX = (
     " Minimal 2-3 color palette (muted blues, coral, cream). "
@@ -1092,6 +1265,309 @@ async def save_ideas_batch(body: IdeasBatchSave):
     return storage.save_ideas_batch(body.categories, source="reddit")
 
 
+# --- Substack Notes -----------------------------------------------------------
+
+_SUBSTACK_SYSTEM_PROMPT = """You are writing Substack Notes for Camilo Zambrano in a "dinner table talk" voice (warm, grounded, plain language, like talking to a friend). Generate ONE cycle of 20 notes.
+
+FORMAT (must follow exactly for every note):
+🧩 Issue: <specific struggle>
+🎯 Intent: <one of: Validation | Education | Practice (Kata) | Reflection | Positive Alignment | Universal Model (A/B/C) | CDT | Metaphor>
+🪞 Note:
+<3–5 lines max, each line is one complete idea. No poetic line breaks. No clause-splitting for rhythm.>
+
+GLOBAL RULES (non-negotiable):
+- The Note MUST explicitly include the Issue context (so it can be posted as-is).
+- No "guru" tone, no therapy tone, no professor tone. Sounds like dinner table talk.
+- Avoid clichés. Avoid parallelism patterns. Avoid em dashes.
+- Avoid empty qualifiers (e.g., quietly, softly, subtly, gently, slowly, calmly, etc.) unless strictly necessary.
+- Avoid jargon (especially in CDT notes). If a technical word is used, it must be common and clearly understood.
+- Avoid starting every note with "You…". Vary openings naturally.
+- Metaphor notes: first name the struggle, THEN introduce the metaphor to illuminate it, and end with a grounded insight. Do not start with "It feels like…" unless the struggle is named first.
+
+CONTENT MIX (20 notes, roughly normal distribution — vary within these ranges):
+- CDT notes (2–3): aimed at founders/operators — organizational drift, leadership tension, unclear ownership, coordination breakdown, decision bottlenecks, shifting priorities, misaligned metrics, context gaps, team pace mismatch. Authority must be subtle: show accuracy, don't claim authority.
+- Metaphor notes (2–3): anchored and useful, not atmospheric.
+- Practice (Kata) notes (3–4): diverse katas (not just breathing). You may include known practices (physiological sigh, box breathing, 5-4-3-2-1, progressive muscle relaxation, orienting response, etc.) and must describe them enough to be usable immediately without turning into a tutorial.
+- Education notes (2–3): must explicitly name one mental model or neuroscience concept (e.g., Zeigarnik Effect, Negativity Bias, Switching Cost, Choice Overload, Cognitive Tunneling, Planning Fallacy, Window of Tolerance, Co-regulation, etc.) and explain it in plain language.
+- Positive Alignment notes (3–4): praise "micro-discipline" beyond conflict (autopilot interruptions like pantry/fridge/phone, closing tabs, picking up a small mess, putting something back, choosing the small version of a habit, etc.).
+- Reflection/Validation notes (3–4): personal, relatable, emotionally safe.
+- Universal Model notes (2–3): include at least one Level A, one Level B, one Level C across the set.
+  - A = lightly conceptual but simple.
+  - B = grounded, minimal theory language.
+  - C = fully human, no theory terms.
+
+ADDITIONAL CONTEXT FOR CDT NOTES:
+CDT assumes drift is present in all human systems (individuals, relationships, teams, orgs). Drift is not failure; it's data. Systems need detection and return loops. Apply this lens to companies and teams in a founder-friendly way.
+
+OUTPUT:
+Only output the 20 notes in the specified format. Separate notes with a blank line and "---". No preface, no explanation, no numbering."""
+
+
+def _parse_substack_notes(raw: str) -> List[Dict[str, Any]]:
+    """Parse the Claude response into a list of note dicts."""
+    notes = []
+    blocks = [b.strip() for b in raw.split("---") if b.strip()]
+    for block in blocks:
+        lines = block.splitlines()
+        issue, intent, note_lines = "", "", []
+        in_note = False
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("🧩 Issue:"):
+                issue = stripped[len("🧩 Issue:"):].strip()
+                in_note = False
+            elif stripped.startswith("🎯 Intent:"):
+                intent = stripped[len("🎯 Intent:"):].strip()
+                in_note = False
+            elif stripped.startswith("🪞 Note:"):
+                in_note = True
+                remainder = stripped[len("🪞 Note:"):].strip()
+                if remainder:
+                    note_lines.append(remainder)
+            elif in_note and stripped:
+                note_lines.append(stripped)
+        if issue and intent and note_lines:
+            notes.append({"issue": issue, "intent": intent, "note_text": "\n".join(note_lines)})
+    return notes
+
+
+@app.post("/api/substack-notes/generate")
+async def generate_substack_notes():
+    """Call Claude to generate a batch of 20 Substack notes, parse, and save."""
+    try:
+        response = _claude.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=4096,
+            system=_SUBSTACK_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": "Generate 20 Substack notes now."}],
+        )
+        raw = response.content[0].text if response.content else ""
+        notes = _parse_substack_notes(raw)
+        if not notes:
+            raise HTTPException(status_code=500, detail="Failed to parse any notes from Claude response.")
+        batch_id = storage.save_substack_batch(notes)
+        return {"ok": True, "batch_id": batch_id, "note_count": len(notes)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/substack-notes/batches")
+async def list_substack_batches():
+    return {"batches": storage.list_substack_batches()}
+
+
+@app.get("/api/substack-notes/batches/{batch_id}")
+async def get_substack_notes(batch_id: int):
+    return {"notes": storage.get_substack_notes(batch_id)}
+
+
+class SubstackNoteUpdate(BaseModel):
+    shared: Optional[bool] = None
+    signal: Optional[str] = None
+    note_text: Optional[str] = None
+
+
+@app.patch("/api/substack-notes/{note_id}")
+async def update_substack_note(note_id: int, body: SubstackNoteUpdate):
+    storage.update_substack_note(note_id, shared=body.shared, signal=body.signal, note_text=body.note_text)
+    return {"ok": True}
+
+
+@app.delete("/api/substack-notes/{note_id}")
+async def delete_substack_note(note_id: int):
+    storage.delete_substack_note(note_id)
+    return {"ok": True}
+
+
+@app.delete("/api/substack-notes/batches/{batch_id}")
+async def delete_substack_batch(batch_id: int):
+    storage.delete_substack_batch(batch_id)
+    return {"ok": True}
+
+
+@app.post("/api/substack-notes/{note_id}/repurpose")
+async def repurpose_substack_note(note_id: int):
+    """Adapt a Substack note into LinkedIn, Threads, and Instagram post formats."""
+    with storage._connect() as conn:
+        row = conn.execute("SELECT * FROM substack_notes WHERE id=?", (note_id,)).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Note not found")
+    note = dict(row)
+
+    prompt = f"""You are adapting a Substack Note written by Camilo Zambrano into three social media formats.
+
+ORIGINAL NOTE:
+Issue: {note['issue']}
+Intent: {note['intent']}
+Note:
+{note['note_text']}
+
+Produce exactly three sections in this format:
+
+LINKEDIN:
+<Professional LinkedIn post. 3-5 short paragraphs. Insightful, direct, no corporate fluff. Can include a brief hook line. Max 1500 chars. No hashtags.>
+
+THREADS:
+<Punchy Threads post. Conversational, single idea, max 400 chars. No hashtags.>
+
+INSTAGRAM:
+<Instagram caption. Engaging, warm, ends with a subtle call-to-action or reflection prompt. 150-300 chars. Then add 5-8 relevant hashtags on a new line.>
+
+Use the same "dinner table talk" voice as the original. Each format must stand alone — include the core insight without referencing the others. Output only the three labeled sections."""
+
+    try:
+        response = _claude.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = response.content[0].text if response.content else ""
+
+        def extract(label: str) -> str:
+            import re
+            m = re.search(rf"{label}:\s*\n([\s\S]*?)(?=\n(?:LINKEDIN|THREADS|INSTAGRAM):|$)", raw, re.IGNORECASE)
+            return m.group(1).strip() if m else ""
+
+        linkedin = extract("LINKEDIN")
+        threads = extract("THREADS")
+        instagram = extract("INSTAGRAM")
+
+        storage.save_substack_repurpose(note_id, linkedin, threads, instagram)
+        return {"ok": True, "linkedin": linkedin, "threads": threads, "instagram": instagram}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/substack-notes/{note_id}/promote")
+async def promote_substack_note_to_idea(note_id: int):
+    """Promote a note to the Ideas pool as an article prompt."""
+    with storage._connect() as conn:
+        row = conn.execute("SELECT * FROM substack_notes WHERE id=?", (note_id,)).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Note not found")
+    note = dict(row)
+    idea_id = storage.create_idea(
+        theme=note["issue"],
+        category="Substack Note",
+        emoji="📝",
+        article_angle=f"[{note['intent']}] {note['note_text'][:120]}",
+        source="substack_note",
+    )
+    return {"ok": True, "idea_id": idea_id}
+
+
+# --- Substack connection test ------------------------------------------------
+
+@app.post("/api/substack/test")
+async def test_substack_connection():
+    """Verify the SUBSTACK_SESSION_COOKIE is valid."""
+    try:
+        result = substack_client.test_connection()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# --- Quotes API --------------------------------------------------------------
+
+@app.get("/api/quotes")
+async def list_quote_runs():
+    """List all runs that have extracted quotes, newest first."""
+    return {"runs": storage.list_quote_runs()}
+
+
+@app.get("/api/quotes/{run_id}")
+async def get_quotes_for_run(run_id: int):
+    """Get all quotes for a specific run."""
+    return {"quotes": storage.get_quotes_for_run(run_id)}
+
+
+class QuoteUpdate(BaseModel):
+    shared: Optional[bool] = None
+    signal: Optional[str] = None
+
+
+@app.patch("/api/quotes/{quote_id}")
+async def update_quote(quote_id: int, body: QuoteUpdate):
+    updates = {}
+    if body.shared is not None:
+        updates["shared"] = 1 if body.shared else 0
+    if body.signal is not None:
+        updates["signal"] = body.signal
+    if updates:
+        storage.update_quote(quote_id, **updates)
+    return {"ok": True}
+
+
+class QuoteRepurposeRequest(BaseModel):
+    quote_text: str
+    context: str = ""
+    article_title: str = ""
+    article_url: str = ""
+
+
+@app.post("/api/quotes/{quote_id}/repurpose")
+async def repurpose_quote(quote_id: int, body: QuoteRepurposeRequest):
+    """Generate LinkedIn, Threads, and Instagram posts from a quote."""
+    try:
+        prompt = (
+            f"Turn this quote into short social media posts.\n\n"
+            f"Quote: \"{body.quote_text}\"\n"
+            f"Context: {body.context}\n"
+            f"Article: {body.article_title}\n\n"
+            + generator.VOICE_BRIEF +
+            "\nWrite three posts:\n\n"
+            "LINKEDIN:\n"
+            "1,000–1,500 characters. Expand on the idea with a professional angle. "
+            "No hashtags.\n\n"
+            "THREADS:\n"
+            "Under 400 characters. Sharp, standalone. No hashtags.\n\n"
+            "INSTAGRAM:\n"
+            "150–300 characters. Hook-first. End with 5–8 targeted hashtags on a new line.\n\n"
+            "Format your response EXACTLY as:\n"
+            "LINKEDIN:\n[post text]\n\nTHREADS:\n[post text]\n\nINSTAGRAM:\n[post text]"
+        )
+        response = _claude.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1200,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = response.content[0].text
+
+        def extract(label: str) -> str:
+            m = re.search(rf"{label}:\s*\n([\s\S]*?)(?=\n(?:LINKEDIN|THREADS|INSTAGRAM):|$)", raw, re.IGNORECASE)
+            return m.group(1).strip() if m else ""
+
+        linkedin = extract("LINKEDIN")
+        threads = extract("THREADS")
+        instagram = extract("INSTAGRAM")
+
+        storage.update_quote(quote_id, linkedin=linkedin, threads=threads, instagram=instagram)
+        return {"ok": True, "linkedin": linkedin, "threads": threads, "instagram": instagram}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/quotes/{quote_id}/promote")
+async def promote_quote_to_idea(quote_id: int):
+    """Promote a quote to the Ideas pool."""
+    with storage._connect() as conn:
+        row = conn.execute("SELECT * FROM article_quotes WHERE id=?", (quote_id,)).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    q = dict(row)
+    idea_id = storage.create_idea(
+        theme=q["article_title"] or "Quote",
+        category="Quote",
+        emoji="💬",
+        article_angle=q["quote_text"][:200],
+        source="quote",
+    )
+    return {"ok": True, "idea_id": idea_id}
+
+
 # --- Pipeline core -----------------------------------------------------------
 
 def _build_pipeline_stream(
@@ -1180,41 +1656,42 @@ def _build_pipeline_stream(
 
             if final_result:
                 try:
-                    storage.save_run(reflection_title, article_url, final_result, token_summary)
+                    run_id = storage.save_run(reflection_title, article_url, final_result, token_summary)
+                    quotes = final_result.get("quotes") or []
+                    if quotes:
+                        storage.save_quotes(run_id, reflection_title, article_url, quotes)
                 except Exception:
                     pass
 
             # Emit token summary so the UI can display cost
             yield f"event: tokens\ndata: {json.dumps(token_summary)}\n\n"
 
-            # Optionally schedule to Buffer
+            # Optionally publish to social platforms
             if schedule_to_buffer and final_result:
-                yield f"event: progress\ndata: {json.dumps({'message': 'Scheduling to Buffer...', 'done': False})}\n\n"
+                yield f"event: progress\ndata: {json.dumps({'message': 'Publishing to social platforms...', 'done': False})}\n\n"
                 try:
-                    reflection_hour, reflection_min = map(int, REFLECTION_TIME.split(":"))
-                    companion_hour, companion_min = map(int, COMPANION_TIME.split(":"))
-                    reflection_date = buffer_client.get_next_weekday(
-                        REFLECTION_DAY, reflection_hour, reflection_min
+                    reflection_date = social_client.get_next_weekday(
+                        REFLECTION_DAY, *map(int, REFLECTION_TIME.split(":"))
                     )
-                    companion_date = buffer_client.get_next_weekday(
-                        COMPANION_DAY, companion_hour, companion_min
+                    companion_date = social_client.get_next_weekday(
+                        COMPANION_DAY, *map(int, COMPANION_TIME.split(":"))
                     )
                     schedule_results = {
-                        "reflection": buffer_client.schedule_all_repurposed(
+                        "reflection": social_client.schedule_all_repurposed(
                             repurposed_en=final_result["reflection"]["repurposed_en"],
                             repurposed_es=final_result["reflection"]["repurposed_es"],
                             base_date=reflection_date,
                         ),
-                        "companion": buffer_client.schedule_all_repurposed(
+                        "companion": social_client.schedule_all_repurposed(
                             repurposed_en=final_result["companion"]["repurposed_en"],
                             repurposed_es=final_result["companion"]["repurposed_es"],
                             base_date=companion_date,
                         ),
                     }
-                    yield f"event: progress\ndata: {json.dumps({'message': 'Scheduled to Buffer', 'done': True})}\n\n"
+                    yield f"event: progress\ndata: {json.dumps({'message': 'Published to social platforms', 'done': True})}\n\n"
                     yield f"event: schedule\ndata: {json.dumps(schedule_results)}\n\n"
                 except Exception as e:
-                    yield f"event: progress\ndata: {json.dumps({'message': f'Buffer error: {str(e)}', 'done': True})}\n\n"
+                    yield f"event: progress\ndata: {json.dumps({'message': f'Publish error: {str(e)}', 'done': True})}\n\n"
 
             yield f"event: done\ndata: {{}}\n\n"
 
