@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 import time
@@ -152,6 +152,27 @@ def init_db() -> None:
         """)
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_quotes_run ON article_quotes(run_id)")
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS substack_subscribers (
+                id                      INTEGER PRIMARY KEY,
+                email                   TEXT UNIQUE NOT NULL,
+                name                    TEXT DEFAULT '',
+                photo_url               TEXT DEFAULT '',
+                subscription_interval   TEXT DEFAULT 'free',
+                is_subscribed           INTEGER DEFAULT 0,
+                is_comp                 INTEGER DEFAULT 0,
+                activity_rating         INTEGER DEFAULT 0,
+                subscription_created_at TEXT DEFAULT '',
+                total_revenue_generated INTEGER DEFAULT 0,
+                subscription_country    TEXT DEFAULT '',
+                detail_json             TEXT DEFAULT '',
+                synced_at               TEXT DEFAULT '',
+                detail_synced_at        TEXT DEFAULT ''
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_sub_activity ON substack_subscribers(activity_rating DESC)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_sub_interval ON substack_subscribers(subscription_interval)")
 
         conn.execute("""
             CREATE TABLE IF NOT EXISTS substack_batches (
@@ -751,6 +772,288 @@ def delete_quote(quote_id: int) -> None:
         conn.execute("DELETE FROM article_quotes WHERE id=?", (quote_id,))
 
 
+def upsert_subscribers(subscribers: List[Dict[str, Any]]) -> int:
+    """Bulk upsert subscribers from the Substack bulk API. Returns count inserted/updated."""
+    now = datetime.now().isoformat()
+    with _connect() as conn:
+        for s in subscribers:
+            conn.execute(
+                """
+                INSERT INTO substack_subscribers
+                    (id, email, name, photo_url, subscription_interval, is_subscribed,
+                     is_comp, activity_rating, subscription_created_at,
+                     total_revenue_generated, subscription_country, synced_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(email) DO UPDATE SET
+                    name=excluded.name,
+                    photo_url=excluded.photo_url,
+                    subscription_interval=excluded.subscription_interval,
+                    is_subscribed=excluded.is_subscribed,
+                    is_comp=excluded.is_comp,
+                    activity_rating=excluded.activity_rating,
+                    subscription_created_at=excluded.subscription_created_at,
+                    total_revenue_generated=excluded.total_revenue_generated,
+                    subscription_country=CASE WHEN excluded.subscription_country != ''
+                        THEN excluded.subscription_country ELSE substack_subscribers.subscription_country END,
+                    synced_at=excluded.synced_at
+                """,
+                (
+                    s.get("user_id"),
+                    s.get("user_email_address", ""),
+                    s.get("user_name") or "",
+                    s.get("user_photo_url") or "",
+                    s.get("subscription_interval") or "free",
+                    1 if s.get("is_subscribed") else 0,
+                    1 if s.get("is_comp") else 0,
+                    int(s.get("activity_rating") or 0),
+                    s.get("subscription_created_at") or "",
+                    int(s.get("total_revenue_generated") or 0),
+                    s.get("subscription_country") or "",
+                    now,
+                ),
+            )
+    return len(subscribers)
+
+
+def get_subscribers(
+    search: str = "",
+    activity: Optional[int] = None,
+    interval: str = "",
+    offset: int = 0,
+    limit: int = 50,
+) -> Dict[str, Any]:
+    conditions: List[str] = []
+    params: List[Any] = []
+    if search:
+        conditions.append("(name LIKE ? OR email LIKE ?)")
+        params.extend([f"%{search}%", f"%{search}%"])
+    if activity is not None:
+        conditions.append("activity_rating=?")
+        params.append(activity)
+    if interval:
+        conditions.append("subscription_interval=?")
+        params.append(interval)
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    with _connect() as conn:
+        total = conn.execute(
+            f"SELECT COUNT(*) FROM substack_subscribers {where}", params
+        ).fetchone()[0]
+        rows = conn.execute(
+            f"SELECT * FROM substack_subscribers {where} ORDER BY activity_rating DESC, subscription_created_at DESC LIMIT ? OFFSET ?",
+            params + [limit, offset],
+        ).fetchall()
+    return {"total": total, "subscribers": [dict(r) for r in rows]}
+
+
+def get_subscriber(email: str) -> Optional[Dict[str, Any]]:
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT * FROM substack_subscribers WHERE email=?", (email,)
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def save_subscriber_detail(email: str, detail: Dict[str, Any]) -> None:
+    import json as _json
+    now = datetime.now().isoformat()
+    crm = detail.get("crmData") or {}
+    country = crm.get("subscription_country") or crm.get("country") or \
+              detail.get("subscription_country") or detail.get("country") or ""
+    with _connect() as conn:
+        conn.execute(
+            """UPDATE substack_subscribers
+               SET detail_json=?, detail_synced_at=?,
+                   subscription_country=CASE WHEN ? != '' THEN ? ELSE subscription_country END
+               WHERE email=?""",
+            (_json.dumps(detail), now, country, country, email),
+        )
+
+
+def get_audience_stats() -> Dict[str, Any]:
+    """Aggregate audience data from the locally cached subscribers table."""
+    import json as _json
+    with _connect() as conn:
+        total = conn.execute("SELECT COUNT(*) FROM substack_subscribers").fetchone()[0]
+        if total == 0:
+            return {"total": 0, "paid": 0, "comp": 0, "synced_at": None}
+
+        paid = conn.execute(
+            "SELECT COUNT(*) FROM substack_subscribers WHERE is_comp=0 AND subscription_interval NOT IN ('free','') AND subscription_interval IS NOT NULL"
+        ).fetchone()[0]
+        comp = conn.execute(
+            "SELECT COUNT(*) FROM substack_subscribers WHERE is_comp=1"
+        ).fetchone()[0]
+
+        act_rows = conn.execute(
+            "SELECT activity_rating, COUNT(*) FROM substack_subscribers GROUP BY activity_rating"
+        ).fetchall()
+        activity_dist = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        for rating, cnt in act_rows:
+            activity_dist[int(rating or 0)] = cnt
+
+        country_rows = conn.execute(
+            "SELECT subscription_country, COUNT(*) as c FROM substack_subscribers "
+            "WHERE subscription_country != '' GROUP BY subscription_country ORDER BY c DESC LIMIT 15"
+        ).fetchall()
+        top_countries = [(r[0], r[1]) for r in country_rows]
+        country_coverage = conn.execute(
+            "SELECT COUNT(*) FROM substack_subscribers WHERE subscription_country != ''"
+        ).fetchone()[0]
+
+        growth_rows = conn.execute(
+            "SELECT strftime('%Y-%m', subscription_created_at) as m, COUNT(*) as c "
+            "FROM substack_subscribers WHERE subscription_created_at != '' "
+            "GROUP BY m ORDER BY m DESC LIMIT 12"
+        ).fetchall()
+        monthly_growth = dict(reversed([(r[0], r[1]) for r in growth_rows if r[0]]))
+
+        synced_at = conn.execute(
+            "SELECT MAX(synced_at) FROM substack_subscribers"
+        ).fetchone()[0]
+
+    return {
+        "total": total,
+        "paid": paid,
+        "comp": comp,
+        "activity_distribution": activity_dist,
+        "top_countries": top_countries,
+        "country_coverage": country_coverage,
+        "monthly_growth": monthly_growth,
+        "synced_at": synced_at,
+    }
+
+
+def get_insights_data() -> Dict[str, Any]:
+    """Compute audience insights from all enriched subscriber profiles."""
+    import json as _json
+    from collections import Counter
+
+    with _connect() as conn:
+        total = conn.execute("SELECT COUNT(*) FROM substack_subscribers").fetchone()[0]
+        rows = conn.execute(
+            "SELECT * FROM substack_subscribers WHERE detail_json != '' AND detail_json IS NOT NULL"
+        ).fetchall()
+
+    enriched = []
+    for row in rows:
+        d = dict(row)
+        try:
+            crm = (_json.loads(d["detail_json"]) or {}).get("crmData") or {}
+            if crm:
+                d["crm"] = crm
+                enriched.append(d)
+        except Exception:
+            pass
+
+    if not enriched:
+        return {"enriched_count": 0, "total_count": total}
+
+    # Engagement funnel
+    open_rates, click_rates, reopen_rates = [], [], []
+    for d in enriched:
+        crm = d["crm"]
+        sent = crm.get("num_emails_received") or 0
+        opened = crm.get("num_emails_opened") or 0
+        opens = crm.get("num_email_opens") or 0
+        clicks = crm.get("links_clicked") or 0
+        if sent > 0:
+            open_rates.append(opened / sent)
+            click_rates.append(clicks / sent)
+        if opened > 0:
+            reopen_rates.append(opens / opened)
+
+    def avg(lst):
+        return sum(lst) / len(lst) if lst else 0
+
+    # Open rate distribution: five 20% buckets
+    buckets = [0, 0, 0, 0, 0]
+    for r in open_rates:
+        buckets[min(4, int(r * 5))] += 1
+
+    # Top segment (activity 4-5)
+    top = [d for d in enriched if int(d.get("activity_rating") or 0) >= 4]
+    def _country(d):
+        return d["crm"].get("subscription_country") or d["crm"].get("country") or ""
+
+    top_countries = Counter(_country(d) for d in top if _country(d))
+    creator_count = sum(1 for d in top if d["crm"].get("user_has_publication"))
+    paid_count = sum(1 for d in top if d.get("subscription_interval") not in ("free", "", None))
+    top_attribution = Counter(
+        (d["crm"].get("free_attribution") or "unknown") for d in top
+    )
+
+    # At-risk: activity >= 3 but last opened > 45 days ago
+    cutoff_45 = (datetime.utcnow() - timedelta(days=45)).strftime("%Y-%m-%d")
+    at_risk = [
+        d for d in enriched
+        if int(d.get("activity_rating") or 0) >= 3
+        and (d["crm"].get("last_opened_at") or "")[:10] < cutoff_45
+        and (d["crm"].get("last_opened_at") or "") != ""
+    ]
+
+    # Web readers, commenters, sharers
+    web_readers = sum(1 for d in enriched if (d["crm"].get("num_web_post_views") or 0) > 0)
+    commenters  = sum(1 for d in enriched if (d["crm"].get("num_comments") or 0) > 0)
+    sharers     = sum(1 for d in enriched if (d["crm"].get("num_shares") or 0) > 0)
+
+    # Cohort quality: avg activity_rating per signup month (last 12 months)
+    cohort: Dict[str, List] = {}
+    for d in enriched:
+        month = (d.get("subscription_created_at") or "")[:7]
+        if month:
+            cohort.setdefault(month, []).append(int(d.get("activity_rating") or 0))
+    cohort_quality = {
+        m: round(sum(v) / len(v), 2)
+        for m, v in sorted(cohort.items())[-12:]
+    }
+
+    # Best cohort month
+    best_cohort = max(cohort_quality, key=cohort_quality.get) if cohort_quality else None
+
+    return {
+        "enriched_count": len(enriched),
+        "total_count": total,
+        "avg_open_rate": round(avg(open_rates) * 100, 1),
+        "avg_click_rate": round(avg(click_rates) * 100, 1),
+        "avg_reopen_rate": round(avg(reopen_rates), 2),
+        "open_rate_buckets": buckets,
+        "top_segment": {
+            "count": len(top),
+            "pct": round(len(top) / len(enriched) * 100) if enriched else 0,
+            "creator_pct": round(creator_count / len(top) * 100) if top else 0,
+            "paid_pct": round(paid_count / len(top) * 100) if top else 0,
+            "top_countries": top_countries.most_common(5),
+            "top_attribution": top_attribution.most_common(5),
+        },
+        "at_risk_count": len(at_risk),
+        "at_risk_emails": [d["email"] for d in at_risk[:5]],
+        "web_reader_pct": round(web_readers / len(enriched) * 100) if enriched else 0,
+        "commenters_count": commenters,
+        "sharers_count": sharers,
+        "cohort_quality": cohort_quality,
+        "best_cohort": best_cohort,
+    }
+
+
+def get_next_subscriber_for_enrichment() -> Optional[Dict[str, Any]]:
+    """Return the next subscriber that needs a detail fetch.
+
+    Priority: never-fetched first, then stale (> 7 days), both ordered by
+    activity_rating DESC so the most engaged readers are enriched first.
+    """
+    cutoff = (datetime.now() - timedelta(days=7)).isoformat()
+    with _connect() as conn:
+        row = conn.execute(
+            """SELECT * FROM substack_subscribers
+               WHERE detail_synced_at IS NULL OR detail_synced_at = '' OR detail_synced_at < ?
+               ORDER BY (CASE WHEN detail_synced_at IS NULL OR detail_synced_at = '' THEN 1 ELSE 0 END) DESC,
+                        activity_rating DESC
+               LIMIT 1""",
+            (cutoff,),
+        ).fetchone()
+    return dict(row) if row else None
+
+
 def save_substack_batch(notes: List[Dict[str, Any]]) -> int:
     """Save a generated batch of notes. Returns the batch id."""
     now = datetime.now().isoformat()
@@ -786,6 +1089,34 @@ def get_substack_notes(batch_id: int) -> List[Dict[str, Any]]:
         rows = conn.execute(
             "SELECT * FROM substack_notes WHERE batch_id=? ORDER BY id ASC",
             (batch_id,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def search_substack_notes(
+    q: str = "",
+    shared: bool = False,
+    repurposed: bool = False,
+    signal: Optional[str] = None,
+    limit: int = 200,
+) -> List[Dict[str, Any]]:
+    conditions: List[str] = []
+    params: List[Any] = []
+    if q:
+        conditions.append("(note_text LIKE ? OR issue LIKE ?)")
+        params.extend([f"%{q}%", f"%{q}%"])
+    if shared:
+        conditions.append("shared=1")
+    if repurposed:
+        conditions.append("(linkedin_post != '' OR threads_post != '' OR instagram_post != '')")
+    if signal:
+        conditions.append("signal=?")
+        params.append(signal)
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    with _connect() as conn:
+        rows = conn.execute(
+            f"SELECT * FROM substack_notes {where} ORDER BY id DESC LIMIT ?",
+            params + [limit],
         ).fetchall()
     return [dict(r) for r in rows]
 
@@ -881,6 +1212,18 @@ def list_scheduled_posts(status: Optional[str] = None, limit: int = 100) -> List
                 sql.format(where=""), (limit,)
             ).fetchall()
     return [dict(r) for r in rows]
+
+
+def record_published_post(platform: str, text: str, image_url: str = "", source_label: str = "") -> None:
+    """Record an immediately-published post (no prior scheduling) for history."""
+    now = datetime.utcnow().isoformat()
+    with _connect() as conn:
+        conn.execute(
+            "INSERT INTO scheduled_posts "
+            "(platform, text, image_url, scheduled_at, status, source_label, timezone, created_at, published_at) "
+            "VALUES (?, ?, ?, ?, 'published', ?, '', ?, ?)",
+            (platform, text, image_url, now, source_label, now, now),
+        )
 
 
 def get_due_scheduled_posts() -> List[Dict[str, Any]]:

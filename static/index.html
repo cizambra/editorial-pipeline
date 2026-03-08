@@ -1525,18 +1525,16 @@
 
     .soc-tab-bar {
       display: flex;
-      gap: 4px;
-      padding: 4px;
-      margin-bottom: 12px;
+      gap: 6px;
+      padding: 14px 20px 12px;
       flex-wrap: wrap;
-      background: var(--panel-soft);
-      border-radius: var(--r);
+      border-bottom: 1px solid var(--line);
     }
 
     .soc-tab {
-      padding: 7px 12px;
+      padding: 5px 12px;
       border-radius: var(--r-sm);
-      border: 1px solid transparent;
+      border: 1px solid var(--line);
       background: transparent;
       color: var(--muted);
       font: 600 11px/1 "Inter", sans-serif;
@@ -1552,26 +1550,8 @@
       box-shadow: 0 2px 6px rgba(196, 82, 42, 0.25);
     }
 
-    .soc-panel { display: none; padding-top: 14px; }
-    .soc-panel.active { display: grid; gap: 12px; }
-
-    .soc-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .soc-info strong { display: block; font-size: 14px; font-weight: 700; }
-    .soc-info .soc-kicker { font-size: 11px; color: var(--muted); margin-top: 2px; display: block; }
-
-    .soc-actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
+    .soc-panel { display: none; }
+    .soc-panel.active { display: block; }
 
     .social-text {
       width: 100%;
@@ -1712,6 +1692,86 @@
       font-weight: 800;
       font-family: "Montserrat", "Inter", sans-serif;
     }
+
+    /* Audience card */
+    .audience-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 14px; }
+    .audience-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+    .aud-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+    .aud-bar-label { width: 68px; flex-shrink: 0; color: var(--muted); }
+    .aud-bar-track { flex: 1; height: 6px; background: var(--panel-soft); border-radius: 3px; overflow: hidden; }
+    .aud-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.4s; }
+    .aud-bar-count { width: 32px; text-align: right; flex-shrink: 0; font-weight: 600; color: var(--fg); }
+    .aud-country-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+    .aud-country-row:last-child { border-bottom: none; }
+    .aud-country-flag { font-size: 16px; flex-shrink: 0; width: 22px; }
+    .aud-country-name { flex: 1; color: var(--fg); }
+    .aud-country-count { font-weight: 700; color: var(--fg); }
+    .aud-growth-bars { display: flex; align-items: flex-end; gap: 3px; height: 48px; margin-top: 8px; }
+    .aud-growth-bar { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; min-height: 2px; opacity: 0.75; transition: opacity 0.1s; }
+    .aud-growth-bar:hover { opacity: 1; }
+    .aud-tier-row { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+    .aud-tier { text-align: center; }
+    .aud-tier-val { font-size: 20px; font-weight: 800; font-family: "Montserrat", sans-serif; line-height: 1; }
+    .aud-tier-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+    @media (max-width: 1220px) { .audience-grid { grid-template-columns: 1fr; } }
+
+    /* Audience browser page */
+    .aud-browser-shell { display: grid; grid-template-columns: minmax(260px, 0.38fr) minmax(0, 0.62fr); gap: 16px; align-items: start; }
+    .aud-list-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .aud-filter-pill { padding: 4px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 11px/1 "Inter",sans-serif; cursor: pointer; transition: .12s; }
+    .aud-filter-pill.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+    .aud-sub-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .1s; }
+    .aud-sub-item:hover { background: var(--panel-soft); }
+    .aud-sub-item.active { background: var(--accent-soft); border-left: 3px solid var(--accent); padding-left: 11px; }
+    .aud-sub-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--panel-soft); flex-shrink: 0; object-fit: cover; }
+    .aud-sub-avatar-ph { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font: 700 13px "Inter",sans-serif; color: var(--accent); }
+    .aud-sub-info { flex: 1; min-width: 0; }
+    .aud-sub-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .aud-sub-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .aud-sub-rating { flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: var(--panel-soft); color: var(--muted); }
+    .aud-sub-rating.r5,.aud-sub-rating.r4 { background: var(--ok-soft,#d4f0dc); color: var(--ok,#1a7a3c); }
+    .aud-sub-rating.r3 { background: var(--accent-soft); color: var(--accent); }
+    .aud-detail-header { display: flex; align-items: center; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+    .aud-detail-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); object-fit: cover; }
+    .aud-detail-name { font-size: 18px; font-weight: 700; }
+    .aud-detail-email { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .aud-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .aud-detail-stat { background: var(--panel-soft); border-radius: var(--r-sm); padding: 10px 12px; }
+    .aud-detail-stat-val { font-size: 20px; font-weight: 800; font-family: "Montserrat",sans-serif; line-height: 1; }
+    .aud-detail-stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 3px; }
+
+    /* Audience insights */
+    .ins-funnel { display: flex; align-items: center; gap: 0; margin: 16px 0; }
+    .ins-funnel-step { flex: 1; text-align: center; padding: 14px 8px; background: var(--panel-soft); border-radius: 0; position: relative; }
+    .ins-funnel-step:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+    .ins-funnel-step:last-child { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+    .ins-funnel-step + .ins-funnel-step::before { content: "→"; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--muted); z-index: 1; }
+    .ins-funnel-val { font-size: 22px; font-weight: 800; font-family: "Montserrat",sans-serif; line-height: 1; }
+    .ins-funnel-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+    .ins-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .ins-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 10px; }
+    .ins-icp-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .ins-icp-pill { padding: 6px 12px; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--accent); font: 700 13px "Inter",sans-serif; }
+    .ins-bucket-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 12px; }
+    .ins-bucket-lbl { width: 64px; flex-shrink: 0; color: var(--muted); }
+    .ins-bucket-track { flex: 1; height: 8px; background: var(--panel-soft); border-radius: 4px; overflow: hidden; }
+    .ins-bucket-fill { height: 100%; border-radius: 4px; background: var(--accent); opacity: 0.8; }
+    .ins-bucket-count { width: 28px; text-align: right; font-weight: 600; }
+    .ins-rec-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .ins-rec-tab { padding: 5px 14px; border-radius: var(--r-sm); border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 12px "Inter",sans-serif; cursor: pointer; transition: .12s; }
+    .ins-rec-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .ins-rec-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    @media (max-width: 1100px) { .ins-rec-cards { grid-template-columns: 1fr 1fr; } }
+    .ins-rec-card { background: var(--panel-soft); border-radius: var(--r-sm); padding: 14px; border-left: 3px solid var(--accent); }
+    .ins-rec-card.retain { border-left-color: var(--ok, #2a8a4a); }
+    .ins-rec-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .ins-rec-action { font-size: 12px; line-height: 1.5; color: var(--fg); margin-bottom: 6px; }
+    .ins-rec-why { font-size: 11px; color: var(--muted); font-style: italic; }
+    .ins-cohort-bars { display: flex; align-items: flex-end; gap: 4px; height: 56px; margin-top: 8px; }
+    .ins-cohort-bar { flex: 1; border-radius: 3px 3px 0 0; min-height: 4px; position: relative; cursor: default; }
+    .ins-at-risk { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--panel-soft); border-radius: var(--r-sm); border-left: 3px solid #e08030; }
+    .ins-at-risk-num { font-size: 28px; font-weight: 800; font-family: "Montserrat",sans-serif; color: #e08030; line-height: 1; }
+    .ins-coverage { font-size: 11px; color: var(--muted); margin-top: 6px; text-align: center; }
 
     .metric-label {
       font-size: 10px;
@@ -2860,6 +2920,19 @@
     .sn-note-edit-actions { display: flex; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel-soft); }
     @media (max-width: 900px) { .sn-editor { grid-template-columns: 1fr; } .sn-editor-write { border-right: none; border-bottom: 1px solid var(--line); } }
 
+    /* ── Rich Text Editor (marketing library substack note) ── */
+    .rte-wrap { border: 1px solid var(--line-strong); border-radius: var(--r); overflow: hidden; background: var(--panel-strong); }
+    .rte-toolbar { display: flex; gap: 4px; padding: 6px 10px; border-bottom: 1px solid var(--line); background: var(--panel-soft); flex-wrap: wrap; align-items: center; }
+    .rte-btn { width: 28px; height: 28px; border: 1px solid transparent; border-radius: 6px; background: transparent; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ink); display: flex; align-items: center; justify-content: center; transition: 0.1s; flex-shrink: 0; }
+    .rte-btn:hover { background: var(--panel-strong); border-color: var(--line); }
+    .rte-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .rte-sep { width: 1px; height: 18px; background: var(--line); margin: 0 2px; flex-shrink: 0; }
+    .rte-body { min-height: 140px; max-height: 360px; overflow-y: auto; padding: 12px 14px; font-size: 13px; line-height: 1.75; outline: none; color: var(--fg); word-break: break-word; }
+    .rte-body:focus { box-shadow: inset 0 0 0 2px var(--accent-soft); }
+    .rte-body p { margin: 0 0 10px 0; } .rte-body p:last-child { margin-bottom: 0; }
+    .rte-body ul { padding-left: 20px; margin: 0 0 10px 0; } .rte-body li { margin-bottom: 4px; }
+    .rte-body a { color: var(--accent); text-decoration: underline; }
+
     .sn-repurpose { border-top: 1px solid var(--line); background: var(--bg-alt); }
     .sn-repurpose .tabs { margin-bottom: 0; padding: 0 14px; }
     .sn-rep-body { padding: 12px 14px; font-size: 13px; line-height: 1.75; white-space: pre-wrap; }
@@ -2868,6 +2941,139 @@
     @media (max-width: 1220px) {
       .sn-shell { grid-template-columns: 1fr; }
     }
+
+    /* === SOCIAL WORKSPACE (Compose tab) === */
+    .sn-workspace {
+      display: grid;
+      grid-template-columns: minmax(200px, 0.35fr) minmax(0, 0.65fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .sn-left { display: flex; flex-direction: column; gap: 10px; }
+    .sn-new-post-btn { width: 100%; }
+    .sn-batch-entry {
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      overflow: hidden;
+      background: var(--panel-strong);
+    }
+    .sn-batch-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .sn-batch-head:hover { background: var(--panel-soft); }
+    .sn-batch-head-title { flex: 1; }
+    .sn-batch-del {
+      opacity: 0.45;
+      font-size: 14px;
+      background: none;
+      border: none;
+      color: var(--fg);
+      cursor: pointer;
+      padding: 0 2px;
+      line-height: 1;
+    }
+    .sn-batch-del:hover { opacity: 1; color: var(--danger); }
+    .sn-batch-notes { display: none; border-top: 1px solid var(--line); }
+    .sn-batch-notes.open { display: block; }
+    .sn-batch-note-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      width: 100%;
+      text-align: left;
+      color: var(--fg);
+    }
+    .sn-batch-note-item:last-of-type { border-bottom: none; }
+    .sn-batch-note-item:hover { background: var(--panel-soft); }
+    .sn-batch-note-item.active { background: var(--accent-soft); }
+    .sn-batch-note-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sn-batch-more {
+      padding: 6px 14px;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+    }
+    .sn-batch-more:hover { color: var(--accent); }
+    .sn-search-input { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel-soft); font-size: 12px; color: var(--fg); }
+    .sn-search-input::placeholder { color: var(--muted); }
+    .sn-search-input:focus { outline: none; border-color: var(--accent); }
+    .sn-filter-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+    .sn-filter-pill { padding: 4px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 11px/1 "Inter", sans-serif; cursor: pointer; transition: 0.12s; }
+    .sn-filter-pill:hover { color: var(--fg); border-color: var(--line-strong); }
+    .sn-filter-pill.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+    .sn-right-panel { min-height: 200px; }
+    .sn-detail-empty { display: flex; align-items: center; justify-content: center; min-height: 200px; }
+    .sn-plat-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .sn-plat-btn {
+      padding: 5px 12px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.12s;
+    }
+    .sn-plat-btn:hover { color: var(--fg); border-color: var(--line-strong); }
+    .sn-plat-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .sn-plat-panel { display: none; padding: 14px 20px; }
+    .sn-plat-panel.active { display: block; }
+    .sn-det-ta {
+      width: 100%;
+      min-height: 160px;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.75;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      color: var(--fg);
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+    }
+    .sn-det-ta:focus { border-color: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent-soft); }
+    .sn-note-actions-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 20px 10px;
+      border-top: 1px solid var(--line);
+      background: var(--panel-soft);
+    }
+    .sn-rep-section { border-top: 1px solid var(--line); padding: 14px 20px; }
+    .sn-rep-section-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px; }
+    .sn-sched-all-panel { display: none; padding: 12px 20px 14px; border-top: 1px solid var(--line); background: var(--panel-soft); }
+    .sn-sched-all-panel.open { display: block; }
+    #mk-pane-scheduled.active { display: flex; flex-direction: column; gap: 14px; }
+    @media (max-width: 1100px) { .sn-workspace { grid-template-columns: 1fr; } }
 
     /* ── Quotes ───────────────────────────────────────────────── */
     .quotes-shell {
@@ -2960,6 +3166,7 @@
         <div class="nav-label">Review</div>
         <button class="nav" data-mode="marketing"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V6l11 6zm13-9h3v6h-3z"></path></svg></span><span class="nav-text"><strong>Marketing</strong><small>Current run, studio, library</small></span></button>
         <button class="nav" data-mode="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z"></path></svg></span><span class="nav-text"><strong>Dashboard</strong><small>Coverage, cost, queue</small></span></button>
+        <button class="nav" data-mode="audience"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></span><span class="nav-text"><strong>Audience</strong><small>Subscriber browser</small></span></button>
       </div>
 
       <div class="nav-group">
@@ -3269,8 +3476,8 @@
           <div class="page-header">
             <div class="hero-card">
               <div class="rail-kicker">Social library</div>
-              <div class="hero-title">All your social posts in one place — from pipeline runs and on-demand generation.</div>
-              <div class="hero-copy">The library shows every saved campaign. Select one to read each platform post and act on it. Use the studio to generate socials for any article without running the full pipeline.</div>
+              <div class="hero-title">All your social posts in one place — from pipeline runs and on-demand repurposing.</div>
+              <div class="hero-copy">The library shows every saved campaign. Select one to read each platform post and act on it. Use the Repurpose tab to generate socials for any article without running the full pipeline.</div>
             </div>
           </div>
 
@@ -3285,11 +3492,11 @@
 
           <div class="marketing-shell">
             <div class="tabs marketing-tabs">
-              <button class="tab active" data-mk-tab="library">Social library</button>
-              <button class="tab" data-mk-tab="studio">Generate socials</button>
-              <button class="tab" data-mk-tab="notes">Substack Notes</button>
+              <button class="tab active" data-mk-tab="library">Campaigns</button>
+              <button class="tab" data-mk-tab="studio">Repurpose</button>
+              <button class="tab" data-mk-tab="notes">Compose</button>
               <button class="tab" data-mk-tab="quotes">Quotes</button>
-              <button class="tab" data-mk-tab="scheduled">Scheduled</button>
+              <button class="tab" data-mk-tab="scheduled">Publishing</button>
             </div>
 
             <div class="marketing-pane" id="mk-pane-studio">
@@ -3381,45 +3588,40 @@
             </div>
 
             <div class="marketing-pane" id="mk-pane-notes">
-              <div class="card sn-gen-card">
-                <div class="card-head" style="margin-bottom:0">
+              <div class="sn-workspace">
+
+                <!-- Left rail -->
+                <div class="sn-left">
+                  <button class="btn pri sn-new-post-btn" data-a="sn-new-post">+ New post</button>
                   <div>
-                    <div class="eyebrow">Batch generator</div>
-                    <div class="section-title">Generate 20 Substack notes</div>
-                    <div class="section-copy">Uses a normal distribution across all intent types: CDT, Metaphor, Practice, Education, Positive Alignment, Reflection, Universal Model, Validation.</div>
-                  </div>
-                </div>
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px">
-                  <button class="pri" id="sn-gen-btn">Generate batch of 20</button>
-                  <span class="muted" style="font-size:11px" id="sn-gen-status"></span>
-                </div>
-              </div>
-
-              <div class="sn-shell" style="margin-top:14px">
-                <div class="card sn-batch-list-card">
-                  <div class="card-head">
-                    <div>
-                      <div class="eyebrow">Batches</div>
-                      <div class="section-title">Note library</div>
+                    <input type="text" class="sn-search-input" id="sn-search-q" placeholder="Search notes…" autocomplete="off">
+                    <div class="sn-filter-pills" style="margin-top:6px">
+                      <button class="sn-filter-pill" data-a="sn-filter" data-filter="shared">Shared</button>
+                      <button class="sn-filter-pill" data-a="sn-filter" data-filter="repurposed">Cross-posted</button>
+                      <button class="sn-filter-pill" data-a="sn-filter" data-filter="signal-pos">👍</button>
+                      <button class="sn-filter-pill" data-a="sn-filter" data-filter="signal-neg">👎</button>
                     </div>
-                    <button class="btn" id="sn-refresh">Refresh</button>
                   </div>
-                  <div id="sn-batch-list"><div class="empty" style="padding:20px">No batches yet.</div></div>
+                  <div id="sn-batch-rail">
+                    <div class="empty" style="padding:16px 0">No batches yet.</div>
+                  </div>
+                  <button class="btn" id="sn-gen-btn" style="width:100%;margin-top:4px">⚡ Generate 20 notes</button>
+                  <span class="muted" style="font-size:11px;text-align:center" id="sn-gen-status"></span>
                 </div>
 
-                <div class="card" style="padding:0">
-                  <div class="card-head">
-                    <div>
-                      <div class="eyebrow">Notes</div>
-                      <div class="section-title" id="sn-notes-title">Select a batch</div>
-                    </div>
-                    <div style="display:flex;gap:6px;align-items:center">
-                      <span style="font-size:11px;color:var(--muted)" id="sn-notes-count"></span>
-                      <button class="ghost hide" id="sn-del-batch">Delete batch</button>
+                <!-- Right detail panel -->
+                <div class="card sn-right-panel" id="sn-right-panel" style="padding:0">
+                  <div id="sn-detail-empty">
+                    <div class="sn-detail-empty">
+                      <div class="empty" style="padding:40px 20px;text-align:center">Select a note or create a new post.</div>
                     </div>
                   </div>
-                  <div id="sn-note-list"><div class="empty" style="padding:20px">Select a batch to see its notes.</div></div>
+                  <!-- Compose pane (new post mode) -->
+                  <div id="sn-compose-pane" style="display:none"></div>
+                  <!-- Note detail pane (selected note mode) -->
+                  <div id="sn-note-detail" style="display:none"></div>
                 </div>
+
               </div>
             </div>
 
@@ -3454,12 +3656,22 @@
                 <div class="card-head">
                   <div>
                     <div class="eyebrow">Publishing queue</div>
-                    <div class="section-title">Scheduled posts</div>
+                    <div class="section-title">Upcoming</div>
                     <div class="section-copy">Posts are published automatically by the app — no external service needed. The scheduler checks every minute.</div>
                   </div>
                   <button class="btn" id="sched-refresh">Refresh</button>
                 </div>
                 <div id="sched-queue-list"><div class="empty" style="padding:20px">No scheduled posts yet.</div></div>
+              </div>
+              <div class="card" style="padding:0">
+                <div class="card-head">
+                  <div>
+                    <div class="eyebrow">History</div>
+                    <div class="section-title">Published</div>
+                  </div>
+                  <button class="btn" id="published-refresh">Refresh</button>
+                </div>
+                <div id="published-feed-list"><div class="empty" style="padding:20px">No published posts yet.</div></div>
               </div>
             </div>
 
@@ -3788,6 +4000,19 @@
             </div>
             <div id="dash-tags"><div class="empty">Loading...</div></div>
           </div>
+          <div class="card section" id="audience-card">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">Substack audience</div>
+                <div class="section-title">Subscriber breakdown, activity, and geographic reach</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="muted" style="font-size:11px" id="aud-sync-label"></span>
+                <button class="btn" id="aud-refresh-btn">Refresh</button>
+              </div>
+            </div>
+            <div id="audience-body"><div class="empty">Click Refresh to load audience data.</div></div>
+          </div>
           <div class="card section">
             <div class="card-head">
               <div>
@@ -3925,6 +4150,73 @@
           </div>
         </section>
 
+        <section class="page" id="page-audience">
+          <div class="hero">
+            <div class="hero-card">
+              <div class="rail-kicker">Subscriber browser</div>
+              <div class="hero-title">Browse, search, and inspect individual subscribers — country, activity, and subscription details fetched on demand.</div>
+              <div class="hero-copy">Data is synced from the Substack dashboard and cached locally. Individual profiles are lazy-loaded when you click.</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">Subscribers</div>
+                <div class="section-title"><span id="aud-br-count">—</span> subscribers cached · <span id="aud-enriched-count" class="muted" style="font-size:12px"></span></div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="muted" style="font-size:11px" id="aud-br-sync-label"></span>
+                <button class="btn pri" data-a="aud-sync">⟳ Sync</button>
+              </div>
+            </div>
+
+            <!-- Tab bar -->
+            <div class="tabs" style="margin: -20px -20px 16px; padding: 0 16px; border-bottom: 1px solid var(--line);">
+              <button class="tab active" data-a="aud-tab" data-tab="browser">Subscribers</button>
+              <button class="tab" data-a="aud-tab" data-tab="insights">Insights</button>
+            </div>
+
+            <!-- Browser pane -->
+            <div id="aud-pane-browser">
+              <div class="aud-browser-shell">
+                <!-- Left: list -->
+                <div>
+                  <input type="text" id="aud-br-search" class="sn-search-input" placeholder="Search name or email…" autocomplete="off" style="margin-bottom:8px">
+                  <div class="aud-list-filters">
+                    <button class="aud-filter-pill" data-a="aud-filt" data-filt="paid">Paid</button>
+                    <button class="aud-filter-pill" data-a="aud-filt" data-filt="free">Free</button>
+                    <button class="aud-filter-pill" data-a="aud-filt" data-filt="r5">⭐ Top (5)</button>
+                    <button class="aud-filter-pill" data-a="aud-filt" data-filt="r4">Active (4)</button>
+                  </div>
+                  <div class="list" id="aud-br-list" style="max-height:580px;overflow-y:auto"><div class="empty">Click Sync to load subscribers.</div></div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:8px;justify-content:center">
+                    <button class="btn" data-a="aud-page" data-dir="-1" id="aud-pg-prev" style="display:none">← Prev</button>
+                    <span class="muted" style="font-size:11px" id="aud-pg-label"></span>
+                    <button class="btn" data-a="aud-page" data-dir="1" id="aud-pg-next" style="display:none">Next →</button>
+                  </div>
+                </div>
+                <!-- Right: detail -->
+                <div class="card" style="padding:0" id="aud-br-detail">
+                  <div class="empty" style="padding:48px 20px;text-align:center">Select a subscriber to view details.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Insights pane -->
+            <div id="aud-pane-insights" style="display:none">
+              <div id="aud-insights-body">
+                <div class="empty" style="padding:40px;text-align:center">
+                  Click <strong>Generate Insights</strong> to analyse your audience.
+                </div>
+              </div>
+              <div style="margin-top:16px;text-align:center">
+                <button class="btn pri" data-a="aud-insights-load">Generate Insights</button>
+                <span class="muted" style="font-size:11px;margin-left:10px" id="aud-ins-note">Requires enriched profiles — runs in background automatically.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section class="page" id="page-history">
           <div class="hero">
             <div class="hero-card">
@@ -4044,6 +4336,15 @@
       snBatches: [],
       snSelectedBatch: null,
       snNotes: [],
+      snMode: "empty",
+      snSelectedNote: null,
+      snBatchNotesCache: {},
+      snOpenBatches: {},
+      snBatchShowAll: {},
+      snSearch: { q: "", shared: false, repurposed: false, signal: "" },
+      snSearchResults: [],
+      snSearchTimer: null,
+      compose: { platform: "substack_note", texts: { linkedin: "", threads: "", instagram: "", substack_note: "" }, repurpose: null },
       quotesRuns: [],
       quotesRunId: null,
       quotesData: []
@@ -4188,7 +4489,8 @@
       if (m === "marketing") loadMk();
       if (m === "history") loadHist();
       if (m === "ideas") loadIdeas();
-      if (m === "dashboard") loadDash();
+      if (m === "dashboard") { loadDash(); loadAudience(); }
+      if (m === "audience") loadAudienceList();
       if (m === "settings") {
         loadTemplate();
         loadArticles();
@@ -4430,7 +4732,7 @@
       if (S.marketingTab === "library") loadMk();
       if (S.marketingTab === "notes") loadSnBatches();
       if (S.marketingTab === "quotes") loadQuotesRuns();
-      if (S.marketingTab === "scheduled") loadScheduledQueue();
+      if (S.marketingTab === "scheduled") { loadScheduledQueue(); loadPublishedFeed(); }
     }
 
     function doc(id, text, name) {
@@ -4464,15 +4766,17 @@
         return;
       }
 
+      const SHORT = { linkedin: "LinkedIn", instagram: "Instagram", threads: "Threads", substack_note: "Substack Note" };
+
       const tabsHtml = '<div class="soc-tab-bar">' + keys.map((key, i) =>
-        '<button class="soc-tab' + (i === 0 ? ' active' : '') + '" data-soc-tab="' + key + '" data-soc-id="' + id + '">' + H(PL[key]) + '</button>'
+        '<button class="soc-tab' + (i === 0 ? ' active' : '') + '" data-soc-tab="' + key + '" data-soc-id="' + id + '">' + (SHORT[key] || key) + '</button>'
       ).join("") + '</div>';
 
       const panelsHtml = keys.map((key, i) => {
         const textId = id + "-" + key;
         const canPublish = key !== "substack_note";
         const publishBtn = canPublish
-          ? '<button class="btn" data-a="buffer" data-platform="' + key + '" data-id="' + textId + '">Publish</button>'
+          ? '<button class="btn" data-a="buffer" data-platform="' + key + '" data-id="' + textId + '" data-label="' + H(PL[key] + ' / ' + lang.toUpperCase()) + '">Publish</button>'
           : "";
         const schedBtn = canPublish
           ? '<button class="btn" data-a="sched-open" data-picker="sched-pk-' + textId + '">Schedule</button>'
@@ -4491,19 +4795,21 @@
             '</div>'
           : "";
 
+        const charLen = (payload[key] || "").length;
+        const nearLimit = (key === "threads" && charLen > 450) || (key === "instagram" && charLen > 2100);
+
         return '<div class="soc-panel' + (i === 0 ? ' active' : '') + '" data-platform="' + key + '">' +
-          '<div class="soc-toolbar">' +
-            '<div class="soc-info"><strong>' + H(PL[key]) + '</strong><span class="soc-kicker">' + H(sourceLabel) + ' / ' + H(lang.toUpperCase()) + '</span></div>' +
-            '<div class="soc-actions">' +
+          '<div style="padding:14px 20px">' +
+            '<textarea class="social-text" id="' + textId + '" data-soc-count="' + textId + '-count" data-soc-max="' + (key === "threads" ? 500 : key === "instagram" ? 2200 : key === "linkedin" ? 3000 : 0) + '">' + H(payload[key] || "") + '</textarea>' +
+            (key === "instagram" ? schedInstagramImageHtml(textId, true) : "") +
+            '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
               '<button class="btn" data-a="copy" data-id="' + textId + '">Copy</button>' +
               publishBtn + schedBtn + regenBtn +
               '<button class="btn" data-a="repurpose" data-id="' + textId + '"' + readonly + ' data-lang="' + lang + '" data-platform="' + key + '">Use as source</button>' +
             '</div>' +
+            '<div class="soc-footer"><span class="char-count' + (nearLimit ? ' near-limit' : '') + '" id="' + textId + '-count">' + charLen + ' chars</span></div>' +
+            pickerHtml +
           '</div>' +
-          '<textarea class="social-text" id="' + textId + '" data-soc-count="' + textId + '-count" data-soc-max="' + (key === "threads" ? 500 : key === "instagram" ? 2200 : key === "linkedin" ? 3000 : 0) + '">' + H(payload[key] || "") + '</textarea>' +
-          (key === "instagram" ? schedInstagramImageHtml(textId, true) : "") +
-          pickerHtml +
-          '<div class="soc-footer"><span class="char-count' + ((payload[key] || "").length > (key === "threads" ? 450 : key === "instagram" ? 2100 : 0) && (key === "threads" || key === "instagram") ? ' near-limit' : '') + '" id="' + textId + '-count">' + (payload[key] || "").length + ' chars</span></div>' +
         '</div>';
       }).join("");
 
@@ -4919,67 +5225,15 @@
         : "";
 
       const platforms = [
-        ["linkedin", "LinkedIn", true],
-        ["instagram", "Instagram", false],
-        ["threads", "Threads", true],
-        ["substack_note", "Substack Note", false]
+        { key: "linkedin",      label: "LinkedIn",     canBuffer: true  },
+        { key: "threads",       label: "Threads",      canBuffer: true  },
+        { key: "instagram",     label: "Instagram",    canBuffer: false },
+        { key: "substack_note", label: "Substack Note",canBuffer: true  },
       ];
-      const sectionsHtml = platforms.map(([key, label, canBuffer]) => {
-        const raw = payload[key] || "";
-        if (!raw.trim()) return "";
-        const posts = raw.split(/\n\s*---+\s*\n/g).map(p => p.trim()).filter(Boolean);
-        const textId = "mk-read-" + key;
-        const multi = posts.length > 1;
-        const navHtml = multi
-          ? '<div class="mk-carousel-nav">' +
-              '<button class="mk-nav-btn" data-nav-id="' + textId + '" data-dir="-1" ' + (posts.length <= 1 ? 'disabled' : '') + '>&#8592;</button>' +
-              '<span class="mk-carousel-counter" id="' + textId + '-counter">1 / ' + posts.length + '</span>' +
-              '<button class="mk-nav-btn" data-nav-id="' + textId + '" data-dir="1">&#8594;</button>' +
-            '</div>'
-          : '';
-        const isSub = key === "substack_note";
-        const contentHtml = isSub
-          ? '<div class="sn-note-body" id="' + textId + '-body">' + H(posts[0]) + '</div>' +
-            '<div class="sn-note-edit" id="' + textId + '-edit">' +
-              '<div class="sn-editor">' +
-                '<div class="sn-editor-pane sn-editor-write">' +
-                  '<div class="sn-editor-label">Write</div>' +
-                  '<textarea class="sn-editor-ta" id="' + textId + '">' + H(posts[0]) + '</textarea>' +
-                '</div>' +
-                '<div class="sn-editor-pane">' +
-                  '<div class="sn-editor-label">Preview</div>' +
-                  '<div class="sn-edit-preview" id="' + textId + '-preview"></div>' +
-                '</div>' +
-              '</div>' +
-              '<div class="sn-note-edit-actions">' +
-                '<button class="ghost" data-a="mk-edit-cancel" data-id="' + textId + '">Cancel</button>' +
-              '</div>' +
-            '</div>'
-          : '<textarea class="social-text" id="' + textId + '">' + H(posts[0]) + '</textarea>' +
-            (key === "instagram" ? schedInstagramImageHtml(textId, true) : "");
-        return '<div class="mk-platform-section" id="' + textId + '-section" data-posts=\'' + JSON.stringify(posts).replace(/'/g, "&#39;") + '\' data-idx="0">' +
-          '<div class="mk-platform-header">' +
-            '<span class="mk-platform-name">' + H(label) + (multi ? ' <span style="opacity:0.5;font-weight:400">· ' + posts.length + ' variants</span>' : '') + '</span>' +
-            navHtml +
-          '</div>' +
-          contentHtml +
-          '<div class="mk-platform-actions" style="margin-top:10px">' +
-            '<button class="btn" data-a="copy" data-id="' + textId + '">Copy</button>' +
-            (canBuffer ? '<button class="btn" data-a="buffer" data-platform="' + key + '" data-id="' + textId + '">Publish</button>' : '') +
-            (isSub ? '<button class="btn" data-a="mk-edit-open" data-id="' + textId + '">Edit</button>' : '') +
-            (canBuffer ? '<button class="btn" data-a="sched-open" data-picker="sched-pk-' + textId + '">Schedule</button>' : '') +
-          '</div>' +
-          (canBuffer ? '<div class="soc-schedule-picker" id="sched-pk-' + textId + '">' +
-            '<label>Publish at</label>' +
-            '<input type="datetime-local" id="sched-dt-' + textId + '">' +
-            '<select class="sched-tz-sel" id="sched-tz-' + textId + '">' + tzOptionsHtml() + '</select>' +
-            '<button class="btn" data-a="sched-confirm" data-platform="' + key + '" data-id="' + textId + '" data-label="' + H(label) + '">Confirm</button>' +
-            '<button class="ghost" data-a="sched-cancel" data-picker="sched-pk-' + textId + '">Cancel</button>' +
-          '</div>' : "") +
-          '</div>';
-      }).filter(Boolean).join("");
 
-      el.innerHTML =
+      const activePlatforms = platforms.filter(p => (payload[p.key] || "").trim());
+
+      const headerHtml =
         '<div class="mk-reading-header">' +
           '<div style="min-width:0">' +
             '<div class="mk-reading-title">' + H(title || "Untitled") + '</div>' +
@@ -4990,9 +5244,78 @@
             '</div>' +
           '</div>' +
           (runId ? '<button class="btn" style="white-space:nowrap;flex-shrink:0" data-a="open-run" data-id="' + runId + '" data-mode="pipeline">View run ↗</button>' : '') +
-        '</div>' +
-        pillsHtml +
-        (sectionsHtml || '<div class="empty">No social posts for this selection.</div>');
+        '</div>';
+
+      if (!activePlatforms.length) {
+        el.innerHTML = headerHtml + pillsHtml + '<div class="empty">No social posts for this selection.</div>';
+        return;
+      }
+
+      const tabBarHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--line);margin-top:14px">' +
+        activePlatforms.map((p, i) =>
+          '<button class="sn-plat-btn' + (i === 0 ? ' active' : '') + '" data-a="mk-plat-tab" data-plat="' + p.key + '">' + p.label + '</button>'
+        ).join("") +
+      '</div>';
+
+      const panelsHtml = activePlatforms.map((p, i) => {
+        const raw = payload[p.key] || "";
+        const posts = raw.split(/\n\s*---+\s*\n/g).map(t => t.trim()).filter(Boolean);
+        const textId = "mk-read-" + p.key;
+        const multi = posts.length > 1;
+        const isSub = p.key === "substack_note";
+
+        const navHtml = multi
+          ? '<div class="mk-carousel-nav" style="margin-bottom:8px">' +
+              '<button class="mk-nav-btn" data-nav-id="' + textId + '" data-dir="-1" disabled>&#8592;</button>' +
+              '<span class="mk-carousel-counter" id="' + textId + '-counter">1 / ' + posts.length + '</span>' +
+              '<button class="mk-nav-btn" data-nav-id="' + textId + '" data-dir="1">&#8594;</button>' +
+              '<span class="muted" style="font-size:11px">' + posts.length + ' variants</span>' +
+            '</div>'
+          : '';
+
+        const contentHtml = isSub
+          ? '<div class="rte-wrap">' +
+              '<div class="rte-toolbar">' +
+                '<button class="rte-btn" data-rte-cmd="bold" title="Bold"><b>B</b></button>' +
+                '<button class="rte-btn" data-rte-cmd="italic" title="Italic"><i>I</i></button>' +
+                '<div class="rte-sep"></div>' +
+                '<button class="rte-btn" data-rte-cmd="insertUnorderedList" title="Bullet list" style="font-size:15px">&#8226;&#8801;</button>' +
+                '<div class="rte-sep"></div>' +
+                '<button class="rte-btn" data-rte-cmd="createLink" title="Insert link" style="font-size:11px;font-weight:400">&#128279;</button>' +
+                '<button class="rte-btn" data-rte-cmd="unlink" title="Remove link" style="font-size:11px;font-weight:400;opacity:0.6">&#10007;</button>' +
+                '<div class="rte-sep"></div>' +
+                '<button class="rte-btn" data-rte-cmd="removeFormat" title="Clear formatting" style="font-size:10px;font-weight:400">Tx</button>' +
+              '</div>' +
+              '<div class="rte-body" id="' + textId + '" contenteditable="true">' + renderMarkdown(posts[0]) + '</div>' +
+            '</div>'
+          : '<textarea class="social-text" id="' + textId + '">' + H(posts[0]) + '</textarea>' +
+            (p.key === "instagram" ? schedInstagramImageHtml(textId, true) : "");
+
+        const actionsHtml =
+          '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
+            '<button class="btn" data-a="copy" data-id="' + textId + '">Copy</button>' +
+            (p.canBuffer ? '<button class="btn" data-a="buffer" data-platform="' + p.key + '" data-id="' + textId + '" data-label="' + H(p.label) + '">Publish</button>' : '') +
+            (p.canBuffer ? '<button class="btn" data-a="sched-open" data-picker="sched-pk-' + textId + '">Schedule</button>' : '') +
+          '</div>' +
+          (p.canBuffer
+            ? '<div class="soc-schedule-picker" id="sched-pk-' + textId + '">' +
+                '<label>Publish at</label>' +
+                '<input type="datetime-local" id="sched-dt-' + textId + '">' +
+                '<select class="sched-tz-sel" id="sched-tz-' + textId + '">' + tzOptionsHtml() + '</select>' +
+                '<button class="btn" data-a="sched-confirm" data-platform="' + p.key + '" data-id="' + textId + '" data-label="' + H(p.label) + '">Confirm</button>' +
+                '<button class="ghost" data-a="sched-cancel" data-picker="sched-pk-' + textId + '">Cancel</button>' +
+              '</div>'
+            : '');
+
+        return '<div class="sn-plat-panel' + (i === 0 ? ' active' : '') + '" ' +
+          'id="' + textId + '-section" data-plat="' + p.key + '" ' +
+          (multi ? 'data-posts=\'' + JSON.stringify(posts).replace(/'/g, "&#39;") + '\' data-idx="0" ' : '') +
+          'style="padding:14px 0 4px">' +
+          navHtml + contentHtml + actionsHtml +
+        '</div>';
+      }).join("");
+
+      el.innerHTML = headerHtml + pillsHtml + tabBarHtml + panelsHtml;
     }
 
     function renderMarketingPreview(run) {
@@ -5218,21 +5541,362 @@
       return SN_INTENT_CLASS[intent] || "";
     }
 
-    function snBatchRender() {
-      const el = $("sn-batch-list");
+    // === SOCIAL WORKSPACE ===
+
+    function snShowPanel(mode) {
+      S.snMode = mode;
+      $("sn-detail-empty").style.display = mode === "empty" ? "" : "none";
+      $("sn-compose-pane").style.display = mode === "compose" ? "" : "none";
+      $("sn-note-detail").style.display = mode === "note" ? "" : "none";
+    }
+
+    function _snBatchNotesListHtml(batchId, notes) {
+      if (!notes.length) return '<div style="padding:10px 14px;font-size:12px;color:var(--muted)">No notes in this batch.</div>';
+      const SHOW = 3;
+      const showAll = S.snBatchShowAll[batchId];
+      const display = showAll ? notes : notes.slice(0, SHOW);
+      let html = display.map(n => {
+        const cls = snIntentClass(n.intent);
+        const isActive = S.snSelectedNote && String(S.snSelectedNote.id) === String(n.id);
+        return '<button class="sn-batch-note-item' + (isActive ? ' active' : '') + '" data-a="sn-note-open" data-bid="' + batchId + '" data-nid="' + n.id + '">' +
+          '<span class="tag sn-intent ' + cls + '" style="flex-shrink:0">' + H(n.intent) + '</span>' +
+          '<span class="sn-batch-note-label">' + H(n.issue) + '</span>' +
+        '</button>';
+      }).join("");
+      if (!showAll && notes.length > SHOW) {
+        html += '<button class="sn-batch-more" data-a="sn-batch-show-all" data-bid="' + batchId + '">+ ' + (notes.length - SHOW) + ' more</button>';
+      }
+      return html;
+    }
+
+    function snSearchActive() {
+      return !!(S.snSearch.q || S.snSearch.shared || S.snSearch.repurposed || S.snSearch.signal);
+    }
+
+    function snSearchRender() {
+      const el = $("sn-batch-rail");
+      if (!el) return;
+      const notes = S.snSearchResults;
+      if (!notes.length) {
+        el.innerHTML = '<div class="empty" style="padding:16px 0">No notes match.</div>';
+        return;
+      }
+      el.innerHTML =
+        '<div style="font-size:11px;color:var(--muted);padding:4px 0 8px">' + notes.length + ' note' + (notes.length === 1 ? '' : 's') + ' found</div>' +
+        notes.map(n => {
+          const cls = snIntentClass(n.intent);
+          const isActive = S.snSelectedNote && String(S.snSelectedNote.id) === String(n.id);
+          const badges = [
+            n.shared ? '<span title="Shared" style="color:var(--accent)">●</span>' : '',
+            (n.linkedin_post || n.threads_post || n.instagram_post) ? '<span title="Cross-posted" style="color:var(--muted)">↗</span>' : '',
+            n.signal === 'positive' ? '👍' : n.signal === 'negative' ? '👎' : ''
+          ].filter(Boolean).join('');
+          return '<button class="sn-batch-note-item' + (isActive ? ' active' : '') + '" data-a="sn-note-open" data-bid="' + n.batch_id + '" data-nid="' + n.id + '">' +
+            '<span class="tag sn-intent ' + cls + '" style="flex-shrink:0">' + H(n.intent) + '</span>' +
+            '<span class="sn-batch-note-label">' + H(n.issue) + '</span>' +
+            (badges ? '<span style="font-size:11px;flex-shrink:0">' + badges + '</span>' : '') +
+          '</button>';
+        }).join("");
+    }
+
+    async function snDoSearch() {
+      if (!snSearchActive()) {
+        snBatchRailRender();
+        return;
+      }
+      const el = $("sn-batch-rail");
+      if (el) el.innerHTML = '<div style="padding:8px 0;font-size:12px;color:var(--muted)">Searching…</div>';
+      try {
+        const params = new URLSearchParams();
+        if (S.snSearch.q)        params.set("q", S.snSearch.q);
+        if (S.snSearch.shared)   params.set("shared", "1");
+        if (S.snSearch.repurposed) params.set("repurposed", "1");
+        if (S.snSearch.signal)   params.set("signal", S.snSearch.signal);
+        const data = await j("/api/substack-notes/search?" + params.toString());
+        S.snSearchResults = data.notes || [];
+        snSearchRender();
+      } catch (e) {
+        if (el) el.innerHTML = '<div class="empty" style="padding:16px 0">Search failed.</div>';
+      }
+    }
+
+    function snBatchRailRender() {
+      if (snSearchActive()) { snDoSearch(); return; }
+      const el = $("sn-batch-rail");
       if (!S.snBatches.length) {
-        el.innerHTML = '<div class="empty" style="padding:20px">No batches yet. Generate one above.</div>';
+        el.innerHTML = '<div class="empty" style="padding:16px 0">No batches yet.</div>';
         return;
       }
       el.innerHTML = S.snBatches.map(b => {
-        const shared = b.shared_count || 0;
-        const pos = b.positive_count || 0;
-        const active = S.snSelectedBatch && String(S.snSelectedBatch.id) === String(b.id);
-        return '<button class="entry-item' + (active ? ' entry-active' : '') + '" style="width:100%;text-align:left;background:none;border:none;cursor:pointer" data-a="sn-select" data-id="' + b.id + '">' +
-          '<div style="font-weight:700;font-size:13px">Batch #' + H(b.id) + ' &mdash; ' + H(b.note_count || 0) + ' notes</div>' +
-          '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + timeAgo(b.timestamp) + (shared ? ' &middot; ' + shared + ' shared' : '') + (pos ? ' &middot; ' + pos + ' 👍' : '') + '</div>' +
-        '</button>';
+        const isOpen = !!S.snOpenBatches[b.id];
+        const notes = S.snBatchNotesCache[b.id] || [];
+        const notesHtml = isOpen
+          ? (notes.length ? _snBatchNotesListHtml(b.id, notes) : '<div style="padding:10px 14px;font-size:12px;color:var(--muted)">Loading…</div>')
+          : "";
+        return '<div class="sn-batch-entry" data-bid="' + b.id + '">' +
+          '<div class="sn-batch-head' + (isOpen ? ' open' : '') + '" data-a="sn-batch-toggle" data-bid="' + b.id + '">' +
+            '<span class="sn-batch-head-title">Batch #' + H(b.id) + ' &mdash; ' + timeAgo(b.timestamp) + '</span>' +
+            '<span style="font-size:11px;color:var(--muted)">' + (b.note_count || 0) + '</span>' +
+            '<button class="sn-batch-del" data-a="sn-batch-del" data-bid="' + b.id + '" title="Delete batch">&times;</button>' +
+          '</div>' +
+          '<div class="sn-batch-notes' + (isOpen ? ' open' : '') + '" id="sn-batch-notes-' + b.id + '">' + notesHtml + '</div>' +
+        '</div>';
       }).join("");
+    }
+
+    function snOpenNote(note) {
+      S.snSelectedNote = note;
+      document.querySelectorAll(".sn-batch-note-item").forEach(el => {
+        el.classList.toggle("active", el.dataset.nid === String(note.id));
+      });
+      snShowPanel("note");
+      snNoteDetailRender();
+    }
+
+    function _snRteHtml(id, htmlContent) {
+      return '<div class="rte-wrap">' +
+        '<div class="rte-toolbar">' +
+          '<button class="rte-btn" data-rte-cmd="bold" title="Bold"><b>B</b></button>' +
+          '<button class="rte-btn" data-rte-cmd="italic" title="Italic"><i>I</i></button>' +
+          '<div class="rte-sep"></div>' +
+          '<button class="rte-btn" data-rte-cmd="insertUnorderedList" title="Bullet list" style="font-size:15px">&#8226;&#8801;</button>' +
+          '<div class="rte-sep"></div>' +
+          '<button class="rte-btn" data-rte-cmd="createLink" title="Link" style="font-size:11px;font-weight:400">&#128279;</button>' +
+          '<button class="rte-btn" data-rte-cmd="unlink" title="Remove link" style="font-size:11px;font-weight:400;opacity:0.6">&#10007;</button>' +
+          '<div class="rte-sep"></div>' +
+          '<button class="rte-btn" data-rte-cmd="removeFormat" title="Clear formatting" style="font-size:10px;font-weight:400">Tx</button>' +
+        '</div>' +
+        '<div class="rte-body" id="' + id + '" contenteditable="true">' + (htmlContent || '') + '</div>' +
+      '</div>';
+    }
+
+    function _snPlatActionsHtml(textId, platform, label, saveNid) {
+      const saveBtn = saveNid
+        ? '<button class="btn" data-a="sn-note-save" data-nid="' + saveNid + '" data-text-id="' + textId + '">Save</button>'
+        : '';
+      return '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
+        '<button class="btn" data-a="copy" data-id="' + textId + '">Copy</button>' +
+        '<button class="btn" data-a="buffer" data-platform="' + platform + '" data-id="' + textId + '">Publish</button>' +
+        '<button class="btn" data-a="sched-open" data-picker="sched-pk-' + textId + '">Schedule</button>' +
+        saveBtn +
+      '</div>' +
+      '<div class="soc-schedule-picker" id="sched-pk-' + textId + '">' +
+        '<label>Publish at</label>' +
+        '<input type="datetime-local" id="sched-dt-' + textId + '">' +
+        '<select class="sched-tz-sel" id="sched-tz-' + textId + '">' + tzOptionsHtml() + '</select>' +
+        '<button class="btn" data-a="sched-confirm" data-platform="' + platform + '" data-id="' + textId + '" data-label="' + H(label) + '">Confirm</button>' +
+        '<button class="ghost" data-a="sched-cancel" data-picker="sched-pk-' + textId + '">Cancel</button>' +
+        (platform === "instagram" ? schedInstagramImageHtml(textId, true) : '') +
+      '</div>';
+    }
+
+    function _snSchedAllHtml(panelId, platforms, noteId) {
+      const pills = platforms.map(p =>
+        '<button class="sn-plat-btn active" data-a="sn-sa-toggle" data-panel="' + panelId + '" data-plat="' + p.key + '" data-text-id="' + p.textId + '">' + p.label + '</button>'
+      ).join("");
+      return '<div class="sn-sched-all-panel" id="' + panelId + '"' + (noteId ? ' data-note-id="' + noteId + '"' : '') + '>' +
+        '<div style="font-size:12px;font-weight:600;margin-bottom:8px">Schedule all at once</div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">' +
+          '<input type="datetime-local" class="sn-sa-dt" id="' + panelId + '-dt" style="flex:1;min-width:160px">' +
+          '<select class="sched-tz-sel sn-sa-tz" id="' + panelId + '-tz">' + tzOptionsHtml() + '</select>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">' + pills + '</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn pri" data-a="sn-sa-confirm" data-panel="' + panelId + '">Schedule selected</button>' +
+          '<button class="ghost" data-a="sn-sa-cancel" data-panel="' + panelId + '">Cancel</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function snNoteDetailRender() {
+      const note = S.snSelectedNote;
+      if (!note) return;
+      const pane = $("sn-note-detail");
+      if (!pane) return;
+      const sigPos = note.signal === "positive";
+      const sigNeg = note.signal === "negative";
+      const cls = snIntentClass(note.intent);
+
+      const platforms = [
+        { key: "substack_note", label: "Substack Note ●", text: note.note_text },
+        { key: "linkedin",      label: "LinkedIn",         text: note.linkedin_post || "" },
+        { key: "threads",       label: "Threads",          text: note.threads_post  || "" },
+        { key: "instagram",     label: "Instagram",        text: note.instagram_post || "" },
+      ];
+
+      const platBar = '<div class="sn-plat-bar">' +
+        platforms.map((p, i) =>
+          '<button class="sn-plat-btn' + (i === 0 ? ' active' : '') + '" data-a="sn-plat-tab" data-plat="' + p.key + '" data-nid="' + note.id + '">' + p.label + '</button>'
+        ).join("") +
+      '</div>';
+
+      const hasRepurpose = !!(note.linkedin_post || note.threads_post || note.instagram_post);
+
+      const panelsHtml = platforms.map((p, i) => {
+        const textId = "sn-det-" + note.id + "-" + p.key;
+        const isEmpty = p.key !== "substack_note" && !p.text;
+        // SN panel gets inline Save; other empty panels get a Generate button
+        const saveNid = p.key === "substack_note" ? note.id : null;
+        const isSN = p.key === "substack_note";
+        return '<div class="sn-plat-panel' + (i === 0 ? ' active' : '') + '" id="sn-det-panel-' + note.id + '-' + p.key + '">' +
+          (isEmpty
+            ? '<div class="empty" style="padding:20px 0;text-align:center">' +
+                '<div style="color:var(--muted);margin-bottom:10px">Not cross-posted yet.</div>' +
+                '<button class="btn" data-a="sn-repurpose" data-id="' + note.id + '">Cross-post all →</button>' +
+              '</div>'
+            : (isSN
+                ? _snRteHtml(textId, renderMarkdown(p.text))
+                : '<textarea class="sn-det-ta" id="' + textId + '">' + H(p.text) + '</textarea>'
+              ) +
+              _snPlatActionsHtml(textId, p.key, PL[p.key] || p.key, saveNid)
+          ) +
+        '</div>';
+      }).join("");
+
+      const saId = "sn-sa-" + note.id;
+      const saPlatforms = platforms
+        .filter(p => p.text)
+        .map(p => ({ key: p.key, label: p.label.replace(" ●", ""), textId: "sn-det-" + note.id + "-" + p.key }));
+
+      const actionsStrip =
+        '<div class="sn-note-actions-strip">' +
+          '<button class="btn' + (note.shared ? ' ok' : '') + '" data-a="sn-shared" data-id="' + note.id + '" data-val="' + (note.shared ? '0' : '1') + '">' + (note.shared ? '✓ Shared' : 'Mark shared') + '</button>' +
+          '<button class="btn' + (sigPos ? ' ok' : '') + '" data-a="sn-signal" data-id="' + note.id + '" data-val="positive">👍</button>' +
+          '<button class="btn' + (sigNeg ? ' danger' : '') + '" data-a="sn-signal" data-id="' + note.id + '" data-val="negative">👎</button>' +
+          (sigPos ? '<button class="btn" data-a="sn-promote" data-id="' + note.id + '">→ Ideas</button>' : '') +
+          '<button class="btn" data-a="sn-repurpose" data-id="' + note.id + '">' + (hasRepurpose ? 'Cross-post ✓' : 'Cross-post →') + '</button>' +
+          '<button class="btn" data-a="sn-rep-thumb" data-nid="' + note.id + '" data-issue="' + encodeURIComponent(note.issue) + '">Thumbnail →</button>' +
+          (hasRepurpose ? '<button class="btn" data-a="sn-sa-open" data-panel="' + saId + '" style="margin-left:auto">Schedule all →</button>' : '') +
+        '</div>';
+
+      pane.innerHTML =
+        '<div class="card-head" style="padding:14px 20px;border-bottom:1px solid var(--line);margin-bottom:0">' +
+          '<div style="flex:1">' +
+            '<span class="tag sn-intent ' + cls + '">' + H(note.intent) + '</span>' +
+            '<div style="font-weight:700;font-size:13px;margin-top:5px">' + H(note.issue) + '</div>' +
+          '</div>' +
+        '</div>' +
+        platBar +
+        panelsHtml +
+        actionsStrip +
+        (hasRepurpose ? _snSchedAllHtml(saId, saPlatforms, note.id) : '');
+    }
+
+    function snNewPost() {
+      S.snMode = "compose";
+      S.compose.repurpose = null;
+      S.compose.platform = "substack_note";
+      S.compose.texts = { linkedin: "", threads: "", instagram: "", substack_note: "" };
+      snShowPanel("compose");
+      snComposeRender();
+    }
+
+    function snComposeRender() {
+      const pane = $("sn-compose-pane");
+      if (!pane) return;
+      const plat = S.compose.platform;
+      const PLATS = [
+        { key: "substack_note", label: "Substack Note" },
+        { key: "linkedin",      label: "LinkedIn" },
+        { key: "threads",       label: "Threads" },
+        { key: "instagram",     label: "Instagram" },
+      ];
+
+      const header =
+        '<div class="card-head" style="padding:14px 20px;border-bottom:1px solid var(--line);margin-bottom:0">' +
+          '<div><div class="eyebrow">New post</div><div class="section-title">Compose</div></div>' +
+          (S.compose.repurpose ? '<button class="btn" style="font-size:11px" data-a="cmp-start-over">Start over</button>' : '') +
+        '</div>';
+
+      const platBar = '<div class="sn-plat-bar">' +
+        PLATS.map(p =>
+          '<button class="sn-plat-btn' + (p.key === plat ? ' active' : '') + '" data-a="cmp-platform" data-plat="' + p.key + '">' + p.label + '</button>'
+        ).join("") +
+      '</div>';
+
+      if (S.compose.repurpose) {
+        // 4-tab layout — all platforms available after repurpose
+        const panelsHtml = PLATS.map(p => {
+          const textId = "cmp-ta-" + p.key;
+          const text = S.compose.texts[p.key] || "";
+          const editor = p.key === "substack_note"
+            ? _snRteHtml(textId, text || "")
+            : '<textarea class="sn-det-ta" id="' + textId + '" placeholder="' + H(PL[p.key] || p.key) + ' post…">' + H(text) + '</textarea>';
+          return '<div class="sn-plat-panel' + (p.key === plat ? ' active' : '') + '" id="cmp-panel-' + p.key + '">' +
+            editor + _snPlatActionsHtml(textId, p.key, PL[p.key] || p.key) +
+          '</div>';
+        }).join("");
+        const cmpSaPlats = PLATS.map(p => ({ key: p.key, label: p.label, textId: "cmp-ta-" + p.key }));
+        const schedAllSection =
+          '<div class="sn-note-actions-strip" style="border-bottom:none">' +
+            '<button class="btn" data-a="sn-sa-open" data-panel="cmp-sa">Schedule all →</button>' +
+            '<span class="muted" style="font-size:12px;align-self:center">Schedule all platforms at once</span>' +
+          '</div>' +
+          _snSchedAllHtml("cmp-sa", cmpSaPlats, "");
+        pane.innerHTML = header + platBar + panelsHtml + schedAllSection;
+      } else {
+        // Single-editor mode
+        const textId = "cmp-ta-" + plat;
+        const platLabel = PL[plat] || plat;
+        const storedText = S.compose.texts[plat] || "";
+        const editor = plat === "substack_note"
+          ? _snRteHtml(textId, storedText)
+          : '<textarea class="sn-det-ta" id="' + textId + '" placeholder="Write your ' + H(platLabel) + ' post…">' + H(storedText) + '</textarea>';
+        const editorHtml =
+          '<div class="sn-plat-panel active">' +
+            editor +
+            '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
+              '<button class="btn" data-a="copy" data-id="' + textId + '">Copy</button>' +
+              '<button class="btn" data-a="buffer" data-platform="' + plat + '" data-id="' + textId + '">Publish</button>' +
+              '<button class="btn" data-a="sched-open" data-picker="sched-pk-' + textId + '">Schedule</button>' +
+              '<button class="btn" style="margin-left:auto" data-a="cmp-repurpose">Cross-post →</button>' +
+            '</div>' +
+            '<div class="soc-schedule-picker" id="sched-pk-' + textId + '">' +
+              '<label>Publish at</label>' +
+              '<input type="datetime-local" id="sched-dt-' + textId + '">' +
+              '<select class="sched-tz-sel" id="sched-tz-' + textId + '">' + tzOptionsHtml() + '</select>' +
+              '<button class="btn" data-a="sched-confirm" data-platform="' + plat + '" data-id="' + textId + '" data-label="' + H(platLabel) + '">Confirm</button>' +
+              '<button class="ghost" data-a="sched-cancel" data-picker="sched-pk-' + textId + '">Cancel</button>' +
+              (plat === "instagram" ? schedInstagramImageHtml(textId, true) : '') +
+            '</div>' +
+          '</div>';
+        pane.innerHTML = header + platBar + editorHtml;
+      }
+    }
+
+    function snComposeSelectPlatform(plat) {
+      // Save current editor content before switching
+      const textId = "cmp-ta-" + S.compose.platform;
+      const el = $(textId);
+      if (el) S.compose.texts[S.compose.platform] = getElText(el);
+      S.compose.platform = plat;
+      snComposeRender();
+    }
+
+    async function snComposeRepurpose(btn) {
+      const textId = "cmp-ta-" + S.compose.platform;
+      const el = $(textId);
+      if (!el) return;
+      const text = (el.isContentEditable ? el.innerText : el.value).trim();
+      if (!text) { alert("Write something first."); return; }
+      S.compose.texts[S.compose.platform] = text;
+      btn.disabled = true; btn.textContent = "Repurposing…";
+      try {
+        const data = await j("/api/social/compose/repurpose", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, platform: S.compose.platform })
+        });
+        // Merge repurposed texts into S.compose.texts
+        for (const k of ["linkedin", "threads", "instagram", "substack_note"]) {
+          if (k !== S.compose.platform && data[k]) S.compose.texts[k] = data[k];
+        }
+        S.compose.repurpose = data;
+        snComposeRender();
+      } catch (e) {
+        btn.disabled = false; btn.textContent = "Cross-post →";
+        alert("Repurpose failed: " + (e.message || "unknown error"));
+      }
     }
 
     // Fade an element out, swap its HTML, fade back in
@@ -5242,102 +5906,6 @@
       await new Promise(r => setTimeout(r, 140));
       el.innerHTML = html;
       el.style.opacity = "1";
-    }
-
-    // Pure HTML builder — returns the notes list string without touching the DOM
-    function _snNotesHtml() {
-      if (!S.snNotes.length) return '<div class="empty" style="padding:20px">No notes in this batch.</div>';
-      return '<div class="sn-note-list">' + S.snNotes.map(n => {
-        const cls = snIntentClass(n.intent);
-        const sigPos = n.signal === "positive";
-        const sigNeg = n.signal === "negative";
-        const hasRepurpose = n.linkedin_post || n.threads_post || n.instagram_post;
-        const repurposePanel = hasRepurpose ? (
-          '<div class="sn-repurpose" id="sn-rep-' + n.id + '">' +
-            '<div class="tabs sn-repurpose-tabs">' +
-              '<button class="tab active" data-a="sn-rep-tab" data-nid="' + n.id + '" data-plat="linkedin">LinkedIn</button>' +
-              '<button class="tab" data-a="sn-rep-tab" data-nid="' + n.id + '" data-plat="threads">Threads</button>' +
-              '<button class="tab" data-a="sn-rep-tab" data-nid="' + n.id + '" data-plat="instagram">Instagram</button>' +
-            '</div>' +
-            '<div class="sn-rep-body" id="sn-rep-body-' + n.id + '">' + H(n.linkedin_post || "") + '</div>' +
-            '<div class="sn-rep-actions">' +
-              '<button class="btn" data-a="sn-rep-copy" data-nid="' + n.id + '">Copy</button>' +
-            '</div>' +
-          '</div>'
-        ) : "";
-        return '<div class="sn-note' + (n.shared ? ' shared' : '') + (sigPos ? ' signal-positive' : sigNeg ? ' signal-negative' : '') + '" data-nid="' + n.id + '">' +
-          '<div class="sn-note-head">' +
-            '<div style="display:flex;flex-direction:column;gap:4px;flex:1">' +
-              '<span class="tag sn-intent ' + cls + '">' + H(n.intent) + '</span>' +
-              '<div class="sn-note-issue">' + H(n.issue) + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="sn-note-body" id="sn-body-' + n.id + '">' + H(n.note_text) + '</div>' +
-          '<div class="sn-note-edit" id="sn-edit-' + n.id + '">' +
-            '<div class="sn-editor">' +
-              '<div class="sn-editor-pane sn-editor-write">' +
-                '<div class="sn-editor-label">Write</div>' +
-                '<textarea class="sn-editor-ta" id="sn-edit-ta-' + n.id + '">' + H(n.note_text) + '</textarea>' +
-              '</div>' +
-              '<div class="sn-editor-pane">' +
-                '<div class="sn-editor-label">Preview</div>' +
-                '<div class="sn-edit-preview" id="sn-edit-preview-' + n.id + '"></div>' +
-              '</div>' +
-            '</div>' +
-            '<div class="sn-note-edit-actions">' +
-              '<button class="btn pri" data-a="sn-edit-save" data-id="' + n.id + '" style="width:auto">Save</button>' +
-              '<button class="ghost" data-a="sn-edit-cancel" data-id="' + n.id + '">Cancel</button>' +
-            '</div>' +
-          '</div>' +
-          '<div class="sn-note-actions">' +
-            '<button class="btn' + (n.shared ? ' ok' : '') + '" data-a="sn-shared" data-id="' + n.id + '" data-val="' + (n.shared ? '0' : '1') + '">' + (n.shared ? '✓ Shared' : 'Mark shared') + '</button>' +
-            '<button class="btn' + (sigPos ? ' ok' : '') + '" data-a="sn-signal" data-id="' + n.id + '" data-val="positive">👍</button>' +
-            '<button class="btn' + (sigNeg ? ' danger' : '') + '" data-a="sn-signal" data-id="' + n.id + '" data-val="negative">👎</button>' +
-            (n.signal === "positive" ? '<button class="btn" data-a="sn-promote" data-id="' + n.id + '">→ Ideas</button>' : '') +
-            '<button class="btn" data-a="sn-edit-open" data-id="' + n.id + '" style="margin-left:auto">Edit</button>' +
-            '<button class="btn" data-a="sn-rep-thumb" data-nid="' + n.id + '" data-issue="' + encodeURIComponent(n.issue) + '">Thumbnail →</button>' +
-            '<button class="btn" data-a="sn-repurpose" data-id="' + n.id + '">' + (hasRepurpose ? 'Repurpose ✓' : 'Repurpose →') + '</button>' +
-            '<button class="btn" data-a="sched-open" data-picker="sched-pk-sn-sched-txt-' + n.id + '">Schedule</button>' +
-            '<span id="sn-sched-txt-' + n.id + '" style="display:none">' + H(n.note_text) + '</span>' +
-          '</div>' +
-          '<div class="soc-schedule-picker" id="sched-pk-sn-sched-txt-' + n.id + '">' +
-            '<label>Publish at</label>' +
-            '<input type="datetime-local" id="sched-dt-sn-sched-txt-' + n.id + '">' +
-            '<select class="sched-tz-sel" id="sched-tz-sn-sched-txt-' + n.id + '">' + tzOptionsHtml() + '</select>' +
-            (hasRepurpose
-              ? '<select class="sched-platform-sel" onchange="snSchedPlatformChange(this,\'' + n.id + '\')">' +
-                  '<option value="substack_note">Substack Note</option>' +
-                  (n.linkedin_post  ? '<option value="linkedin">LinkedIn</option>'   : '') +
-                  (n.threads_post   ? '<option value="threads">Threads</option>'     : '') +
-                  (n.instagram_post ? '<option value="instagram">Instagram</option>' : '') +
-                '</select>'
-              : '') +
-            '<button class="btn" data-a="sched-confirm" data-platform="substack_note" data-id="sn-sched-txt-' + n.id + '" data-label="Substack Note">Confirm</button>' +
-            '<button class="ghost" data-a="sched-cancel" data-picker="sched-pk-sn-sched-txt-' + n.id + '">Cancel</button>' +
-            schedInstagramImageHtml('sn-sched-txt-' + n.id, false) +
-          '</div>' +
-          repurposePanel +
-        '</div>';
-      }).join("") + '</div>';
-    }
-
-    // Updates header metadata + replaces list HTML in-place (no fade — used for in-place mutations)
-    function snNotesRender() {
-      const el = $("sn-note-list");
-      const titleEl = $("sn-notes-title");
-      const countEl = $("sn-notes-count");
-      const delBtn = $("sn-del-batch");
-      if (!S.snSelectedBatch) {
-        el.innerHTML = '<div class="empty" style="padding:20px">Select a batch to see its notes.</div>';
-        titleEl.textContent = "Select a batch";
-        countEl.textContent = "";
-        delBtn.classList.add("hide");
-        return;
-      }
-      titleEl.textContent = "Batch #" + S.snSelectedBatch.id;
-      countEl.textContent = S.snNotes.length + " notes";
-      delBtn.classList.remove("hide");
-      el.innerHTML = _snNotesHtml();
     }
 
     function schedInstagramImageHtml(textId, alwaysShow) {
@@ -5352,69 +5920,32 @@
       '</div>';
     }
 
-    function snSchedPlatformChange(sel, nid) {
-      const platform = sel.value;
-      const note = S.snNotes.find(n => String(n.id) === String(nid));
-      if (!note) return;
-      const texts = {
-        substack_note: note.note_text,
-        linkedin:      note.linkedin_post  || note.note_text,
-        threads:       note.threads_post   || note.note_text,
-        instagram:     note.instagram_post || note.note_text,
-      };
-      const labels = { substack_note: "Substack Note", linkedin: "LinkedIn", threads: "Threads", instagram: "Instagram" };
-      const textId = "sn-sched-txt-" + nid;
-      const span = $(textId);
-      if (span) span.textContent = texts[platform] || note.note_text;
-      const picker = sel.closest(".soc-schedule-picker");
-      const confirmBtn = picker.querySelector('[data-a="sched-confirm"]');
-      if (confirmBtn) {
-        confirmBtn.dataset.platform = platform;
-        confirmBtn.dataset.label = labels[platform] || platform;
-      }
-      const imgSection = $("sched-img-" + textId);
-      if (imgSection) imgSection.classList.toggle("show", platform === "instagram");
-    }
-
-    // Dummy placeholder so the old duplicated note map below is removed
     function snSkeletonHtml(rows) {
       return Array.from({ length: rows }, () => '<div class="skeleton-row"></div>').join("");
     }
 
     async function loadSnBatches() {
-      $("sn-batch-list").innerHTML = snSkeletonHtml(5);
+      const el = $("sn-batch-rail");
+      if (el) el.innerHTML = snSkeletonHtml(4);
       try {
         const data = await j("/api/substack-notes/batches");
         S.snBatches = data.batches || [];
-        if (S.snBatches.length && !S.snSelectedBatch) {
-          await selectSnBatch(S.snBatches[0]);
-        } else if (S.snSelectedBatch) {
-          const refreshed = S.snBatches.find(b => String(b.id) === String(S.snSelectedBatch.id));
-          if (refreshed) S.snSelectedBatch = refreshed;
-          else { S.snSelectedBatch = null; S.snNotes = []; }
+        snBatchRailRender();
+        // Auto-open most recent batch if nothing selected
+        if (S.snBatches.length && !Object.keys(S.snOpenBatches).length) {
+          const first = S.snBatches[0];
+          S.snOpenBatches[first.id] = true;
+          snBatchRailRender();
+          if (!S.snBatchNotesCache[first.id]) {
+            j("/api/substack-notes/batches/" + first.id).then(d => {
+              S.snBatchNotesCache[first.id] = d.notes || [];
+              const notesEl = $("sn-batch-notes-" + first.id);
+              if (notesEl) notesEl.innerHTML = _snBatchNotesListHtml(first.id, S.snBatchNotesCache[first.id]);
+            });
+          }
         }
-        snBatchRender();
-        snNotesRender();
       } catch (e) {
-        $("sn-batch-list").innerHTML = '<div class="empty" style="padding:20px">' + H(e.message) + '</div>';
-      }
-    }
-
-    async function selectSnBatch(batch) {
-      S.snSelectedBatch = batch;
-      snBatchRender();
-      const el = $("sn-note-list");
-      // Fade out → show skeleton while fetching → fade out → show real content
-      await fadeSwap(el, snSkeletonHtml(8));
-      try {
-        const data = await j("/api/substack-notes/batches/" + batch.id);
-        S.snNotes = data.notes || [];
-        $("sn-notes-title").textContent = "Batch #" + S.snSelectedBatch.id;
-        $("sn-notes-count").textContent = S.snNotes.length + " notes";
-        $("sn-del-batch").classList.remove("hide");
-        await fadeSwap(el, _snNotesHtml());
-      } catch (e) {
-        await fadeSwap(el, '<div class="empty" style="padding:20px">' + H(e.message) + '</div>');
+        if (el) el.innerHTML = '<div class="empty" style="padding:16px 0">' + H(e.message) + '</div>';
       }
     }
 
@@ -5425,10 +5956,20 @@
       status.textContent = "Generating 20 notes with Claude…";
       try {
         const data = await j("/api/substack-notes/generate", { method: "POST" });
-        status.textContent = "Done — " + data.note_count + " notes saved (Batch #" + data.batch_id + ").";
+        status.textContent = "Done — " + data.note_count + " notes" + (data.repurposed ? " (repurposed)" : "") + " in Batch #" + data.batch_id + ".";
         await loadSnBatches();
-        const newBatch = S.snBatches.find(b => String(b.id) === String(data.batch_id));
-        if (newBatch) await selectSnBatch(newBatch);
+        // Auto-open the new batch
+        if (data.batch_id) {
+          S.snOpenBatches[data.batch_id] = true;
+          snBatchRailRender();
+          if (!S.snBatchNotesCache[data.batch_id]) {
+            j("/api/substack-notes/batches/" + data.batch_id).then(d => {
+              S.snBatchNotesCache[data.batch_id] = d.notes || [];
+              const notesEl = $("sn-batch-notes-" + data.batch_id);
+              if (notesEl) notesEl.innerHTML = _snBatchNotesListHtml(data.batch_id, S.snBatchNotesCache[data.batch_id]);
+            });
+          }
+        }
       } catch (e) {
         status.textContent = "Error: " + (e.message || "generation failed");
       } finally {
@@ -5513,14 +6054,15 @@
                   '<button class="tab' + (p === 'linkedin' ? ' active' : '') + '" data-a="qt-rep-tab" data-qid="' + q.id + '" data-plat="' + p + '">' + (p === 'linkedin' ? 'LinkedIn' : p === 'threads' ? 'Threads' : 'Instagram') + '</button>'
                 ).join('') +
               '</div>' +
-              ['linkedin', 'threads', 'instagram'].map((p, i) =>
-                '<div class="qt-rep-panel' + (i === 0 ? ' active' : '') + '" id="qt-rp-' + q.id + '-' + p + '">' +
-                  '<div class="quote-rep-body">' + H(p === 'linkedin' ? q.linkedin_post : p === 'threads' ? q.threads_post : q.instagram_post) + '</div>' +
+              ['linkedin', 'threads', 'instagram'].map((p, i) => {
+                const txt = p === 'linkedin' ? q.linkedin_post : p === 'threads' ? q.threads_post : q.instagram_post;
+                return '<div class="qt-rep-panel' + (i === 0 ? ' active' : '') + '" id="qt-rp-' + q.id + '-' + p + '">' +
+                  '<div class="quote-rep-body">' + H(txt) + '</div>' +
                   '<div class="quote-rep-actions">' +
-                    '<button class="btn" data-a="qt-rep-copy" data-text="' + H(p === 'linkedin' ? q.linkedin_post : p === 'threads' ? q.threads_post : q.instagram_post) + '">Copy</button>' +
+                    '<button class="btn" data-a="qt-rep-publish" data-plat="' + p + '" data-text="' + H(txt) + '" data-label="Quote">Publish now</button>' +
                   '</div>' +
-                '</div>'
-              ).join('') +
+                '</div>';
+              }).join('') +
             '</div>'
           ) : '') +
         '</div>';
@@ -5725,6 +6267,47 @@
       }
     }
 
+    function publishedFeedRender(posts) {
+      const el = $("published-feed-list");
+      if (!el) return;
+      if (!posts || !posts.length) {
+        el.innerHTML = '<div class="empty" style="padding:20px">No published posts yet.</div>';
+        return;
+      }
+      el.innerHTML = posts.map(p => {
+        const ts = p.published_at || p.scheduled_at || "";
+        const msUtc = Date.parse(ts + (ts.endsWith("Z") ? "" : "Z"));
+        const dtStr = !isNaN(msUtc) ? timeAgo(msUtc) : ts;
+        const platLabel = SCHED_PLATFORM_LABEL[p.platform] || p.platform;
+        return '<div class="sched-item">' +
+          '<div class="sched-item-head">' +
+            '<span class="tag" style="font-size:10px">' + H(platLabel) + '</span>' +
+            (p.source_label ? '<span style="font-size:10px;color:var(--muted)">' + H(p.source_label) + '</span>' : '') +
+            '<span class="sched-status published">published</span>' +
+            '<span style="font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap">' + H(dtStr) + '</span>' +
+          '</div>' +
+          '<div class="sched-item-text">' + renderMarkdown(p.text) + '</div>' +
+          '<button class="sched-item-expand" onclick="this.closest(\'.sched-item\').classList.toggle(\'expanded\')" title="Expand">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+          '</button>' +
+          '<div style="display:flex;gap:6px;margin-top:10px">' +
+            '<button class="ghost" data-a="sched-hard-del" data-id="' + p.id + '">Remove</button>' +
+          '</div>' +
+        '</div>';
+      }).join("");
+    }
+
+    async function loadPublishedFeed() {
+      const el = $("published-feed-list");
+      if (el) el.innerHTML = '<div class="empty" style="padding:20px">Loading...</div>';
+      try {
+        const data = await j("/api/social/published");
+        publishedFeedRender(data.posts || []);
+      } catch (e) {
+        if (el) el.innerHTML = '<div class="empty" style="padding:20px">' + H(e.message) + '</div>';
+      }
+    }
+
     function redditRender(categories, total) {
       $("reddit-results").innerHTML = Array.isArray(categories) && categories.length
         ? categories.map(category => (
@@ -5810,6 +6393,404 @@
           '</div>'
         )).join("") + '</div>'
         : '<div class="empty">No tagged articles yet.</div>';
+    }
+
+    function countryFlag(code) {
+      if (!code || code.length !== 2) return "🌐";
+      try {
+        return String.fromCodePoint(...[...code.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+      } catch { return "🌐"; }
+    }
+
+    function audienceRender(data) {
+      const body = $("audience-body");
+      if (!body) return;
+
+      const total = data.total || 0;
+      const paid = data.paid || 0;
+      const comp = data.comp || 0;
+      const free = total - paid - comp;
+
+      // Tier summary
+      const tierHtml =
+        '<div class="aud-tier-row">' +
+          '<div class="aud-tier"><div class="aud-tier-val">' + total + '</div><div class="aud-tier-lbl">Total</div></div>' +
+          '<div class="aud-tier"><div class="aud-tier-val" style="color:var(--accent)">' + paid + '</div><div class="aud-tier-lbl">Paid</div></div>' +
+          '<div class="aud-tier"><div class="aud-tier-val">' + comp + '</div><div class="aud-tier-lbl">Comp</div></div>' +
+          '<div class="aud-tier"><div class="aud-tier-val">' + Math.max(0, free) + '</div><div class="aud-tier-lbl">Free</div></div>' +
+        '</div>';
+
+      // Activity distribution
+      const actDist = data.activity_distribution || {};
+      const ACT_LABELS = { 0: "None", 1: "Low", 2: "Moderate", 3: "Regular", 4: "High", 5: "Super" };
+      const actMax = Math.max(1, ...Object.values(actDist));
+      const actHtml =
+        '<div class="audience-section-title">Engagement</div>' +
+        [0, 1, 2, 3, 4, 5].map(r =>
+          '<div class="aud-bar-row">' +
+            '<div class="aud-bar-label">' + ACT_LABELS[r] + '</div>' +
+            '<div class="aud-bar-track"><div class="aud-bar-fill" style="width:' + Math.round(((actDist[r] || 0) / actMax) * 100) + '%"></div></div>' +
+            '<div class="aud-bar-count">' + (actDist[r] || 0) + '</div>' +
+          '</div>'
+        ).join("");
+
+      // Top countries
+      const countries = data.top_countries || [];
+      const coverage = data.country_coverage || 0;
+      const countryHtml = countries.length
+        ? '<div class="audience-section-title">Top countries <span style="font-weight:400;opacity:.6">(' + coverage + ' of ' + total + ' located)</span></div>' +
+          countries.slice(0, 8).map(([code, count]) =>
+            '<div class="aud-country-row">' +
+              '<span class="aud-country-flag">' + countryFlag(code) + '</span>' +
+              '<span class="aud-country-name">' + H(code) + '</span>' +
+              '<span class="aud-country-count">' + count + '</span>' +
+            '</div>'
+          ).join("")
+        : '<div class="audience-section-title">Countries</div><div class="empty" style="padding:8px 0;font-size:12px">No location data yet.</div>';
+
+      // Monthly growth (last 12 months)
+      const growth = data.monthly_growth || {};
+      const months = Object.keys(growth).sort();
+      const growthMax = Math.max(1, ...Object.values(growth));
+      const growthHtml = months.length
+        ? '<div class="audience-section-title" style="margin-top:16px">New subscribers / month</div>' +
+          '<div class="aud-growth-bars" title="Monthly new subscribers">' +
+            months.map(m =>
+              '<div class="aud-growth-bar" style="height:' + Math.round((growth[m] / growthMax) * 48) + 'px" title="' + H(m) + ': ' + growth[m] + '"></div>'
+            ).join("") +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">' +
+            '<span>' + H(months[0] || "") + '</span><span>' + H(months[months.length - 1] || "") + '</span>' +
+          '</div>'
+        : '';
+
+      body.innerHTML =
+        tierHtml +
+        '<div class="audience-grid" style="margin-top:16px">' +
+          '<div>' + actHtml + '</div>' +
+          '<div>' + countryHtml + '</div>' +
+        '</div>' +
+        growthHtml;
+
+      const lbl = $("aud-sync-label");
+      if (lbl && data.synced_at) lbl.textContent = "Synced " + timeAgo(data.synced_at);
+    }
+
+    async function loadAudience() {
+      const body = $("audience-body");
+      const btn = $("aud-refresh-btn");
+      if (!body) return;
+      try {
+        const data = await j("/api/substack/audience");
+        if (!data.total) {
+          body.innerHTML = '<div class="empty">No subscriber data cached yet. Go to <strong>Audience</strong> and click Sync.</div>';
+        } else {
+          audienceRender(data);
+        }
+      } catch (e) {
+        body.innerHTML = '<div class="empty">' + H(e.message || "Failed to load audience data.") + '</div>';
+      }
+    }
+
+    // ── Audience browser ────────────────────────────────────────────────────
+
+    const audBrState = {
+      q: "", interval: "", activity: null,
+      offset: 0, limit: 50, total: 0,
+      selected: null,
+    };
+
+    function audRatingClass(r) {
+      const n = parseInt(r) || 0;
+      return n >= 4 ? "r" + n : n === 3 ? "r3" : "";
+    }
+
+    function audActivityLabel(r) {
+      const n = parseInt(r) || 0;
+      return ["None","Low","Mild","Regular","Active","Top"][n] || "?";
+    }
+
+    function audAvatarHtml(s, size) {
+      const sz = size || 32;
+      if (s.photo_url) return '<img class="aud-sub-avatar" src="' + H(s.photo_url) + '" width="' + sz + '" height="' + sz + '" loading="lazy">';
+      const init = (s.name || s.email || "?")[0].toUpperCase();
+      return '<div class="aud-sub-avatar-ph" style="width:' + sz + 'px;height:' + sz + 'px;font-size:' + Math.floor(sz * 0.4) + 'px">' + H(init) + '</div>';
+    }
+
+    function audListRender(result) {
+      const list = $("aud-br-list");
+      if (!list) return;
+      audBrState.total = result.total || 0;
+      const subs = result.subscribers || [];
+
+      $("aud-br-count").textContent = audBrState.total.toLocaleString();
+
+      if (!subs.length) {
+        list.innerHTML = '<div class="empty">No subscribers found.</div>';
+        $("aud-pg-prev").style.display = "none";
+        $("aud-pg-next").style.display = "none";
+        $("aud-pg-label").textContent = "";
+        return;
+      }
+
+      list.innerHTML = subs.map(s => {
+        const rc = audRatingClass(s.activity_rating);
+        const isActive = audBrState.selected && audBrState.selected.email === s.email;
+        return '<div class="aud-sub-item' + (isActive ? " active" : "") + '" data-a="aud-sub-open" data-email="' + H(s.email) + '">' +
+          audAvatarHtml(s, 32) +
+          '<div class="aud-sub-info">' +
+            '<div class="aud-sub-name">' + H(s.name || s.email) + '</div>' +
+            '<div class="aud-sub-meta">' + H(s.subscription_interval || "free") + (s.subscription_country ? " · " + countryFlag(s.subscription_country) + " " + H(s.subscription_country) : "") + '</div>' +
+          '</div>' +
+          '<div class="aud-sub-rating ' + rc + '">' + audActivityLabel(s.activity_rating) + '</div>' +
+        '</div>';
+      }).join("");
+
+      const page = Math.floor(audBrState.offset / audBrState.limit) + 1;
+      const totalPages = Math.ceil(audBrState.total / audBrState.limit);
+      $("aud-pg-label").textContent = "Page " + page + " of " + totalPages;
+      $("aud-pg-prev").style.display = audBrState.offset > 0 ? "" : "none";
+      $("aud-pg-next").style.display = audBrState.offset + audBrState.limit < audBrState.total ? "" : "none";
+    }
+
+    async function loadAudienceList() {
+      const list = $("aud-br-list");
+      if (!list) return;
+      list.innerHTML = '<div class="empty">Loading…</div>';
+      const params = new URLSearchParams({ offset: audBrState.offset, limit: audBrState.limit });
+      if (audBrState.q) params.set("q", audBrState.q);
+      if (audBrState.interval) params.set("interval", audBrState.interval);
+      if (audBrState.activity !== null) params.set("activity", audBrState.activity);
+      try {
+        const data = await j("/api/substack/subscribers?" + params.toString());
+        audListRender(data);
+      } catch (e) {
+        list.innerHTML = '<div class="empty">' + H(e.message || "Failed to load.") + '</div>';
+      }
+    }
+
+    function audDetailLoading() {
+      const panel = $("aud-br-detail");
+      if (panel) panel.innerHTML = '<div class="empty" style="padding:40px">Fetching profile…</div>';
+    }
+
+    function audDetailRender(sub, detail) {
+      const panel = $("aud-br-detail");
+      if (!panel) return;
+      const d = detail || {};
+      const crm = d.crmData || {};
+
+      const opens      = crm.num_email_opens ?? "—";
+      const opens30d   = crm.num_email_opens_last_30d ?? "—";
+      const clicks     = crm.links_clicked ?? "—";
+      const sent       = crm.num_emails_received ?? "—";
+      const daysActive = crm.days_active_last_30d ?? "—";
+      const lastOpened = crm.last_opened_at ? crm.last_opened_at.slice(0, 10) : "—";
+      const revenue    = (crm.total_revenue_generated ?? sub.total_revenue_generated) != null
+                         ? "$" + ((crm.total_revenue_generated ?? sub.total_revenue_generated) / 100).toFixed(2) : "—";
+      const since   = sub.subscription_created_at ? sub.subscription_created_at.slice(0, 10) : "—";
+      const country = crm.subscription_country || crm.country || sub.subscription_country || "";
+      const interval = sub.subscription_interval || "free";
+
+      panel.innerHTML =
+        '<div style="padding:20px">' +
+          '<div class="aud-detail-header">' +
+            audAvatarHtml(sub, 56) +
+            '<div>' +
+              '<div class="aud-detail-name">' + H(sub.name || sub.email) + '</div>' +
+              '<div class="aud-detail-email">' + H(sub.email) + '</div>' +
+              (country ? '<div style="margin-top:4px;font-size:12px">' + countryFlag(country) + ' ' + H(country) + '</div>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="aud-detail-grid" style="grid-template-columns:1fr 1fr 1fr">' +
+            '<div class="aud-detail-stat"><div class="aud-detail-stat-val">' + H(String(sub.activity_rating || 0)) + '/5</div><div class="aud-detail-stat-lbl">Activity</div></div>' +
+            '<div class="aud-detail-stat"><div class="aud-detail-stat-val">' + H(String(interval)) + '</div><div class="aud-detail-stat-lbl">Plan</div></div>' +
+            '<div class="aud-detail-stat"><div class="aud-detail-stat-val">' + revenue + '</div><div class="aud-detail-stat-lbl">Revenue</div></div>' +
+            '<div class="aud-detail-stat"><div class="aud-detail-stat-val">' + H(String(opens)) + '</div><div class="aud-detail-stat-lbl">Opens (total)</div></div>' +
+            '<div class="aud-detail-stat"><div class="aud-detail-stat-val">' + H(String(opens30d)) + '</div><div class="aud-detail-stat-lbl">Opens (30d)</div></div>' +
+            '<div class="aud-detail-stat"><div class="aud-detail-stat-val">' + H(String(clicks)) + '</div><div class="aud-detail-stat-lbl">Clicks</div></div>' +
+            '<div class="aud-detail-stat"><div class="aud-detail-stat-val">' + H(String(sent)) + '</div><div class="aud-detail-stat-lbl">Sent</div></div>' +
+            '<div class="aud-detail-stat"><div class="aud-detail-stat-val">' + H(String(daysActive)) + '</div><div class="aud-detail-stat-lbl">Active days (30d)</div></div>' +
+            '<div class="aud-detail-stat"><div class="aud-detail-stat-val" style="font-size:13px">' + H(lastOpened) + '</div><div class="aud-detail-stat-lbl">Last opened</div></div>' +
+          '</div>' +
+          '<div style="margin-top:10px;font-size:11px;color:var(--muted)">Subscribed ' + H(since) + '</div>' +
+        '</div>';
+    }
+
+    async function openSubscriberDetail(email) {
+      audBrState.selected = { email };
+      // Highlight row
+      $("aud-br-list").querySelectorAll(".aud-sub-item").forEach(el => {
+        el.classList.toggle("active", el.dataset.email === email);
+      });
+      audDetailLoading();
+      try {
+        const res = await j("/api/substack/subscribers/" + encodeURIComponent(email) + "/detail");
+        audBrState.selected = res.subscriber || { email };
+        audDetailRender(res.subscriber || { email }, res.detail || {});
+      } catch (e) {
+        const panel = $("aud-br-detail");
+        if (panel) panel.innerHTML = '<div class="empty" style="padding:40px">' + H(e.message || "Failed to load.") + '</div>';
+      }
+    }
+
+    async function syncSubscribers() {
+      const btn = document.querySelector('[data-a="aud-sync"]');
+      if (btn) { btn.disabled = true; btn.textContent = "Syncing…"; }
+      const lbl = $("aud-br-sync-label");
+      if (lbl) lbl.textContent = "";
+      try {
+        const res = await j("/api/substack/subscribers/sync", { method: "POST" });
+        if (lbl) lbl.textContent = "Synced " + (res.synced || 0) + " subscribers";
+        await loadAudienceList();
+        loadAudience(); // refresh dashboard card from new local data
+      } catch (e) {
+        if (lbl) lbl.textContent = e.message || "Sync failed";
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "⟳ Sync"; }
+      }
+    }
+
+    // ── Audience insights ────────────────────────────────────────────────────
+
+    let _insRecTab = "attract";
+
+    function insightsRender(data) {
+      const body = $("aud-insights-body");
+      if (!body) return;
+
+      const enriched = data.enriched_count || 0;
+      const total = data.total_count || 0;
+
+      if (!enriched) {
+        body.innerHTML = '<div class="empty" style="padding:40px">Not enough enriched profiles yet. The background job collects them automatically — check back soon.</div>';
+        return;
+      }
+
+      // Funnel
+      const funnelHtml =
+        '<div class="ins-funnel">' +
+          '<div class="ins-funnel-step"><div class="ins-funnel-val">100%</div><div class="ins-funnel-lbl">Sent</div></div>' +
+          '<div class="ins-funnel-step"><div class="ins-funnel-val" style="color:var(--accent)">' + data.avg_open_rate + '%</div><div class="ins-funnel-lbl">Open rate</div></div>' +
+          '<div class="ins-funnel-step"><div class="ins-funnel-val">' + data.avg_click_rate + '%</div><div class="ins-funnel-lbl">Click rate</div></div>' +
+          '<div class="ins-funnel-step"><div class="ins-funnel-val">' + data.avg_reopen_rate + 'x</div><div class="ins-funnel-lbl">Re-opens</div></div>' +
+        '</div>';
+
+      // ICP section
+      const top = data.top_segment || {};
+      const icpCountries = (top.top_countries || []).slice(0, 3).map(([c, n]) => countryFlag(c) + ' ' + H(c) + ' (' + n + ')').join(' · ');
+      const icpAttr = (top.top_attribution || []).slice(0, 2).map(([a, n]) => H(a.replace('substack-', '').replace('-flow', '')) + ' (' + n + ')').join(', ');
+      const icpHtml =
+        '<div class="ins-section">' +
+          '<div class="ins-section-title">Your best readers — top ' + top.pct + '% (' + top.count + ' subscribers)</div>' +
+          '<div class="ins-icp-pills">' +
+            (top.creator_pct ? '<div class="ins-icp-pill">✍️ ' + top.creator_pct + '% creators</div>' : '') +
+            (top.paid_pct ? '<div class="ins-icp-pill" style="background:var(--ok-soft,#d4f0dc);color:var(--ok,#1a7a3c)">💳 ' + top.paid_pct + '% paid</div>' : '') +
+            (icpCountries ? '<div class="ins-icp-pill" style="background:var(--panel-soft);color:var(--fg)">' + icpCountries + '</div>' : '') +
+          '</div>' +
+          (icpAttr ? '<div style="font-size:11px;color:var(--muted)">Acquired via: ' + icpAttr + '</div>' : '') +
+        '</div>';
+
+      // Open rate distribution
+      const buckets = data.open_rate_buckets || [0, 0, 0, 0, 0];
+      const bucketMax = Math.max(1, ...buckets);
+      const bucketLabels = ['0–20%', '20–40%', '40–60%', '60–80%', '80–100%'];
+      const bucketsHtml =
+        '<div class="ins-section">' +
+          '<div class="ins-section-title">Open rate distribution</div>' +
+          buckets.map((n, i) =>
+            '<div class="ins-bucket-row">' +
+              '<div class="ins-bucket-lbl">' + bucketLabels[i] + '</div>' +
+              '<div class="ins-bucket-track"><div class="ins-bucket-fill" style="width:' + Math.round(n / bucketMax * 100) + '%"></div></div>' +
+              '<div class="ins-bucket-count">' + n + '</div>' +
+            '</div>'
+          ).join("") +
+        '</div>';
+
+      // At-risk
+      const atRiskHtml =
+        '<div class="ins-section">' +
+          '<div class="ins-section-title">At-risk readers</div>' +
+          '<div class="ins-at-risk">' +
+            '<div class="ins-at-risk-num">' + data.at_risk_count + '</div>' +
+            '<div><div style="font-weight:600;font-size:13px">Engaged before, gone cold</div>' +
+            '<div style="font-size:12px;color:var(--muted);margin-top:3px">Activity rating ≥ 3 but no opens in 45+ days</div></div>' +
+          '</div>' +
+        '</div>';
+
+      // Cohort quality
+      const cohort = data.cohort_quality || {};
+      const cohortMonths = Object.keys(cohort);
+      const cohortVals = Object.values(cohort);
+      const cohortMax = Math.max(1, ...cohortVals);
+      const cohortHtml = cohortMonths.length ?
+        '<div class="ins-section">' +
+          '<div class="ins-section-title">Cohort quality — avg engagement per signup month</div>' +
+          '<div class="ins-cohort-bars">' +
+            cohortMonths.map((m, i) => {
+              const pct = Math.round(cohortVals[i] / cohortMax * 100);
+              const isBest = m === data.best_cohort;
+              return '<div class="ins-cohort-bar" style="height:' + pct + '%;background:' + (isBest ? 'var(--accent)' : 'var(--panel-soft)') + ';border:' + (isBest ? 'none' : '1px solid var(--line)') + '" title="' + H(m) + ': ' + cohortVals[i] + ' avg"></div>';
+            }).join("") +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">' +
+            '<span>' + H(cohortMonths[0] || '') + '</span>' +
+            '<span>' + (data.best_cohort ? '★ Best: ' + H(data.best_cohort) : '') + '</span>' +
+            '<span>' + H(cohortMonths[cohortMonths.length - 1] || '') + '</span>' +
+          '</div>' +
+        '</div>' : '';
+
+      // Recommendations
+      const recs = data.recommendations || [];
+      const attract = recs.filter(r => r.type === "attract");
+      const retain  = recs.filter(r => r.type === "retain");
+      const recList = _insRecTab === "attract" ? attract : retain;
+      const recsHtml = recs.length ?
+        '<div class="ins-section">' +
+          '<div class="ins-section-title">Recommended actions</div>' +
+          '<div class="ins-rec-tabs">' +
+            '<button class="ins-rec-tab' + (_insRecTab === "attract" ? " active" : "") + '" data-a="ins-rec-tab" data-tab="attract">🎯 Attract (' + attract.length + ')</button>' +
+            '<button class="ins-rec-tab' + (_insRecTab === "retain" ? " active" : "") + '" data-a="ins-rec-tab" data-tab="retain">🤝 Retain (' + retain.length + ')</button>' +
+          '</div>' +
+          '<div class="ins-rec-cards" id="ins-rec-cards">' +
+            recList.map(r =>
+              '<div class="ins-rec-card ' + H(r.type) + '">' +
+                '<div class="ins-rec-title">' + H(r.title) + '</div>' +
+                '<div class="ins-rec-action">' + H(r.action) + '</div>' +
+                '<div class="ins-rec-why">' + H(r.why) + '</div>' +
+              '</div>'
+            ).join("") +
+          '</div>' +
+        '</div>' : '';
+
+      const moreHtml =
+        '<div class="ins-section" style="display:flex;gap:16px;flex-wrap:wrap">' +
+          (data.web_reader_pct ? '<div style="font-size:12px"><strong>' + data.web_reader_pct + '%</strong> <span class="muted">read on web</span></div>' : '') +
+          (data.commenters_count ? '<div style="font-size:12px"><strong>' + data.commenters_count + '</strong> <span class="muted">commented</span></div>' : '') +
+          (data.sharers_count ? '<div style="font-size:12px"><strong>' + data.sharers_count + '</strong> <span class="muted">shared</span></div>' : '') +
+        '</div>';
+
+      body.innerHTML = funnelHtml + icpHtml + bucketsHtml + atRiskHtml + cohortHtml + moreHtml + recsHtml;
+      body.dataset.recs = JSON.stringify(recs);
+
+      const covEl = $("aud-enriched-count");
+      if (covEl) covEl.textContent = enriched + ' enriched';
+    }
+
+    async function loadInsights() {
+      const body = $("aud-insights-body");
+      const btn = document.querySelector('[data-a="aud-insights-load"]');
+      if (!body) return;
+      body.innerHTML = '<div class="empty" style="padding:40px">Analysing audience… this may take a moment.</div>';
+      if (btn) { btn.disabled = true; btn.textContent = "Analysing…"; }
+      try {
+        const data = await j("/api/substack/insights");
+        insightsRender(data);
+      } catch (e) {
+        body.innerHTML = '<div class="empty" style="padding:40px">' + H(e.message || "Failed to load insights.") + '</div>';
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "Refresh Insights"; }
+      }
     }
 
     async function loadDash() {
@@ -6325,7 +7306,7 @@
         await j("/api/social/publish", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ platform, text: (el => el ? (el.value !== undefined ? el.value : el.textContent) || "" : "")($(id)) })
+          body: JSON.stringify({ platform, text: getElPlainText($(id)), source_label: btn.dataset.label || "" })
         });
         btn.textContent = "✓ Published";
       } catch (e) {
@@ -6352,9 +7333,67 @@
       }, 900);
     }
 
+    function getElText(el) {
+      if (!el) return "";
+      if (el.isContentEditable) return el.innerHTML;
+      return el.value !== undefined ? el.value : el.textContent || "";
+    }
+    // Plain text version — use for schedule/publish API calls
+    function getElPlainText(el) {
+      if (!el) return "";
+      if (el.isContentEditable) return el.innerText;
+      return el.value !== undefined ? el.value : el.textContent || "";
+    }
+
+    // Converts RTE innerHTML back to markdown for DB storage.
+    // Reverses renderMarkdown() + handles RTE toolbar tags (<b>, <i>).
+    function htmlToMarkdown(html) {
+      const doc = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
+
+      function walk(node) {
+        if (node.nodeType === 3) return node.textContent; // text node
+        if (node.nodeType !== 1) return '';
+        const tag = node.tagName.toLowerCase();
+        const kids = () => Array.from(node.childNodes).map(walk).join('');
+
+        switch (tag) {
+          case 'b': case 'strong': return '**' + kids() + '**';
+          case 'i': case 'em':    return '_' + kids() + '_';
+          case 'code':            return '`' + node.textContent + '`';
+          case 'a': {
+            const href = node.getAttribute('href') || '';
+            return '[' + kids() + '](' + href + ')';
+          }
+          case 'br': return '\n';
+          case 'hr': return '\n---\n';
+          case 'pre': return '```\n' + node.textContent + '\n```';
+          case 'p':   return kids().trim() + '\n\n';
+          case 'h1':  return '# '   + kids().trim() + '\n\n';
+          case 'h2':  return '## '  + kids().trim() + '\n\n';
+          case 'h3':  return '### ' + kids().trim() + '\n\n';
+          case 'h4':  return '#### '+ kids().trim() + '\n\n';
+          case 'blockquote':
+            return kids().trim().split('\n').map(l => '> ' + l).join('\n') + '\n\n';
+          case 'ul':
+            return Array.from(node.children)
+              .map(li => '- ' + Array.from(li.childNodes).map(walk).join('').trim())
+              .join('\n') + '\n\n';
+          case 'ol':
+            return Array.from(node.children)
+              .map((li, i) => (i + 1) + '. ' + Array.from(li.childNodes).map(walk).join('').trim())
+              .join('\n') + '\n\n';
+          case 'li':  return kids(); // handled by ul/ol
+          case 'div': { const c = kids(); return c + (c.endsWith('\n') ? '' : '\n'); }
+          default:    return kids();
+        }
+      }
+
+      return walk(doc.querySelector('div')).trim().replace(/\n{3,}/g, '\n\n');
+    }
+
     function copy(id, btn) {
       const el = $(id);
-      copyText(el ? (el.value !== undefined ? el.value : el.textContent) || "" : "", btn);
+      copyText(el ? (el.value !== undefined ? el.value : el.innerText || el.textContent) || "" : "", btn);
     }
 
     function repurposeFromExisting(id, source, lang, platform) {
@@ -6455,78 +7494,182 @@
           body: JSON.stringify({ status: action.dataset.status })
         }).then(loadIdeas);
         else if (kind === "idea-del") j("/api/ideas/" + action.dataset.id, { method: "DELETE" }).then(loadIdeas);
-        else if (kind === "sn-select") {
-          const batch = S.snBatches.find(b => String(b.id) === String(action.dataset.id));
-          if (batch) selectSnBatch(batch);
+        else if (kind === "sn-new-post") { snNewPost(); }
+        else if (kind === "sn-filter") {
+          const f = action.dataset.filter;
+          if (f === "shared")       S.snSearch.shared    = !S.snSearch.shared;
+          else if (f === "repurposed") S.snSearch.repurposed = !S.snSearch.repurposed;
+          else if (f === "signal-pos") S.snSearch.signal = S.snSearch.signal === "positive" ? "" : "positive";
+          else if (f === "signal-neg") S.snSearch.signal = S.snSearch.signal === "negative" ? "" : "negative";
+          action.classList.toggle("active",
+            f === "shared"      ? S.snSearch.shared :
+            f === "repurposed"  ? S.snSearch.repurposed :
+            f === "signal-pos"  ? S.snSearch.signal === "positive" :
+                                  S.snSearch.signal === "negative"
+          );
+          snDoSearch();
+        }
+        else if (kind === "sn-batch-toggle") {
+          const bid = action.dataset.bid;
+          if (S.snOpenBatches[bid]) {
+            delete S.snOpenBatches[bid];
+            snBatchRailRender();
+          } else {
+            S.snOpenBatches[bid] = true;
+            snBatchRailRender();
+            if (!S.snBatchNotesCache[bid]) {
+              const notesEl = $("sn-batch-notes-" + bid);
+              if (notesEl) notesEl.innerHTML = '<div style="padding:10px 14px;font-size:12px;color:var(--muted)">Loading…</div>';
+              j("/api/substack-notes/batches/" + bid).then(d => {
+                S.snBatchNotesCache[bid] = d.notes || [];
+                const el2 = $("sn-batch-notes-" + bid);
+                if (el2) el2.innerHTML = _snBatchNotesListHtml(bid, S.snBatchNotesCache[bid]);
+              });
+            }
+          }
+        }
+        else if (kind === "aud-sync") {
+          syncSubscribers();
+        }
+        else if (kind === "aud-tab") {
+          const tab = action.dataset.tab;
+          document.querySelectorAll('[data-a="aud-tab"]').forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+          $("aud-pane-browser").style.display  = tab === "browser"  ? "" : "none";
+          $("aud-pane-insights").style.display = tab === "insights" ? "" : "none";
+        }
+        else if (kind === "aud-insights-load") {
+          loadInsights();
+        }
+        else if (kind === "ins-rec-tab") {
+          _insRecTab = action.dataset.tab;
+          document.querySelectorAll('[data-a="ins-rec-tab"]').forEach(b => b.classList.toggle("active", b.dataset.tab === _insRecTab));
+          const body = $("aud-insights-body");
+          if (!body || !body.dataset.recs) return;
+          const recs = JSON.parse(body.dataset.recs);
+          const list = recs.filter(r => r.type === _insRecTab);
+          const cards = $("ins-rec-cards");
+          if (cards) cards.innerHTML = list.map(r =>
+            '<div class="ins-rec-card ' + H(r.type) + '">' +
+              '<div class="ins-rec-title">' + H(r.title) + '</div>' +
+              '<div class="ins-rec-action">' + H(r.action) + '</div>' +
+              '<div class="ins-rec-why">' + H(r.why) + '</div>' +
+            '</div>'
+          ).join("");
+        }
+        else if (kind === "aud-sub-open") {
+          openSubscriberDetail(action.dataset.email);
+        }
+        else if (kind === "aud-filt") {
+          const filt = action.dataset.filt;
+          if (filt === "paid") {
+            audBrState.interval = audBrState.interval === "paid" ? "" : "paid";
+          } else if (filt === "free") {
+            audBrState.interval = audBrState.interval === "free" ? "" : "free";
+          } else if (filt === "r5") {
+            audBrState.activity = audBrState.activity === 5 ? null : 5;
+          } else if (filt === "r4") {
+            audBrState.activity = audBrState.activity === 4 ? null : 4;
+          }
+          // Update pill states
+          document.querySelectorAll(".aud-filter-pill").forEach(p => {
+            const f = p.dataset.filt;
+            const on = (f === "paid" && audBrState.interval === "paid") ||
+                       (f === "free" && audBrState.interval === "free") ||
+                       (f === "r5"   && audBrState.activity === 5) ||
+                       (f === "r4"   && audBrState.activity === 4);
+            p.classList.toggle("active", on);
+          });
+          audBrState.offset = 0;
+          loadAudienceList();
+        }
+        else if (kind === "aud-page") {
+          const dir = parseInt(action.dataset.dir) || 1;
+          audBrState.offset = Math.max(0, audBrState.offset + dir * audBrState.limit);
+          loadAudienceList();
+        }
+        else if (kind === "sn-batch-del") {
+          const bid = action.dataset.bid;
+          if (!confirm("Delete batch #" + bid + " and all its notes?")) return;
+          j("/api/substack-notes/batches/" + bid, { method: "DELETE" }).then(() => {
+            delete S.snBatchNotesCache[bid];
+            delete S.snOpenBatches[bid];
+            if (S.snSelectedNote) {
+              const notesInBatch = S.snBatchNotesCache[bid] || [];
+              if (notesInBatch.some(n => String(n.id) === String(S.snSelectedNote.id))) {
+                S.snSelectedNote = null;
+                snShowPanel("empty");
+              }
+            }
+            loadSnBatches();
+          });
+        }
+        else if (kind === "sn-batch-show-all") {
+          const bid = action.dataset.bid;
+          S.snBatchShowAll[bid] = true;
+          const notesEl = $("sn-batch-notes-" + bid);
+          if (notesEl) notesEl.innerHTML = _snBatchNotesListHtml(bid, S.snBatchNotesCache[bid] || []);
+        }
+        else if (kind === "sn-note-open") {
+          const nid = action.dataset.nid;
+          const bid = action.dataset.bid;
+          const notes = S.snBatchNotesCache[bid] || [];
+          const note = notes.find(n => String(n.id) === String(nid));
+          if (note) snOpenNote(note);
         }
         else if (kind === "sn-shared") {
           const val = action.dataset.val === "1";
-          j("/api/substack-notes/" + action.dataset.id, {
+          const nid = action.dataset.id;
+          j("/api/substack-notes/" + nid, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ shared: val })
           }).then(() => {
-            const note = S.snNotes.find(n => String(n.id) === String(action.dataset.id));
-            if (note) note.shared = val ? 1 : 0;
-            snNotesRender();
+            // Update cache
+            for (const bid in S.snBatchNotesCache) {
+              const n = S.snBatchNotesCache[bid].find(n => String(n.id) === String(nid));
+              if (n) { n.shared = val ? 1 : 0; break; }
+            }
+            if (S.snSelectedNote && String(S.snSelectedNote.id) === String(nid)) {
+              S.snSelectedNote.shared = val ? 1 : 0;
+              snNoteDetailRender();
+            }
           });
         }
         else if (kind === "sn-signal") {
           const val = action.dataset.val;
-          const note = S.snNotes.find(n => String(n.id) === String(action.dataset.id));
-          const newVal = (note && note.signal === val) ? "none" : val;
-          j("/api/substack-notes/" + action.dataset.id, {
+          const nid = action.dataset.id;
+          let cachedNote = null;
+          for (const bid in S.snBatchNotesCache) {
+            cachedNote = S.snBatchNotesCache[bid].find(n => String(n.id) === String(nid));
+            if (cachedNote) break;
+          }
+          const newVal = (cachedNote && cachedNote.signal === val) ? "none" : val;
+          j("/api/substack-notes/" + nid, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ signal: newVal })
           }).then(() => {
-            if (note) note.signal = newVal;
-            snNotesRender();
-          });
-        }
-        else if (kind === "mk-edit-open") {
-          const id = action.dataset.id;
-          const body = $(id + "-body");
-          const edit = $(id + "-edit");
-          const ta = $(id);
-          const preview = $(id + "-preview");
-          if (!body || !edit || !ta) return;
-          body.style.display = "none";
-          edit.classList.add("open");
-          if (preview) {
-            preview.innerHTML = renderMarkdown(ta.value);
-            ta.oninput = () => { preview.innerHTML = renderMarkdown(ta.value); };
-          }
-          ta.focus();
-          ta.setSelectionRange(ta.value.length, ta.value.length);
-        }
-        else if (kind === "mk-edit-cancel") {
-          const id = action.dataset.id;
-          const body = $(id + "-body");
-          const edit = $(id + "-edit");
-          const ta = $(id);
-          if (!body || !edit) return;
-          if (ta) {
-            const section = document.getElementById(id + "-section");
-            if (section) {
-              const posts = JSON.parse(section.dataset.posts || "[]");
-              const idx = parseInt(section.dataset.idx || "0", 10);
-              ta.value = posts[idx] || ta.value;
+            if (cachedNote) cachedNote.signal = newVal;
+            if (S.snSelectedNote && String(S.snSelectedNote.id) === String(nid)) {
+              S.snSelectedNote.signal = newVal;
+              snNoteDetailRender();
             }
-          }
-          edit.classList.remove("open");
-          body.style.display = "";
+          });
         }
         else if (kind === "sn-edit-open") {
           const id = action.dataset.id;
-          const body = $("sn-body-" + id);
           const edit = $("sn-edit-" + id);
           const ta = $("sn-edit-ta-" + id);
           const preview = $("sn-edit-preview-" + id);
-          if (!body || !edit || !ta) return;
-          body.style.display = "none";
+          if (!edit || !ta) return;
           edit.classList.add("open");
-          // Wire live preview
+          // Hide platform tabs while editing
+          const detail = $("sn-note-detail");
+          if (detail) {
+            const platBar = detail.querySelector(".sn-plat-bar");
+            if (platBar) platBar.style.display = "none";
+            detail.querySelectorAll(".sn-plat-panel").forEach(p => p.style.display = "none");
+          }
           if (preview) {
             preview.innerHTML = renderMarkdown(ta.value);
             ta.oninput = () => { preview.innerHTML = renderMarkdown(ta.value); };
@@ -6536,20 +7679,24 @@
         }
         else if (kind === "sn-edit-cancel") {
           const id = action.dataset.id;
-          const body = $("sn-body-" + id);
           const edit = $("sn-edit-" + id);
           const ta = $("sn-edit-ta-" + id);
-          if (!body || !edit || !ta) return;
-          // Restore textarea to current saved value
-          const note = S.snNotes.find(n => String(n.id) === String(id));
-          if (note) ta.value = note.note_text;
+          if (!edit || !ta) return;
+          if (S.snSelectedNote && String(S.snSelectedNote.id) === String(id)) ta.value = S.snSelectedNote.note_text;
           edit.classList.remove("open");
-          body.style.display = "";
+          // Restore platform tabs
+          const detail = $("sn-note-detail");
+          if (detail) {
+            const platBar = detail.querySelector(".sn-plat-bar");
+            if (platBar) platBar.style.display = "";
+            detail.querySelectorAll(".sn-plat-panel").forEach(p => { p.style.display = ""; });
+            const activePanel = detail.querySelector(".sn-plat-panel.active");
+            if (activePanel) activePanel.style.display = "block";
+          }
         }
         else if (kind === "sn-edit-save") {
           const id = action.dataset.id;
           const ta = $("sn-edit-ta-" + id);
-          const body = $("sn-body-" + id);
           const edit = $("sn-edit-" + id);
           if (!ta) return;
           const newText = ta.value.trim();
@@ -6560,14 +7707,18 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ note_text: newText })
           }).then(() => {
-            const note = S.snNotes.find(n => String(n.id) === String(id));
-            if (note) note.note_text = newText;
-            // Also update the hidden schedule span if it exists
-            const schedTxt = $("sn-sched-txt-" + id);
-            if (schedTxt) schedTxt.textContent = newText;
-            if (body) { body.textContent = newText; body.style.display = ""; }
+            // Update cache and selected note
+            for (const bid in S.snBatchNotesCache) {
+              const n = S.snBatchNotesCache[bid].find(n => String(n.id) === String(id));
+              if (n) { n.note_text = newText; break; }
+            }
+            if (S.snSelectedNote && String(S.snSelectedNote.id) === String(id)) {
+              S.snSelectedNote.note_text = newText;
+            }
             if (edit) edit.classList.remove("open");
             action.disabled = false; action.textContent = "Save";
+            // Re-render to update the SN textarea
+            snNoteDetailRender();
           }).catch(e => {
             action.disabled = false; action.textContent = "Save";
             alert("Save failed: " + (e.message || "unknown error"));
@@ -6586,40 +7737,83 @@
           action.textContent = "Generating…";
           j("/api/substack-notes/" + nid + "/repurpose", { method: "POST" })
             .then(data => {
-              const note = S.snNotes.find(n => String(n.id) === String(nid));
-              if (note) {
-                note.linkedin_post = data.linkedin || "";
-                note.threads_post = data.threads || "";
-                note.instagram_post = data.instagram || "";
+              // Update cache
+              for (const bid in S.snBatchNotesCache) {
+                const n = S.snBatchNotesCache[bid].find(n => String(n.id) === String(nid));
+                if (n) {
+                  n.linkedin_post = data.linkedin || "";
+                  n.threads_post = data.threads || "";
+                  n.instagram_post = data.instagram || "";
+                  break;
+                }
               }
-              snNotesRender();
+              if (S.snSelectedNote && String(S.snSelectedNote.id) === String(nid)) {
+                S.snSelectedNote.linkedin_post = data.linkedin || "";
+                S.snSelectedNote.threads_post = data.threads || "";
+                S.snSelectedNote.instagram_post = data.instagram || "";
+                snNoteDetailRender();
+              }
             }).catch(e => {
               action.disabled = false;
-              action.textContent = "Repurpose →";
+              action.textContent = "Generate →";
               alert("Repurpose failed: " + e.message);
             });
         }
-        else if (kind === "sn-rep-tab") {
+        else if (kind === "sn-plat-tab") {
           const nid = action.dataset.nid;
           const plat = action.dataset.plat;
-          const note = S.snNotes.find(n => String(n.id) === String(nid));
-          if (!note) return;
-          const repEl = $("sn-rep-" + nid);
-          if (!repEl) return;
-          repEl.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.plat === plat));
-          const bodyEl = $("sn-rep-body-" + nid);
-          if (bodyEl) bodyEl.textContent = plat === "linkedin" ? (note.linkedin_post || "") : plat === "threads" ? (note.threads_post || "") : (note.instagram_post || "");
+          const detail = $("sn-note-detail");
+          if (!detail) return;
+          detail.querySelectorAll(".sn-plat-btn").forEach(b => b.classList.toggle("active", b.dataset.plat === plat));
+          detail.querySelectorAll(".sn-plat-panel").forEach(p => {
+            const active = p.id === "sn-det-panel-" + nid + "-" + plat;
+            p.classList.toggle("active", active);
+            p.style.display = active ? "block" : "none";
+          });
         }
-        else if (kind === "sn-rep-copy") {
+        else if (kind === "mk-plat-tab") {
+          const plat = action.dataset.plat;
+          const preview = $("mk-library-preview");
+          if (!preview) return;
+          preview.querySelectorAll(".sn-plat-btn").forEach(b => b.classList.toggle("active", b.dataset.plat === plat));
+          preview.querySelectorAll(".sn-plat-panel").forEach(p => {
+            const active = p.dataset.plat === plat;
+            p.classList.toggle("active", active);
+            p.style.display = active ? "block" : "none";
+          });
+        }
+        else if (kind === "cmp-platform") { snComposeSelectPlatform(action.dataset.plat); }
+        else if (kind === "cmp-repurpose") { snComposeRepurpose(action); }
+        else if (kind === "cmp-start-over") {
+          S.compose.repurpose = null;
+          snComposeRender();
+        }
+        else if (kind === "sn-note-save") {
           const nid = action.dataset.nid;
-          const bodyEl = $("sn-rep-body-" + nid);
-          if (bodyEl) {
-            navigator.clipboard.writeText(bodyEl.textContent).then(() => {
-              const orig = action.textContent;
-              action.textContent = "Copied!";
-              setTimeout(() => { action.textContent = orig; }, 1500);
-            });
-          }
+          const textId = action.dataset.textId;
+          const ta = $(textId);
+          if (!ta) return;
+          const newText = (ta.isContentEditable ? htmlToMarkdown(ta.innerHTML) : ta.value).trim();
+          if (!newText) return;
+          action.disabled = true; action.textContent = "Saving…";
+          j("/api/substack-notes/" + nid, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ note_text: newText })
+          }).then(() => {
+            for (const bid in S.snBatchNotesCache) {
+              const n = S.snBatchNotesCache[bid].find(n => String(n.id) === String(nid));
+              if (n) { n.note_text = newText; break; }
+            }
+            if (S.snSelectedNote && String(S.snSelectedNote.id) === String(nid)) {
+              S.snSelectedNote.note_text = newText;
+            }
+            action.disabled = false; action.textContent = "Saved ✓";
+            setTimeout(() => { if (action.textContent === "Saved ✓") action.textContent = "Save"; }, 1800);
+          }).catch(e => {
+            action.disabled = false; action.textContent = "Save";
+            alert("Save failed: " + (e.message || "unknown error"));
+          });
         }
         else if (kind === "sn-rep-thumb") {
           const issue = decodeURIComponent(action.dataset.issue || "");
@@ -6776,9 +7970,26 @@
           document.querySelectorAll('[data-a="qt-rep-tab"][data-qid="' + qid + '"]').forEach(b => b.classList.toggle("active", b.dataset.plat === plat));
           document.querySelectorAll('[id^="qt-rp-' + qid + '-"]').forEach(p => p.classList.toggle("active", p.id === "qt-rp-" + qid + "-" + plat));
         }
-        else if (kind === "qt-rep-copy") {
-          navigator.clipboard.writeText(action.dataset.text || "").catch(() => {});
-          const orig = action.textContent; action.textContent = "Copied!"; setTimeout(() => action.textContent = orig, 1500);
+        else if (kind === "qt-rep-publish") {
+          const text = action.dataset.text || "";
+          const platform = action.dataset.plat;
+          if (!text) return;
+          const orig = action.textContent;
+          action.textContent = "Publishing…"; action.disabled = true;
+          j("/api/social/publish", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ platform, text, source_label: action.dataset.label || "Quote" })
+          }).then(() => {
+            action.textContent = "✓ Published";
+            setTimeout(() => {
+              setMarketingTab("scheduled");
+              loadPublishedFeed();
+            }, 600);
+          }).catch(e => {
+            action.textContent = orig; action.disabled = false;
+            alert("Publish failed: " + (e.message || "unknown error"));
+          });
         }
         else if (kind === "qt-promote") {
           j("/api/quotes/" + action.dataset.qid + "/promote", { method: "POST" })
@@ -6803,7 +8014,7 @@
         }
         else if (kind === "sched-confirm") {
           const dtInput = $("sched-dt-" + action.dataset.id);
-          const text = (el => el ? (el.value || el.textContent || "") : "")($( action.dataset.id));
+          const text = getElPlainText($(action.dataset.id));
           const dt = dtInput ? dtInput.value : "";
           if (!dt || !text.trim()) return;
           const tzSel = $("sched-tz-" + action.dataset.id);
@@ -6840,6 +8051,59 @@
             action.textContent = "✓ Scheduled";
             const picker = $("sched-pk-" + action.dataset.id);
             if (picker) picker.classList.remove("open");
+          }).catch(e => {
+            action.textContent = orig; action.disabled = false;
+            alert("Schedule failed: " + (e.message || "unknown error"));
+          });
+        }
+        else if (kind === "sn-sa-open") {
+          const panel = $(action.dataset.panel);
+          if (panel) panel.classList.toggle("open");
+        }
+        else if (kind === "sn-sa-cancel") {
+          const panel = $(action.dataset.panel);
+          if (panel) panel.classList.remove("open");
+        }
+        else if (kind === "sn-sa-toggle") {
+          action.classList.toggle("active");
+        }
+        else if (kind === "sn-sa-confirm") {
+          const panel = $(action.dataset.panel);
+          if (!panel) return;
+          const dtInput = panel.querySelector(".sn-sa-dt");
+          const tzSel = panel.querySelector(".sn-sa-tz");
+          const dt = dtInput ? dtInput.value : "";
+          if (!dt) { alert("Pick a date and time first."); return; }
+          const tz = tzSel ? tzSel.value : "";
+          const scheduledAt = tzToUtcIso(dt, tz);
+          const tzName = tz || Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const noteId = panel.dataset.noteId ? parseInt(panel.dataset.noteId) : null;
+          const pills = panel.querySelectorAll("[data-a='sn-sa-toggle']");
+          const selected = Array.from(pills).filter(p => p.classList.contains("active"));
+          if (!selected.length) { alert("Select at least one platform."); return; }
+          const orig = action.textContent;
+          action.textContent = "Scheduling…"; action.disabled = true;
+          const tasks = selected.map(pill => {
+            const platform = pill.dataset.plat;
+            const textEl = $(pill.dataset.textId);
+            const text = textEl ? getElPlainText(textEl).trim() : "";
+            if (!text) return Promise.resolve(null);
+            return j("/api/social/schedule", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                platform,
+                text,
+                scheduled_at: scheduledAt,
+                timezone: tzName,
+                source_label: "Compose",
+                ...(noteId && platform === "substack_note" ? { note_id: noteId } : {}),
+              })
+            });
+          });
+          Promise.all(tasks).then(() => {
+            action.textContent = "✓ Scheduled";
+            setTimeout(() => { if (panel) panel.classList.remove("open"); action.textContent = orig; action.disabled = false; }, 1500);
           }).catch(e => {
             action.textContent = orig; action.disabled = false;
             alert("Schedule failed: " + (e.message || "unknown error"));
@@ -6983,6 +8247,19 @@
         return;
       }
 
+      const rteBtn = e.target.closest("[data-rte-cmd]");
+      if (rteBtn) {
+        const cmd = rteBtn.dataset.rteCmd;
+        if (cmd === "createLink") {
+          const url = prompt("URL:");
+          if (url) document.execCommand("createLink", false, url);
+        } else {
+          document.execCommand(cmd, false, null);
+        }
+        rteBtn.closest(".rte-wrap").querySelector(".rte-body").focus();
+        return;
+      }
+
       const navBtn = e.target.closest(".mk-nav-btn");
       if (navBtn) {
         const textId = navBtn.dataset.navId;
@@ -6995,9 +8272,8 @@
         idx = Math.max(0, Math.min(posts.length - 1, idx));
         section.dataset.idx = idx;
         if (textEl.tagName === 'TEXTAREA') textEl.value = posts[idx];
+        else if (textEl.isContentEditable) textEl.innerHTML = renderMarkdown(posts[idx]);
         else textEl.textContent = posts[idx];
-        const bodyEl = $(textId + "-body");
-        if (bodyEl) bodyEl.textContent = posts[idx];
         if (counter) counter.textContent = (idx + 1) + " / " + posts.length;
         section.querySelectorAll(".mk-nav-btn").forEach(b => {
           b.disabled = parseInt(b.dataset.dir, 10) === -1 ? idx === 0 : idx === posts.length - 1;
@@ -7145,9 +8421,21 @@
       $("mk-refresh").onclick = loadMk;
       $("mk-search").oninput = mkRender;
       $("sn-gen-btn").onclick = generateSnBatch;
-      $("sn-refresh").onclick = loadSnBatches;
+      $("sn-search-q").oninput = e => {
+        S.snSearch.q = e.target.value.trim();
+        clearTimeout(S.snSearchTimer);
+        S.snSearchTimer = setTimeout(snDoSearch, 350);
+      };
+      $("aud-br-search").oninput = e => {
+        audBrState.q = e.target.value.trim();
+        audBrState.offset = 0;
+        clearTimeout(audBrState._timer);
+        audBrState._timer = setTimeout(loadAudienceList, 350);
+      };
       $("qt-refresh").onclick = loadQuotesRuns;
       $("sched-refresh").onclick = loadScheduledQueue;
+      $("published-refresh").onclick = loadPublishedFeed;
+      $("aud-refresh-btn").onclick = () => loadAudience();
 
       $("sub-refresh-preview").onclick = refreshSubstackPreview;
       $("sub-copy-md").onclick = async () => {
@@ -7175,14 +8463,6 @@
         } finally {
           btn.disabled = false; btn.textContent = "Test connection";
         }
-      };
-      $("sn-del-batch").onclick = async () => {
-        if (!S.snSelectedBatch) return;
-        if (!confirm("Delete Batch #" + S.snSelectedBatch.id + " and all its notes?")) return;
-        await j("/api/substack-notes/batches/" + S.snSelectedBatch.id, { method: "DELETE" });
-        S.snSelectedBatch = null;
-        S.snNotes = [];
-        loadSnBatches();
       };
       $("hist-refresh").onclick = loadHist;
       $("idea-save").onclick = saveIdea;

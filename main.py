@@ -61,8 +61,22 @@ def _publish_due_posts() -> None:
             storage.update_scheduled_post_status(post["id"], "failed", error=str(e))
 
 
+def _enrich_subscriber_profiles() -> None:
+    """Fetch detail for one un-enriched subscriber per run (slow background cadence)."""
+    try:
+        sub = storage.get_next_subscriber_for_enrichment()
+        if not sub:
+            return
+        detail = substack_client.get_subscriber_detail(sub["email"])
+        if detail:
+            storage.save_subscriber_detail(sub["email"], detail)
+    except Exception:
+        pass  # silently skip on Cloudflare block or transient errors
+
+
 _scheduler = BackgroundScheduler(timezone="UTC")
 _scheduler.add_job(_publish_due_posts, "interval", minutes=1, id="publish_due_posts")
+_scheduler.add_job(_enrich_subscriber_profiles, "interval", minutes=2, id="enrich_subscribers")
 
 
 @asynccontextmanager
@@ -409,10 +423,12 @@ async def publish_to_social(body: dict):
     platform = body.get("platform", "")
     text = body.get("text", "")
     image_url = body.get("image_url", "")
+    source_label = body.get("source_label", "")
     if not platform or not text:
         raise HTTPException(status_code=400, detail="platform and text are required")
     try:
         result = social_client.publish_post(platform, text, image_url)
+        storage.record_published_post(platform, text, image_url, source_label)
         return {"message": "Published successfully", "result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -436,8 +452,16 @@ async def schedule_social_post(body: dict):
 
 @app.get("/api/social/scheduled")
 async def list_scheduled():
-    """List all scheduled posts."""
-    return {"posts": storage.list_scheduled_posts()}
+    """List pending and in-progress scheduled posts."""
+    return {"posts": storage.list_scheduled_posts(status="pending")}
+
+
+@app.get("/api/social/published")
+async def list_published(limit: int = 50):
+    """List successfully published posts, newest first."""
+    posts = storage.list_scheduled_posts(status="published", limit=limit)
+    posts.sort(key=lambda p: p.get("published_at", ""), reverse=True)
+    return {"posts": posts}
 
 
 @app.delete("/api/social/scheduled/{post_id}")
@@ -1269,6 +1293,22 @@ async def save_ideas_batch(body: IdeasBatchSave):
 
 _SUBSTACK_SYSTEM_PROMPT = """You are writing Substack Notes for Camilo Zambrano in a "dinner table talk" voice (warm, grounded, plain language, like talking to a friend). Generate ONE cycle of 20 notes.
 
+Camilo writes about Discipline as a practice of returning to coherence, where actions match our principles.
+Returning is the skill that helps us manage drift, is what helps us remain coherent once we have fallen under
+the influence of drift.
+Comeback speed is the metric we use to measure our discipline, how fast to we come back when we drift.
+He created adaptable discipline (www.adaptable-discipline.com), a framework he designed to help people
+engineer the conditions that help them to practice discipline, just like a soccer coach would
+improve the conditions under which his students would train the soccer skill.
+He also created The Way of Realignment, his philosophy on how to practice discipline, based
+on neuroscience, behavioral theory, psychology and systems theory. He writes his paid companions
+based on this. In there he shares practices that are thought to help train discipline in
+a sustainable, repeatable and successful way. Following the analogy of soccer, this is the own
+way the coach teaches soccer, the particular drills, plays, etc. This means, that TWOR is
+based on the precepts and philosophy behind adaptable discipline.
+This means Camilo, besides reframing discipline, also teaches how
+to train returning, and how to engineer the conditions for that to stick.
+
 FORMAT (must follow exactly for every note):
 🧩 Issue: <specific struggle>
 🎯 Intent: <one of: Validation | Education | Practice (Kata) | Reflection | Positive Alignment | Universal Model (A/B/C) | CDT | Metaphor>
@@ -1331,9 +1371,32 @@ def _parse_substack_notes(raw: str) -> List[Dict[str, Any]]:
     return notes
 
 
+def _parse_batch_repurpose(raw: str, notes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Parse block-formatted batch repurpose response into per-note dicts."""
+    results = []
+    for i, note in enumerate(notes):
+        n = i + 1
+        # Find the block for NOTE N
+        block_pat = rf"NOTE\s+{n}\s*:\s*\n([\s\S]*?)(?=NOTE\s+\d+\s*:|$)"
+        block_m = re.search(block_pat, raw, re.IGNORECASE)
+        block = block_m.group(1) if block_m else ""
+
+        def extract(label: str) -> str:
+            m = re.search(rf"{label}\s*:\s*\n([\s\S]*?)(?=\n(?:LINKEDIN|THREADS|INSTAGRAM):|$)", block, re.IGNORECASE)
+            return m.group(1).strip() if m else ""
+
+        results.append({
+            "id": note.get("id"),
+            "linkedin": extract("LINKEDIN"),
+            "threads": extract("THREADS"),
+            "instagram": extract("INSTAGRAM"),
+        })
+    return results
+
+
 @app.post("/api/substack-notes/generate")
 async def generate_substack_notes():
-    """Call Claude to generate a batch of 20 Substack notes, parse, and save."""
+    """Call Claude to generate a batch of 20 Substack notes, parse, save, and auto-repurpose."""
     try:
         response = _claude.messages.create(
             model="claude-haiku-4-5-20251001",
@@ -1346,11 +1409,71 @@ async def generate_substack_notes():
         if not notes:
             raise HTTPException(status_code=500, detail="Failed to parse any notes from Claude response.")
         batch_id = storage.save_substack_batch(notes)
-        return {"ok": True, "batch_id": batch_id, "note_count": len(notes)}
+
+        # Fetch saved notes with IDs for batch repurpose
+        saved_notes = storage.get_substack_notes(batch_id)
+
+        # Build batch repurpose prompt
+        note_blocks = "\n\n".join(
+            f"NOTE {i+1}:\n{n['note_text']}" for i, n in enumerate(saved_notes)
+        )
+        repurpose_prompt = f"""For each of these {len(saved_notes)} Substack Notes, generate LinkedIn, Threads, and Instagram variants.
+
+Use the same voice: direct, warm, "dinner table talk." Each variant must stand alone.
+
+LinkedIn: 3-5 short paragraphs, insightful, no hashtags, max 1500 chars.
+Threads: punchy, one idea, max 400 chars, no hashtags.
+Instagram: warm, ends with reflection prompt, 150-300 chars, then 5-8 hashtags on new line.
+
+{note_blocks}
+
+Output exactly:
+NOTE 1:
+LINKEDIN:
+<text>
+THREADS:
+<text>
+INSTAGRAM:
+<text>
+... (repeat for each note)"""
+
+        repurposed = False
+        try:
+            rep_response = _claude.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=7000,
+                messages=[{"role": "user", "content": repurpose_prompt}],
+            )
+            rep_raw = rep_response.content[0].text if rep_response.content else ""
+            parsed = _parse_batch_repurpose(rep_raw, saved_notes)
+            for item in parsed:
+                if item["id"] and (item["linkedin"] or item["threads"] or item["instagram"]):
+                    storage.save_substack_repurpose(item["id"], item["linkedin"], item["threads"], item["instagram"])
+            repurposed = True
+        except Exception:
+            pass  # Repurpose failure is non-fatal
+
+        return {"ok": True, "batch_id": batch_id, "note_count": len(notes), "repurposed": repurposed}
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/substack-notes/search")
+async def search_substack_notes(
+    q: str = "",
+    shared: str = "",
+    repurposed: str = "",
+    signal: str = "",
+):
+    notes = storage.search_substack_notes(
+        q=q,
+        shared=shared == "1",
+        repurposed=repurposed == "1",
+        signal=signal or None,
+    )
+    return {"notes": notes}
 
 
 @app.get("/api/substack-notes/batches")
@@ -1458,6 +1581,73 @@ async def promote_substack_note_to_idea(note_id: int):
     return {"ok": True, "idea_id": idea_id}
 
 
+# --- Social compose repurpose ------------------------------------------------
+
+class ComposeRepurposeRequest(BaseModel):
+    text: str
+    platform: str
+
+
+@app.post("/api/social/compose/repurpose")
+async def compose_repurpose(body: ComposeRepurposeRequest):
+    """Repurpose a composed post to the other 3 platforms."""
+    plat_labels = {
+        "substack_note": "Substack Note",
+        "linkedin": "LinkedIn",
+        "threads": "Threads",
+        "instagram": "Instagram",
+    }
+    all_platforms = ["substack_note", "linkedin", "threads", "instagram"]
+    targets = [p for p in all_platforms if p != body.platform]
+    target_names = [plat_labels[p] for p in targets]
+
+    prompt = f"""You are adapting a social media post into {len(targets)} platform variants.
+
+ORIGINAL ({plat_labels.get(body.platform, body.platform)}):
+{body.text}
+
+Produce exactly these sections:
+
+LINKEDIN:
+<Professional LinkedIn post. 3-5 short paragraphs. Insightful, direct, no corporate fluff. Max 1500 chars. No hashtags.>
+
+THREADS:
+<Punchy Threads post. Conversational, single idea, max 400 chars. No hashtags.>
+
+INSTAGRAM:
+<Instagram caption. Engaging, warm, ends with a subtle reflection prompt. 150-300 chars. Then 5-8 relevant hashtags on a new line.>
+
+SUBSTACK_NOTE:
+<Substack Note. Reflective, personal, conversational. 150-400 chars. No hashtags.>
+
+Use the same voice as the original. Each format must stand alone. Output only the four labeled sections."""
+
+    try:
+        response = _claude.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1500,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = response.content[0].text if response.content else ""
+
+        def extract(label: str) -> str:
+            m = re.search(
+                rf"{label}\s*:\s*\n([\s\S]*?)(?=\n(?:LINKEDIN|THREADS|INSTAGRAM|SUBSTACK_NOTE)\s*:|$)",
+                raw, re.IGNORECASE
+            )
+            return m.group(1).strip() if m else ""
+
+        result = {
+            "linkedin": extract("LINKEDIN") if body.platform != "linkedin" else "",
+            "threads": extract("THREADS") if body.platform != "threads" else "",
+            "instagram": extract("INSTAGRAM") if body.platform != "instagram" else "",
+            "substack_note": extract("SUBSTACK_NOTE") if body.platform != "substack_note" else "",
+        }
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # --- Substack connection test ------------------------------------------------
 
 @app.post("/api/substack/test")
@@ -1468,6 +1658,146 @@ async def test_substack_connection():
         return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# --- Substack audience -------------------------------------------------------
+
+@app.get("/api/substack/insights")
+async def get_audience_insights():
+    """Compute audience insights from enriched profiles + AI recommendations."""
+    import json as _json
+    try:
+        stats = storage.get_insights_data()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    if stats.get("enriched_count", 0) < 10:
+        stats["recommendations"] = []
+        return stats
+
+    top = stats.get("top_segment", {})
+    top_countries = ", ".join(f"{c} ({n})" for c, n in top.get("top_countries", [])[:3]) or "unknown"
+    top_attr = ", ".join(f"{a} ({n})" for a, n in top.get("top_attribution", [])[:3]) or "unknown"
+    best_cohort = stats.get("best_cohort") or "unknown"
+
+    prompt = f"""You are advising a Substack newsletter author on audience growth strategy.
+
+AUDIENCE DATA (from {stats['enriched_count']} enriched subscriber profiles):
+- Average open rate: {stats['avg_open_rate']}%
+- Average click rate: {stats['avg_click_rate']}%
+- Average re-open ratio: {stats['avg_reopen_rate']}x (>1 means readers re-open emails)
+- Top segment (activity 4-5): {top['count']} subscribers ({top['pct']}% of enriched)
+  - {top['creator_pct']}% are creators (have their own Substack publication)
+  - {top['paid_pct']}% are paid subscribers
+  - Top countries: {top_countries}
+  - Acquired via: {top_attr}
+- At-risk readers (engaged before, gone cold 45+ days): {stats['at_risk_count']}
+- Web readers (read on site, not just email): {stats['web_reader_pct']}%
+- Commenters: {stats['commenters_count']} | Sharers: {stats['sharers_count']}
+- Best subscriber cohort (highest avg engagement): {best_cohort}
+
+The newsletter is about self-discipline and personal development. The author publishes Substack Notes to grow their audience.
+
+Generate exactly 6 recommendations — 3 to ATTRACT similar new readers, 3 to RETAIN existing ones.
+Each must be specific and directly tied to the data above. No generic advice.
+
+Return ONLY valid JSON, no markdown fences:
+[
+  {{"type":"attract","title":"...","action":"...","why":"..."}} ,
+  ...
+]
+Fields: type (attract|retain), title (short label), action (1-2 sentence concrete step), why (1 sentence data-backed reason)."""
+
+    try:
+        resp = _claude.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1200,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = resp.content[0].text.strip()
+        start, end = raw.find("["), raw.rfind("]") + 1
+        recs = _json.loads(raw[start:end])
+    except Exception:
+        recs = []
+
+    stats["recommendations"] = recs
+    return stats
+
+
+@app.get("/api/substack/audience")
+async def get_substack_audience():
+    """Return aggregated audience stats from the locally cached subscribers table."""
+    try:
+        return storage.get_audience_stats()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- Subscriber browser ------------------------------------------------------
+
+@app.post("/api/substack/subscribers/sync")
+async def sync_subscribers():
+    """Paginate Substack subscriber-stats and upsert all into SQLite."""
+    try:
+        all_subs: list = []
+        offset, limit = 0, 100
+        total = None
+        while True:
+            page = substack_client.get_subscriber_page(offset=offset, limit=limit)
+            if total is None:
+                total = page.get("count", 0)
+            batch = page.get("subscribers", [])
+            all_subs.extend(batch)
+            offset += limit
+            if not batch or offset >= (total or 0):
+                break
+        saved = storage.upsert_subscribers(all_subs)
+        return {"ok": True, "synced": saved, "total": total}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/substack/subscribers")
+async def list_subscribers(
+    q: str = "",
+    activity: Optional[int] = None,
+    interval: str = "",
+    offset: int = 0,
+    limit: int = 50,
+):
+    """List cached subscribers from SQLite with optional search/filter."""
+    try:
+        result = storage.get_subscribers(
+            search=q, activity=activity, interval=interval, offset=offset, limit=limit
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/substack/subscribers/{email}/detail")
+async def subscriber_detail(email: str):
+    """Lazy-fetch individual subscriber detail; cache in SQLite."""
+    import urllib.parse as _up
+    email = _up.unquote(email)
+    try:
+        row = storage.get_subscriber(email)
+        # Return cached detail if fresh (< 7 days)
+        if row and row.get("detail_synced_at"):
+            import datetime as _dt
+            age = (_dt.datetime.utcnow() - _dt.datetime.fromisoformat(row["detail_synced_at"].rstrip("Z"))).days
+            if age < 7:
+                import json as _json
+                detail = _json.loads(row["detail_json"]) if row.get("detail_json") else {}
+                return {"ok": True, "cached": True, "subscriber": row, "detail": detail}
+        # Fetch live
+        detail = substack_client.get_subscriber_detail(email)
+        if detail:
+            storage.save_subscriber_detail(email, detail)
+            row = storage.get_subscriber(email)
+        return {"ok": True, "cached": False, "subscriber": row or {}, "detail": detail}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # --- Quotes API --------------------------------------------------------------

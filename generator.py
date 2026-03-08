@@ -859,7 +859,9 @@ def tag_reflection(reflection: str, title: str) -> List[str]:
     )
     raw = response.content[0].text.strip()
     try:
-        tags = json.loads(raw)
+        start = raw.find("[")
+        end = raw.rfind("]") + 1
+        tags = json.loads(raw[start:end])
         valid = [t for t in tags if t in PILLARS]
         return valid[:2]
     except Exception:
@@ -892,7 +894,9 @@ def extract_quotes(reflection: str, title: str) -> List[Dict[str, Any]]:
     )
     raw = response.content[0].text.strip()
     try:
-        quotes = json.loads(raw)
+        start = raw.find("[")
+        end = raw.rfind("]") + 1
+        quotes = json.loads(raw[start:end])
         if isinstance(quotes, list):
             return [
                 {
