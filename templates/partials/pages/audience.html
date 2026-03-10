@@ -1,0 +1,61 @@
+<section class="page" id="page-audience">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">Subscriber browser</div>
+      <div class="hero-title">Browse, search, and inspect individual subscribers — country, activity, and subscription details fetched on demand.</div>
+      <div class="hero-copy">Data is synced from the Substack dashboard and cached locally. Individual profiles are lazy-loaded when you click.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Subscribers</div>
+        <div class="section-title"><span id="aud-br-count">—</span> subscribers cached · <span id="aud-enriched-count" class="muted" style="font-size:12px"></span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="muted" style="font-size:11px" id="aud-br-sync-label"></span>
+        <button class="btn pri" data-a="aud-sync">⟳ Sync</button>
+      </div>
+    </div>
+
+    <div class="tabs" style="margin: -20px -20px 16px; padding: 0 16px; border-bottom: 1px solid var(--line);">
+      <button class="tab active" data-a="aud-tab" data-tab="browser">Subscribers</button>
+      <button class="tab" data-a="aud-tab" data-tab="insights">Insights</button>
+    </div>
+
+    <div id="aud-pane-browser">
+      <div class="aud-browser-shell">
+        <div>
+          <input type="text" id="aud-br-search" class="sn-search-input" placeholder="Search name or email…" autocomplete="off" style="margin-bottom:8px">
+          <div class="aud-list-filters">
+            <button class="aud-filter-pill" data-a="aud-filt" data-filt="paid">Paid</button>
+            <button class="aud-filter-pill" data-a="aud-filt" data-filt="free">Free</button>
+            <button class="aud-filter-pill" data-a="aud-filt" data-filt="r5">⭐ Top (5)</button>
+            <button class="aud-filter-pill" data-a="aud-filt" data-filt="r4">Active (4)</button>
+          </div>
+          <div class="list" id="aud-br-list" style="max-height:580px;overflow-y:auto"><div class="empty">Click Sync to load subscribers.</div></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;justify-content:center">
+            <button class="btn" data-a="aud-page" data-dir="-1" id="aud-pg-prev" style="display:none">← Prev</button>
+            <span class="muted" style="font-size:11px" id="aud-pg-label"></span>
+            <button class="btn" data-a="aud-page" data-dir="1" id="aud-pg-next" style="display:none">Next →</button>
+          </div>
+        </div>
+        <div class="card" style="padding:0" id="aud-br-detail">
+          <div class="empty" style="padding:48px 20px;text-align:center">Select a subscriber to view details.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="aud-pane-insights" style="display:none">
+      <div id="aud-insights-body">
+        <div class="empty" style="padding:40px;text-align:center">
+          Click <strong>Generate Insights</strong> to analyse your audience.
+        </div>
+      </div>
+      <div style="margin-top:16px;text-align:center">
+        <button class="btn pri" data-a="aud-insights-load">Generate Insights</button>
+        <span class="muted" style="font-size:11px;margin-left:10px" id="aud-ins-note">Requires enriched profiles — runs in background automatically.</span>
+      </div>
+    </div>
+  </div>
+</section>

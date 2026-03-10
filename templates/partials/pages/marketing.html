@@ -1,0 +1,238 @@
+<section class="page" id="page-marketing">
+  <div class="page-header">
+    <div class="hero-card">
+      <div class="rail-kicker">Social library</div>
+      <div class="hero-title">All your social posts in one place — from pipeline runs and on-demand repurposing.</div>
+      <div class="hero-copy">The library shows every saved campaign. Select one to read each platform post and act on it. Use the Repurpose tab to generate socials for any article without running the full pipeline.</div>
+    </div>
+  </div>
+
+  <div class="hide" aria-hidden="true">
+    <div id="mk-cur"></div>
+    <div id="soc-mk-reflection-en"></div>
+    <div id="soc-mk-reflection-es"></div>
+    <div id="soc-mk-companion-en"></div>
+    <div id="soc-mk-companion-es"></div>
+  </div>
+
+  <div class="marketing-shell">
+    <div class="tabs marketing-tabs">
+      <button class="tab active" data-mk-tab="library">Campaigns</button>
+      <button class="tab" data-mk-tab="studio">Repurpose</button>
+      <button class="tab" data-mk-tab="notes">Compose</button>
+      <button class="tab" data-mk-tab="quotes">Quotes</button>
+      <button class="tab" data-mk-tab="scheduled">Publishing <span class="tag" id="sched-tab-count">0</span></button>
+    </div>
+
+    <div class="marketing-pane" id="mk-pane-studio">
+      <div class="marketing-studio-shell">
+        <div class="card marketing-studio-setup" id="mk-generator-card">
+          <div class="marketing-studio-grid">
+            <div>
+              <div class="field">
+                <label>Article source</label>
+                <div class="dropzone" id="mk-drop">
+                  <input type="file" id="mk-file" accept=".md,.txt,.markdown">
+                  <div class="drop-title">Upload an article file</div>
+                  <div class="muted">Metadata and body copy will populate automatically.</div>
+                  <div class="file-name" id="mk-file-name"></div>
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label for="mk-gen-text">Article text</label>
+                <textarea id="mk-gen-text" placeholder="Paste or upload the article body."></textarea>
+              </div>
+            </div>
+
+            <div>
+              <div class="meta-grid">
+                <div class="field">
+                  <label for="mk-gen-title">Article title</label>
+                  <input type="text" id="mk-gen-title">
+                </div>
+                <div class="field">
+                  <label for="mk-gen-slug">Slug</label>
+                  <input type="text" id="mk-gen-slug">
+                </div>
+              </div>
+
+              <div class="meta-grid three">
+                <div class="field">
+                  <label for="mk-gen-url">Article URL</label>
+                  <div style="display:flex;gap:6px">
+                    <input type="text" id="mk-gen-url" placeholder="https://...">
+                    <button class="btn" id="mk-fetch-url" style="white-space:nowrap;flex-shrink:0">Fetch</button>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="mk-gen-date">Publish date</label>
+                  <input type="text" id="mk-gen-date" placeholder="March 2025">
+                </div>
+                <div class="field">
+                  <label for="mk-gen-lang">Language</label>
+                  <select id="mk-gen-lang">
+                    <option value="english">English</option>
+                    <option value="Spanish">Spanish</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="mk-gen-angle">Angle note</label>
+                <input type="text" id="mk-gen-angle" placeholder="Fresh angle, audience, or hook for the repurpose lane">
+              </div>
+
+              <div class="marketing-studio-actions" style="margin-top:4px">
+                <button class="pri" id="mk-gen-run">Generate and save campaign</button>
+                <button class="btn" id="mk-open-library">Open library</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-strip">
+          <div>
+            <strong id="mk-gen-status">Ready.</strong>
+            <div class="meter"><span id="mk-gen-fill"></span></div>
+          </div>
+          <div class="status-cost">
+            <div class="cost-line" id="mk-gen-cost">Standalone marketing cost will appear here.</div>
+          </div>
+        </div>
+
+        <div class="card marketing-studio-output">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Studio output</div>
+              <div class="section-title">Fresh socials from the standalone generator</div>
+            </div>
+          </div>
+          <div id="mk-standalone-out"><div class="empty">No standalone campaign yet.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="marketing-pane" id="mk-pane-notes">
+      <div class="sn-workspace">
+        <div class="sn-left">
+          <button class="btn pri sn-new-post-btn" data-a="sn-new-post">+ New post</button>
+          <div>
+            <input type="text" class="sn-search-input" id="sn-search-q" placeholder="Search notes…" autocomplete="off">
+            <div class="sn-filter-pills" style="margin-top:6px">
+              <button class="sn-filter-pill" data-a="sn-filter" data-filter="shared">Shared</button>
+              <button class="sn-filter-pill" data-a="sn-filter" data-filter="repurposed">Cross-posted</button>
+              <button class="sn-filter-pill" data-a="sn-filter" data-filter="signal-pos">👍</button>
+              <button class="sn-filter-pill" data-a="sn-filter" data-filter="signal-neg">👎</button>
+            </div>
+          </div>
+          <div id="sn-batch-rail">
+            <div class="empty" style="padding:16px 0">No batches yet.</div>
+          </div>
+          <button class="btn" id="sn-gen-btn" style="width:100%;margin-top:4px">⚡ Generate 20 notes</button>
+          <span class="muted" style="font-size:11px;text-align:center" id="sn-gen-status"></span>
+        </div>
+
+        <div class="card sn-right-panel" id="sn-right-panel" style="padding:0">
+          <div id="sn-detail-empty">
+            <div class="sn-detail-empty">
+              <div class="empty" style="padding:40px 20px;text-align:center">Select a note or create a new post.</div>
+            </div>
+          </div>
+          <div id="sn-compose-pane" style="display:none"></div>
+          <div id="sn-note-detail" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="marketing-pane" id="mk-pane-quotes">
+      <div class="quotes-shell">
+        <div class="card" style="padding:0">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Pipeline runs</div>
+              <div class="section-title">Quote library</div>
+            </div>
+            <button class="btn" id="qt-refresh">Refresh</button>
+          </div>
+          <div id="qt-run-list"><div class="empty" style="padding:20px">No quotes saved yet.</div></div>
+        </div>
+
+        <div class="card" style="padding:0">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Quotes</div>
+              <div class="section-title" id="qt-detail-title">Select a run</div>
+            </div>
+            <span style="font-size:11px;color:var(--muted)" id="qt-detail-count"></span>
+          </div>
+          <div id="qt-detail-list"><div class="empty" style="padding:20px">Select a run to see its quotes.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="marketing-pane" id="mk-pane-scheduled">
+      <div class="card" style="padding:0">
+        <div class="card-head">
+          <div>
+            <div class="eyebrow">Publishing queue</div>
+            <div class="section-title">Upcoming <span class="tag" id="sched-header-count">0 queued</span></div>
+            <div class="section-copy">Posts are published automatically by the app — no external service needed. The scheduler checks every minute.</div>
+          </div>
+          <button class="btn" id="sched-refresh">Refresh</button>
+        </div>
+        <div id="sched-queue-list"><div class="empty" style="padding:20px">No scheduled posts yet.</div></div>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="card-head">
+          <div>
+            <div class="eyebrow">History</div>
+            <div class="section-title">Published</div>
+          </div>
+          <button class="btn" id="published-refresh">Refresh</button>
+        </div>
+        <div id="published-feed-list"><div class="empty" style="padding:20px">No published posts yet.</div></div>
+      </div>
+    </div>
+
+    <div class="marketing-pane active" id="mk-pane-library">
+      <div class="marketing-library-shell">
+        <div class="card marketing-library-header">
+          <div class="card-head" style="margin-bottom:0">
+            <div>
+              <div class="eyebrow">Saved archive</div>
+              <div class="section-title">Campaign library</div>
+              <div class="section-copy">Reopen past campaigns without mixing archive browsing into the active generator.</div>
+            </div>
+            <button class="btn" id="mk-refresh">Refresh</button>
+          </div>
+          <div class="marketing-library-search">
+            <div class="field">
+              <label for="mk-search">Search campaigns</label>
+              <input type="text" id="mk-search" placeholder="Search title or article URL">
+            </div>
+            <div class="marketing-library-meta">
+              <strong id="mk-library-count">0 campaigns</strong>
+              <div class="library-note" id="mk-library-note">Select a campaign to inspect it.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="marketing-library-workspace">
+          <div class="card marketing-library-results">
+            <div class="toolbar-split">
+              <div>
+                <div class="section-title">Results</div>
+                <div class="library-note">Recent saved campaigns from pipeline runs and standalone generation.</div>
+              </div>
+            </div>
+            <div class="marketing-run-list" id="mk-list"><div class="empty">Loading previous social runs...</div></div>
+          </div>
+
+          <div class="card marketing-library-preview">
+            <div id="mk-library-preview"><div class="empty">Select a campaign to read its social posts.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

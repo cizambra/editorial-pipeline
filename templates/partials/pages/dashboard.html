@@ -1,0 +1,62 @@
+<section class="page" id="page-dashboard">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">Operating picture</div>
+      <div class="hero-title">The dashboard should explain the editorial machine, not just list counters.</div>
+      <div class="hero-copy">Track article coverage, spending, image production, platform reach, and the backlog of articles that have not yet been processed into campaigns.</div>
+    </div>
+  </div>
+
+  <div class="stats-grid" id="dash-stats"></div>
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Coverage and queue</div>
+        <div class="section-title">Compact platform coverage above a bounded repurpose queue</div>
+      </div>
+    </div>
+    <div id="dash-platforms"><div class="empty">Loading...</div></div>
+    <div class="queue-wrap section">
+      <div class="between" style="margin-bottom:10px">
+        <div>
+          <div class="eyebrow">Repurpose queue</div>
+          <div class="section-copy">Open the article first or move it straight into marketing.</div>
+        </div>
+        <div class="muted" id="dash-queue-meta"></div>
+      </div>
+      <div class="list queue-list" id="dash-queue"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Pillar distribution</div>
+        <div class="section-title">Articles by Adaptable Discipline pillar (primary tag)</div>
+      </div>
+    </div>
+    <div id="dash-tags"><div class="empty">Loading...</div></div>
+  </div>
+  <div class="card section" id="audience-card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Substack audience</div>
+        <div class="section-title">Subscriber breakdown, activity, and geographic reach</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="muted" style="font-size:11px" id="aud-sync-label"></span>
+        <button class="btn" id="aud-refresh-btn">Refresh</button>
+      </div>
+    </div>
+    <div id="audience-body"><div class="empty">Click Refresh to load audience data.</div></div>
+  </div>
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Recent runs</div>
+        <div class="section-title">Latest activity across the editorial system</div>
+      </div>
+      <button class="ghost" data-mode="history">Open history</button>
+    </div>
+    <div class="history-list" id="dash-runs"><div class="empty">Loading...</div></div>
+  </div>
+</section>

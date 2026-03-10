@@ -1,0 +1,96 @@
+<section class="page" id="page-companion">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">Companion-only lane</div>
+      <div class="hero-title">Run the paid companion flow without touching the rest of the pipeline.</div>
+      <div class="hero-copy">This mirrors the companion stage inside the full pipeline, but with its own file upload path and focused output surface.</div>
+    </div>
+  </div>
+
+  <div class="companion-shell">
+    <div class="card companion-setup">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Input</div>
+          <div class="section-title">Reflection source</div>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="field" style="margin-bottom:10px">
+          <div class="seg">
+            <button id="co-src-file" class="active">Upload file</button>
+            <button id="co-src-paste">Paste text</button>
+          </div>
+        </div>
+
+        <div class="field" id="co-file-pane" style="margin-bottom:0">
+          <div class="dropzone" id="co-drop">
+            <input type="file" id="co-file" accept=".md,.txt,.markdown">
+            <div class="drop-title">Drop the reflection file here</div>
+            <div class="muted">Title, slug, and article text are derived from the file.</div>
+            <div class="file-name" id="co-file-name"></div>
+          </div>
+        </div>
+
+        <div class="field hide" id="co-paste-pane" style="margin-bottom:0">
+          <label for="co-text">Reflection text</label>
+          <textarea id="co-text"></textarea>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="meta-grid">
+          <div class="field">
+            <label for="co-title">Reflection title</label>
+            <input type="text" id="co-title">
+          </div>
+          <div class="field">
+            <label for="co-slug">Slug</label>
+            <input type="text" id="co-slug">
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label for="co-url">Reflection URL</label>
+          <input type="text" id="co-url">
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="toggle-row" style="margin-bottom:0">
+          <div>
+            <strong>Generate Spanish companion</strong>
+            <div class="muted">Mirrors the bilingual companion lane in the full pipeline.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="co-spanish" checked><span class="switch-track"></span></label>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <button class="pri" id="co-run" style="width:100%">Generate companion</button>
+      </div>
+    </div>
+
+    <div class="card companion-output">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Output</div>
+          <div class="section-title">Paid companion documents</div>
+        </div>
+        <div class="langs" style="margin:0">
+          <button class="lang active" data-lg="co" data-lang="en">EN</button>
+          <button class="lang" data-lg="co" data-lang="es">ES</button>
+        </div>
+      </div>
+      <div class="companion-progress">
+        <div class="between" style="margin-bottom:0">
+          <strong id="co-status">Ready.</strong>
+          <div class="cost-line" id="co-cost">Cost will appear here.</div>
+        </div>
+        <div class="meter"><span id="co-fill"></span></div>
+      </div>
+      <div class="lpanel active" id="co-en"></div>
+      <div class="lpanel" id="co-es"></div>
+    </div>
+  </div>
+</section>

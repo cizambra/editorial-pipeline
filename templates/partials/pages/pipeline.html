@@ -1,0 +1,277 @@
+<section class="page active" id="page-pipeline">
+  <div class="page-header">
+    <div class="hero-card">
+      <div class="rail-kicker">Full package orchestration</div>
+      <div class="hero-title">Run the whole article operation with the dependency map visible.</div>
+      <div class="hero-copy">Run the full article package from one source file. The UI keeps the pipeline visible, but the tracker stays reduced to one compact progress surface.</div>
+    </div>
+  </div>
+
+  <div class="resume-banner" id="resume">
+    <div class="between">
+      <div>
+        <div class="section-title">Incomplete run detected</div>
+        <div class="section-copy" id="resume-meta"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="resume-btn">Resume pipeline</button>
+        <button class="ghost" id="dismiss-cp">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipeline-shell">
+    <div class="card pipeline-setup">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">New article</div>
+          <div class="section-title">Set the reflection and production options</div>
+        </div>
+        <button class="btn" id="new-run">New run</button>
+        <button class="ghost" id="clear-form">Clear</button>
+      </div>
+
+      <div class="card-section">
+        <div class="eyebrow" style="margin-bottom:10px">Article source</div>
+        <div class="field">
+          <div class="seg">
+            <button id="src-file" class="active">Upload file</button>
+            <button id="src-paste">Paste text</button>
+          </div>
+        </div>
+
+        <div class="field" id="file-pane">
+          <label>Reflection file</label>
+          <div class="dropzone" id="drop">
+            <input type="file" id="reflection-file" accept=".md,.txt,.markdown">
+            <div class="drop-title">Drop the reflection markdown here</div>
+            <div class="muted">Title and slug are extracted from the file automatically.</div>
+            <div class="file-name" id="file-name"></div>
+          </div>
+        </div>
+
+        <div class="field hide" id="paste-pane">
+          <label for="reflection-text">Reflection text</label>
+          <textarea id="reflection-text" placeholder="Paste the full article draft here."></textarea>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="eyebrow" style="margin-bottom:10px">Article details</div>
+        <div class="meta-grid">
+          <div class="field">
+            <label for="article-title">Article title</label>
+            <input type="text" id="article-title">
+          </div>
+          <div class="field">
+            <label for="article-slug">Slug</label>
+            <input type="text" id="article-slug" placeholder="derived-from-file-or-title">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="article-url">Article URL</label>
+          <input type="text" id="article-url" placeholder="https://www.self-disciplined.com/p/...">
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="eyebrow" style="margin-bottom:10px">Run options</div>
+        <div class="toggle-row">
+          <div>
+            <strong>Generate Spanish versions</strong>
+            <div class="muted">Reflection translation, companion translation, and both social lanes in Spanish.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="include-spanish" checked><span class="switch-track"></span></label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <strong>Auto-run thumbnail lane</strong>
+            <div class="muted">Generate concepts and images in parallel with the text pipeline.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="include-thumbnail"><span class="switch-track"></span></label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <strong>Queue social posts</strong>
+            <div class="muted">Send the generated reflection and companion posts into the same publishing queue used in Marketing.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="queue-social"><span class="switch-track"></span></label>
+        </div>
+
+        <div class="field" style="margin-top:12px">
+          <label for="tone">Social tone <span id="tone-label" style="float:right">Balanced</span></label>
+          <input type="range" id="tone" min="0" max="10" value="5">
+        </div>
+      </div>
+
+      <div class="card-section">
+        <button class="pri" id="run-pipe" disabled>Run full pipeline</button>
+        <button class="danger" id="cancel-pipe">Cancel run</button>
+      </div>
+    </div>
+
+    <div class="pipeline-meta">
+      <div class="card pipeline-status">
+        <div class="card-head">
+          <div>
+            <div class="eyebrow">Status</div>
+            <div class="section-title">Pipeline progress</div>
+          </div>
+        </div>
+        <div class="progress-shell">
+          <div class="progress-top">
+            <strong id="pipe-progress-label">Not started</strong>
+            <span class="progress-note" id="pipe-progress-meta">0 of 6 stages complete</span>
+          </div>
+          <div class="progress-bar"><span class="progress-fill" id="pipe-progress-fill"></span></div>
+          <div class="progress-note" id="pipe-progress-note">Waiting for a run.</div>
+          <div class="cost-line" id="pipeline-cost">Pipeline cost will appear here during the run.</div>
+        </div>
+      </div>
+      <div id="progress" class="hide"></div>
+    </div>
+  </div>
+
+  <div id="results" class="hide section">
+    <div class="run-meta-bar">
+      <div class="run-meta-left">
+        <div class="run-meta-title" id="run-meta-title">—</div>
+        <div class="run-meta-sub">
+          <span id="run-meta-time"></span>
+          <span class="run-meta-sep">·</span>
+          <span id="run-meta-cost"></span>
+          <span class="run-meta-sep" id="run-meta-wc-sep">·</span>
+          <span id="run-meta-wc"></span>
+          <span id="run-meta-tags"></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="langs" style="margin:0">
+          <button class="lang active" data-lg="global" data-lang="en">EN</button>
+          <button class="lang" data-lg="global" data-lang="es">ES</button>
+        </div>
+        <button class="btn" data-a="goto-marketing">Review campaign →</button>
+        <button class="btn" id="run-meta-view" disabled>View in history ↗</button>
+      </div>
+    </div>
+
+    <div class="results-shell">
+      <div class="card results-stages-card">
+        <div class="results-stages-head">Stages</div>
+        <div class="results-stage-list" id="results-stage-list"></div>
+      </div>
+
+      <div class="results-content">
+        <div class="card">
+          <div class="tabs">
+            <button class="tab active" data-rt="related">Related articles</button>
+            <button class="tab" data-rt="reflection">Reflection</button>
+            <button class="tab" data-rt="companion">Paid companion</button>
+            <button class="tab" data-rt="quotes">Quotes</button>
+            <button class="tab" data-rt="substack-post">Substack Post</button>
+          </div>
+
+          <div class="panel active" id="p-related">
+            <div id="related-out"><div class="empty">Related articles will appear here.</div></div>
+          </div>
+
+          <div class="panel" id="p-reflection">
+            <div class="lpanel active" id="ref-en"></div>
+            <div class="lpanel" id="ref-es"></div>
+          </div>
+
+          <div class="panel" id="p-companion">
+            <div class="lpanel active" id="comp-en"></div>
+            <div class="lpanel" id="comp-es"></div>
+          </div>
+
+          <div class="panel" id="p-quotes">
+            <div class="quote-list" id="pipe-quotes-out"><div class="empty">Quotes will appear after the pipeline runs.</div></div>
+          </div>
+
+          <div class="panel" id="p-substack-post">
+            <div class="substack-composer">
+              <div class="sub-field-row">
+                <div class="field">
+                  <label for="sub-title">Title</label>
+                  <input type="text" id="sub-title" placeholder="Article title">
+                </div>
+                <div class="field">
+                  <label for="sub-subtitle">Subtitle</label>
+                  <input type="text" id="sub-subtitle" placeholder="One-line framing">
+                </div>
+              </div>
+              <div class="field">
+                <label for="sub-cta-text">Paid companion CTA box <span class="sub-cta-note">(mid-post upgrade prompt)</span></label>
+                <textarea id="sub-cta-text" style="min-height:70px">👉 Want to actually train this? In the paid companion we go deeper — with frameworks, reflection prompts, and a practical exercise you can do today. Join below.</textarea>
+              </div>
+              <div class="sub-field-row">
+                <div class="field">
+                  <label for="sub-companion-tease">Companion tease</label>
+                  <input type="text" id="sub-companion-tease" placeholder="Companion title or topic">
+                </div>
+                <div class="field">
+                  <label for="sub-sign-off">Sign-off</label>
+                  <input type="text" id="sub-sign-off" value="Have a wonderful week!">
+                </div>
+              </div>
+              <div class="field">
+                <label for="sub-footnotes">Footnotes <span class="sub-cta-note">(APA format, optional)</span></label>
+                <textarea id="sub-footnotes" style="min-height:60px" placeholder="1. Author, A. (2024). Title. Journal, 1(1), 1–10."></textarea>
+              </div>
+              <div class="sub-preview-wrap">
+                <div class="sub-preview-head">
+                  <span>Assembled post preview</span>
+                  <button class="btn" id="sub-refresh-preview">Refresh</button>
+                </div>
+                <div class="sub-preview-body" id="sub-preview-body">Fill in the fields above and click Refresh to see the assembled post.</div>
+              </div>
+              <div class="sub-actions">
+                <button class="btn pri" id="sub-copy-md" style="width:auto">Copy Markdown</button>
+                <button class="btn" id="sub-copy-html" style="width:auto">Copy HTML</button>
+                <span class="muted" id="sub-copy-status" style="font-size:12px"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" id="p-marketing">
+            <div class="between">
+              <div>
+                <div class="section-title">Current run campaign assets</div>
+                <div class="section-copy">Reflection and companion socials, both languages, available from the same campaign surface.</div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div class="seg" id="pipe-src">
+                  <button class="active" data-scope="pipe" data-kind="source" data-val="reflection">Reflection</button>
+                  <button data-scope="pipe" data-kind="source" data-val="companion">Companion</button>
+                </div>
+                <div class="seg" id="pipe-lang">
+                  <button class="active" data-scope="pipe" data-kind="lang" data-val="en">EN</button>
+                  <button data-scope="pipe" data-kind="lang" data-val="es">ES</button>
+                </div>
+              </div>
+            </div>
+            <div class="sp active" id="soc-pipe-reflection-en"></div>
+            <div class="sp" id="soc-pipe-reflection-es"></div>
+            <div class="sp" id="soc-pipe-companion-en"></div>
+            <div class="sp" id="soc-pipe-companion-es"></div>
+          </div>
+        </div>
+
+        <div class="card hide section" id="sched-card">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Queue</div>
+              <div class="section-title">Queue outcome</div>
+            </div>
+            <button class="btn" id="sched-open-queue">Open publishing queue</button>
+          </div>
+          <div id="sched-out"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

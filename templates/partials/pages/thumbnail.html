@@ -1,0 +1,146 @@
+<section class="page" id="page-thumbnail">
+  <div class="page-header">
+    <div class="hero-card">
+      <div class="rail-kicker">Thumbnail system</div>
+      <div class="hero-title">Separate the making surface from the library.</div>
+      <div class="hero-copy">Studio is for active generation. Library is for searching and reopening saved thumbnails without loading the whole archive into the page.</div>
+    </div>
+  </div>
+
+  <div class="tabs thumb-tabs">
+    <button class="tab active" data-th-tab="studio">Thumbnail studio</button>
+    <button class="tab" data-th-tab="library">Thumbnail library</button>
+  </div>
+
+  <div class="thumb-pane active" id="th-pane-studio">
+    <div class="studio-shell">
+      <div class="card studio-setup">
+        <div class="setup-grid">
+          <div class="field" style="margin:0">
+            <label>Article source</label>
+            <div class="dropzone" id="th-drop">
+              <input type="file" id="th-file" accept=".md,.txt,.markdown">
+              <div class="drop-title">Upload article file</div>
+              <div class="muted">Title, slug, and article body are derived automatically.</div>
+              <div class="file-name" id="th-file-name"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="meta-grid">
+              <div class="field">
+                <label for="th-title">Article title</label>
+                <input type="text" id="th-title">
+              </div>
+              <div class="field">
+                <label for="th-slug">Slug</label>
+                <input type="text" id="th-slug">
+              </div>
+            </div>
+
+            <div class="meta-grid">
+              <div class="field">
+                <label for="th-url">Article URL</label>
+                <input type="text" id="th-url">
+              </div>
+              <div class="field">
+                <label for="th-prompt">Prompt override</label>
+                <input type="text" id="th-prompt" placeholder="Optional one-off prompt override">
+              </div>
+            </div>
+          </div>
+
+          <div class="setup-actions">
+            <button class="pri" id="th-auto" style="width:auto">Run full studio</button>
+            <button class="btn" id="th-review">Concepts only</button>
+            <button class="btn hide" id="th-images">Render images</button>
+            <button class="btn" id="th-single">One custom</button>
+          </div>
+        </div>
+
+        <div class="field" style="margin:12px 0 0">
+          <label for="th-text">Article text</label>
+          <textarea id="th-text"></textarea>
+        </div>
+      </div>
+
+      <div class="status-strip">
+        <div>
+          <strong id="th-status">Ready.</strong>
+          <div class="meter"><span id="th-fill"></span></div>
+        </div>
+        <div class="status-cost">
+          <div class="cost-line" id="th-cost">Thumbnail generation cost will appear here.</div>
+        </div>
+      </div>
+
+      <div class="studio-board">
+        <div class="card concept-board">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Concept board</div>
+              <div class="section-title">Review concepts first, inspect one at a time</div>
+            </div>
+          </div>
+          <div class="concept-board-grid" id="th-concepts"><div class="empty">No thumbnail concepts yet.</div></div>
+        </div>
+
+        <div class="card concept-inspector">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Inspector</div>
+              <div class="section-title">Selected concept details</div>
+            </div>
+          </div>
+          <div id="th-inspector"><div class="empty">Select a concept to inspect it here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="thumb-pane" id="th-pane-library">
+    <div class="library-shell">
+      <div class="card library-header">
+        <div class="card-head" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow">Saved archive</div>
+            <div class="section-title">Search by article or concept</div>
+            <div class="section-copy">Use the archive as a retrieval surface, not a dump of old thumbnails.</div>
+          </div>
+          <button class="btn" id="th-refresh">Refresh</button>
+        </div>
+        <div class="library-search">
+          <div class="field">
+            <label for="th-search">Search archive</label>
+            <input type="text" id="th-search" placeholder="Search by article title, URL, or concept">
+          </div>
+          <div class="library-meta">
+            <div class="muted" id="th-lib-meta">Library is idle.</div>
+            <div class="library-note">Images load only when you open one.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="thumb-library">
+        <div class="card library-results">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Results</div>
+              <div class="section-title">Matching thumbnails</div>
+            </div>
+          </div>
+          <div class="thumb-list" id="th-lib"><div class="empty">Open the library to load saved thumbnails.</div></div>
+        </div>
+        <div class="card library-preview">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Preview</div>
+              <div class="section-title">Selected asset</div>
+            </div>
+          </div>
+          <div class="thumb-detail" id="th-detail"><div class="empty">Select a thumbnail to preview it here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

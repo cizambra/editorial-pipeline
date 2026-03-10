@@ -1,0 +1,161 @@
+<section class="page" id="page-settings">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">System design surface</div>
+      <div class="hero-title">Settings should shape output quality, not feel like a leftover admin page.</div>
+      <div class="hero-copy">Template control, index maintenance, and prompt guidance live here because they materially influence production quality.</div>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Companion template</div>
+          <div class="section-title">The structural brief for the paid companion lane</div>
+        </div>
+      </div>
+      <div class="setting-note" id="template-status">Loading...</div>
+      <div class="field" style="margin-top:12px">
+        <input type="file" id="template-file" accept=".md,.txt,.markdown">
+      </div>
+      <button class="btn" id="template-upload">Upload template</button>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Article index</div>
+          <div class="section-title">Refresh the source archive used for related article retrieval</div>
+        </div>
+      </div>
+      <div class="setting-note" id="articles-status">Loading...</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn" id="articles-refresh">Full refresh</button>
+        <button class="btn" id="articles-new">Index only new articles</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card hide" id="users-card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Access control</div>
+        <div class="section-title">Create and review internal accounts</div>
+      </div>
+    </div>
+    <div class="setting-note" id="users-status">Only superadmins can manage accounts.</div>
+    <div class="meta-grid three" style="margin-top:12px">
+      <div class="field">
+        <label for="new-user-email">Email</label>
+        <input type="text" id="new-user-email" placeholder="operator@epicureanmedia.com">
+      </div>
+      <div class="field">
+        <label for="new-user-name">Display name</label>
+        <input type="text" id="new-user-name" placeholder="Operator">
+      </div>
+      <div class="field">
+        <label for="new-user-role">Role</label>
+        <select id="new-user-role">
+          <option value="operator">Operator</option>
+          <option value="admin">Admin</option>
+          <option value="superadmin">Superadmin</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label for="new-user-password">Temporary password</label>
+      <input type="password" id="new-user-password" placeholder="Set an initial password">
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px">
+      <div class="muted">Create accounts directly now. Invite flows can sit on top of the same user model later.</div>
+      <button class="pri" id="create-user-btn" style="width:auto">Create account</button>
+    </div>
+    <div class="users-list" id="users-list"><div class="empty">Sign in as superadmin to manage users.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Substack</div>
+        <div class="section-title">Session cookie for Notes scheduling</div>
+      </div>
+      <button class="btn" id="sub-test-conn">Test connection</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">
+      Get your <code style="font-size:11px;background:var(--panel-soft);padding:1px 5px;border-radius:4px">connect.sid</code> cookie from Substack via Chrome DevTools → Application → Cookies → substack.com, then add it to your <code style="font-size:11px;background:var(--panel-soft);padding:1px 5px;border-radius:4px">.env</code> as <code style="font-size:11px;background:var(--panel-soft);padding:1px 5px;border-radius:4px">SUBSTACK_SESSION_COOKIE</code>. Valid for months even with MFA enabled.
+    </div>
+    <div class="setting-note" id="sub-conn-status">Not tested.</div>
+  </div>
+
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Prompt system</div>
+        <div class="section-title">Editorial guidance that changes the feel of the output</div>
+      </div>
+    </div>
+    <div class="md-stack">
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Social voice brief</div>
+            <div style="font-size:12px;color:var(--muted)">Tone and style applied to all social post generation.</div>
+          </div>
+          <div class="seg md-mode" data-md="voice">
+            <button class="active" data-md-view="edit" data-md-target="voice">Edit</button>
+            <button data-md-view="read" data-md-target="voice">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-voice" data-md-editor="voice"></textarea>
+        <div class="md-preview hide" id="cfg-voice-preview" data-md-preview="voice"></div>
+      </div>
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Companion voice brief</div>
+            <div style="font-size:12px;color:var(--muted)">Editorial guidance shaping the paid companion writing style.</div>
+          </div>
+          <div class="seg md-mode" data-md="comp">
+            <button class="active" data-md-view="edit" data-md-target="comp">Edit</button>
+            <button data-md-view="read" data-md-target="comp">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-comp" data-md-editor="comp"></textarea>
+        <div class="md-preview hide" id="cfg-comp-preview" data-md-preview="comp"></div>
+      </div>
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Spanish style guide</div>
+            <div style="font-size:12px;color:var(--muted)">Stylistic rules applied to Spanish translation and social posts.</div>
+          </div>
+          <div class="seg md-mode" data-md="es">
+            <button class="active" data-md-view="edit" data-md-target="es">Edit</button>
+            <button data-md-view="read" data-md-target="es">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-es" data-md-editor="es"></textarea>
+        <div class="md-preview hide" id="cfg-es-preview" data-md-preview="es"></div>
+      </div>
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Thumbnail prompt</div>
+            <div style="font-size:12px;color:var(--muted)">Base context injected into every thumbnail concept generation.</div>
+          </div>
+          <div class="seg md-mode" data-md="th">
+            <button class="active" data-md-view="edit" data-md-target="th">Edit</button>
+            <button data-md-view="read" data-md-target="th">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-th" data-md-editor="th"></textarea>
+        <div class="md-preview hide" id="cfg-th-preview" data-md-preview="th"></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px">
+      <div class="muted" id="cfg-status">Ready.</div>
+      <button class="pri" id="cfg-save" style="width:auto">Save overrides</button>
+    </div>
+  </div>
+</section>

@@ -31,6 +31,7 @@ Completed:
   - generation transport concerns are separated from prompt orchestration via `app/services/generator_transport.py`
   - prompt-building and editable prompt state are separated from pipeline orchestration via `app/services/generator_prompts.py`
   - pure content/pipeline helper functions are being pulled out of `generator.py` into `app/services/generator_helpers.py`
+  - the full pipeline stream orchestration in `generator.py` is now split across smaller internal stage helpers instead of one monolithic event loop body
   - structured logging now carries request context automatically via middleware:
     - `request_id`
     - `method`
@@ -45,6 +46,14 @@ Completed:
     - `note_id`
     - `quote_id`
     - `idea_id`
+  - frontend `data-a` dispatch in `static/js/bootstrap.js` is now split across domain handlers:
+    - core
+    - ideas
+    - thumbnails
+    - audience
+    - notes
+    - quotes
+    - publishing
 - `workers/scheduler.py` extracted from `main.py`
 - `routes/auth.py` extracted
 - `routes/settings.py` extracted

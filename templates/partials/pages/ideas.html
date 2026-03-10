@@ -1,0 +1,51 @@
+<section class="page" id="page-ideas">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">Idea system</div>
+      <div class="hero-title">Research, capture, and convert repeatable themes into production-ready article prompts.</div>
+      <div class="hero-copy">This is where discovered struggles, manual angles, and writing candidates stay live instead of getting lost in notes.</div>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Manual idea</div>
+          <div class="section-title">Add an article idea directly</div>
+        </div>
+      </div>
+      <div class="field"><label for="idea-theme">Theme</label><input type="text" id="idea-theme"></div>
+      <div class="meta-grid">
+        <div class="field"><label for="idea-cat">Category</label><input type="text" id="idea-cat"></div>
+        <div class="field"><label for="idea-emoji">Emoji</label><input type="text" id="idea-emoji" value="*"></div>
+      </div>
+      <div class="field"><label for="idea-angle">Article angle</label><input type="text" id="idea-angle"></div>
+      <button class="pri" id="idea-save">Save idea</button>
+      <div class="setting-note" style="margin-top:12px" id="idea-status">Ready.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Research miner</div>
+          <div class="section-title">Reddit struggles scan</div>
+        </div>
+        <button class="btn" id="reddit-run">Scan Reddit</button>
+      </div>
+      <div class="setting-note" id="reddit-status">Ready.</div>
+      <div class="list section" id="reddit-results"><div class="empty">No Reddit scan yet.</div></div>
+    </div>
+  </div>
+
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Ideas pool</div>
+        <div class="section-title">Themes waiting to become articles</div>
+      </div>
+      <button class="btn" id="ideas-refresh">Refresh</button>
+    </div>
+    <div class="ideas-list" id="ideas-list"><div class="empty">Loading ideas...</div></div>
+  </div>
+</section>
