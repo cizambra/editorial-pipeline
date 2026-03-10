@@ -9,4 +9,8 @@ python-multipart==0.0.6
 aiofiles==23.2.1
 apscheduler>=3.10.0
 curl_cffi>=0.6.0
+itsdangerous>=2.2.0
+SQLAlchemy>=2.0.0
+alembic>=1.13.0
+psycopg2-binary>=2.9.9
 instagrapi>=2.0.0  # requires python3.10+, install with: python3.11 -m pip install instagrapi

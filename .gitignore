@@ -2,3 +2,25 @@
 *.db
 __pycache__/
 screenshots/
+
+# Local runtime state
+run_history.db
+config_overrides.json
+pipeline_checkpoint.json
+backups/
+.postgres-local/
+
+# Python environments
+.venv/
+venv/
+env/
+
+# Test and tool caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+docker-compose.dev.yml

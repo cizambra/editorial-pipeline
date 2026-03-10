@@ -1,0 +1,933 @@
+{
+  "updated_at": "2026-03-09T16:40:00.581122",
+  "articles": [
+    {
+      "title": "How to Detect Drift Before You Act Out of Character",
+      "url": "https://www.self-disciplined.com/p/how-to-detect-drift-before-you-act",
+      "summary": "Three katas to catch the gap between coherence and action, so you return before the mess starts",
+      "published": "2026-03-05T16:02:51.449Z",
+      "is_paid": true,
+      "slug": "how-to-detect-drift-before-you-act"
+    },
+    {
+      "title": "Writer’s Block Wasn’t the Real Problem",
+      "url": "https://www.self-disciplined.com/p/writers-block-wasnt-the-real-problem",
+      "summary": "My mind got clearer, my life got calmer, and I had to learn how to write from a different place.",
+      "published": "2026-03-04T15:02:47.334Z",
+      "is_paid": false,
+      "slug": "writers-block-wasnt-the-real-problem"
+    },
+    {
+      "title": "Keep Your Word: A Practice for Your Internal Code",
+      "url": "https://www.self-disciplined.com/p/keep-your-word-a-practice-for-your",
+      "summary": "Three katas for following through when nobody is watching and it would be easy not to",
+      "published": "2026-02-26T16:00:20.663Z",
+      "is_paid": true,
+      "slug": "keep-your-word-a-practice-for-your"
+    },
+    {
+      "title": "Does Your Word Still Mean Something?",
+      "url": "https://www.self-disciplined.com/p/does-your-word-still-mean-something",
+      "summary": "Rediscovering honor as everyday self-governance in a low‑trust, high‑paperwork world.",
+      "published": "2026-02-25T15:02:50.253Z",
+      "is_paid": false,
+      "slug": "does-your-word-still-mean-something"
+    },
+    {
+      "title": "Train Agency, Not Willpower: A Practice for Deliberate Choice on Hard Days",
+      "url": "https://www.self-disciplined.com/p/train-agency-not-willpower-a-practice",
+      "summary": "How one small action a day rebuilds the sense that you still get to decide",
+      "published": "2026-02-19T16:01:15.346Z",
+      "is_paid": true,
+      "slug": "train-agency-not-willpower-a-practice"
+    },
+    {
+      "title": "The Real Point of Making Your Bed",
+      "url": "https://www.self-disciplined.com/p/the-real-point-of-making-your-bed",
+      "summary": "A tiny daily decision that trains agency, not willpower",
+      "published": "2026-02-18T15:03:31.436Z",
+      "is_paid": false,
+      "slug": "the-real-point-of-making-your-bed"
+    },
+    {
+      "title": "How to Protect Your Bandwidth When Life Is Full",
+      "url": "https://www.self-disciplined.com/p/how-to-protect-your-bandwidth-when",
+      "summary": "A practical way to reduce mental friction and keep your priorities alive",
+      "published": "2026-02-12T16:02:21.563Z",
+      "is_paid": true,
+      "slug": "how-to-protect-your-bandwidth-when"
+    },
+    {
+      "title": "You Don’t Have Unlimited Bandwidth",
+      "url": "https://www.self-disciplined.com/p/you-dont-have-unlimited-bandwidth",
+      "summary": "The hidden cost of switching between priorities, and how to design around it",
+      "published": "2026-02-11T15:00:22.244Z",
+      "is_paid": false,
+      "slug": "you-dont-have-unlimited-bandwidth"
+    },
+    {
+      "title": "How to Say No Without Guilt: Trainable Boundaries Under Pressure",
+      "url": "https://www.self-disciplined.com/p/how-to-say-no-without-guilt-trainable",
+      "summary": "A self-discipline sequence to catch the signal early, set a clear boundary without overexplaining, and hold it when pushback shows up.",
+      "published": "2026-02-05T16:02:43.739Z",
+      "is_paid": true,
+      "slug": "how-to-say-no-without-guilt-trainable"
+    },
+    {
+      "title": "Why \"No\" Is Your Greatest Act of Self-Governance",
+      "url": "https://www.self-disciplined.com/p/why-no-is-your-greatest-act-of-self",
+      "summary": "Neuroscience shows how empathy becomes overload (and how to rewire)",
+      "published": "2026-02-04T15:03:09.878Z",
+      "is_paid": false,
+      "slug": "why-no-is-your-greatest-act-of-self"
+    },
+    {
+      "title": "Training Clear Thinking Under Noise",
+      "url": "https://www.self-disciplined.com/p/training-clear-thinking-under-noise",
+      "summary": "How to separate signal from story when stress and information overload spike",
+      "published": "2026-01-29T16:01:34.307Z",
+      "is_paid": true,
+      "slug": "training-clear-thinking-under-noise"
+    },
+    {
+      "title": "How to Think Clearly When Everything Is Loud",
+      "url": "https://www.self-disciplined.com/p/how-to-think-clearly-when-everything",
+      "summary": "Why overload, stress, and synthetic certainty make self-governance more expensive",
+      "published": "2026-01-28T15:00:42.913Z",
+      "is_paid": false,
+      "slug": "how-to-think-clearly-when-everything"
+    },
+    {
+      "title": "How to Find the Smallest Action That Gets You Back on Track",
+      "url": "https://www.self-disciplined.com/p/how-to-find-the-smallest-action-that",
+      "summary": "A simple food-based method to lower re-entry cost, reduce friction, and increase comeback speed.",
+      "published": "2026-01-22T16:02:53.168Z",
+      "is_paid": true,
+      "slug": "how-to-find-the-smallest-action-that"
+    },
+    {
+      "title": "What You Consume Shapes Your Discipline",
+      "url": "https://www.self-disciplined.com/p/what-you-consume-shapes-your-discipline",
+      "summary": "How food becomes signals that affect focus, cravings, mood, self-control, and self-governance.",
+      "published": "2026-01-21T15:03:19.851Z",
+      "is_paid": false,
+      "slug": "what-you-consume-shapes-your-discipline"
+    },
+    {
+      "title": "How to Feel Normal Again After You Get Home",
+      "url": "https://www.self-disciplined.com/p/how-to-feel-normal-again-after-you",
+      "summary": "A practical sequence to handle re-entry dread, time distortion, and the first-week friction without overcorrecting.",
+      "published": "2026-01-15T16:02:48.390Z",
+      "is_paid": true,
+      "slug": "how-to-feel-normal-again-after-you"
+    },
+    {
+      "title": "Post-Vacation Blues: Why Coming Home Feels So Hard",
+      "url": "https://www.self-disciplined.com/p/post-vacation-blues-why-coming-home",
+      "summary": "The science of re-entry dread, time compression, and why your self-governance feels more expensive for a few days",
+      "published": "2026-01-14T15:03:16.889Z",
+      "is_paid": false,
+      "slug": "post-vacation-blues-why-coming-home"
+    },
+    {
+      "title": "Rest Is Part of the Work",
+      "url": "https://www.self-disciplined.com/p/rest-is-part-of-the-work",
+      "summary": "If you need a sign to rest without guilt, let this be it.",
+      "published": "2026-01-07T10:01:40.546Z",
+      "is_paid": false,
+      "slug": "rest-is-part-of-the-work"
+    },
+    {
+      "title": "2025 — A Recap",
+      "url": "https://www.self-disciplined.com/p/2025-a-recap",
+      "summary": "A personal note to close the year",
+      "published": "2025-12-31T10:01:49.047Z",
+      "is_paid": false,
+      "slug": "2025-a-recap"
+    },
+    {
+      "title": "When Your Tone Shifts First",
+      "url": "https://www.self-disciplined.com/p/when-your-tone-shifts-first",
+      "summary": "A short sequence to catch state shifts early and regain choice mid-conversation.",
+      "published": "2025-12-26T11:02:17.152Z",
+      "is_paid": true,
+      "slug": "when-your-tone-shifts-first"
+    },
+    {
+      "title": "When Someone Hears It Before You Do",
+      "url": "https://www.self-disciplined.com/p/when-someone-hears-it-before-you",
+      "summary": "How stress hides drift, and what it costs your self-governance",
+      "published": "2025-12-24T10:02:24.574Z",
+      "is_paid": false,
+      "slug": "when-someone-hears-it-before-you"
+    },
+    {
+      "title": "Notice Drift Before It Spreads",
+      "url": "https://www.self-disciplined.com/p/notice-drift-before-it-spreads",
+      "summary": "Sharpen real-time drift detection so you can return before it travels through others.",
+      "published": "2025-12-18T16:01:26.373Z",
+      "is_paid": true,
+      "slug": "notice-drift-before-it-spreads"
+    },
+    {
+      "title": "When Coherence Starts Propagating Faster Than Drift",
+      "url": "https://www.self-disciplined.com/p/when-coherence-starts-propagating",
+      "summary": "Discipline as the work of staying self-governed in a drifting world",
+      "published": "2025-12-17T15:02:37.162Z",
+      "is_paid": false,
+      "slug": "when-coherence-starts-propagating"
+    },
+    {
+      "title": "Catching Drift on Time: How to Detect Misalignment Before It Spreads",
+      "url": "https://www.self-disciplined.com/p/catching-drift-on-time-how-to-detect",
+      "summary": "Train your awareness to spot misalignment early and return with less damage",
+      "published": "2025-12-11T16:01:03.034Z",
+      "is_paid": true,
+      "slug": "catching-drift-on-time-how-to-detect"
+    },
+    {
+      "title": "What Happens When You Actually Live By Your Principles",
+      "url": "https://www.self-disciplined.com/p/what-happens-when-you-actually-live",
+      "summary": "Self-discipline as the practice of returning, and why your relationships feel it first",
+      "published": "2025-12-10T15:03:00.904Z",
+      "is_paid": false,
+      "slug": "what-happens-when-you-actually-live"
+    },
+    {
+      "title": "How to Return to Your Principles When Life Shifts",
+      "url": "https://www.self-disciplined.com/p/how-to-return-to-your-principles",
+      "summary": "How to return to your principles through letting go, pushing through, or choosing joy, even when your path changes shape.",
+      "published": "2025-12-04T16:03:13.499Z",
+      "is_paid": true,
+      "slug": "how-to-return-to-your-principles"
+    },
+    {
+      "title": "Spotlight #2: Salina Amara Gioia",
+      "url": "https://www.self-disciplined.com/p/spotlight-2-salina-amara-gioia",
+      "summary": "How a life shaped by adversity became a testament to disciplined self-governance",
+      "published": "2025-12-03T15:03:12.128Z",
+      "is_paid": false,
+      "slug": "spotlight-2-salina-amara-gioia"
+    },
+    {
+      "title": "When Instability Tests Your Discipline",
+      "url": "https://www.self-disciplined.com/p/when-instability-tests-your-discipline",
+      "summary": "How to stay steady when the environment around you keeps moving.",
+      "published": "2025-11-27T16:02:29.013Z",
+      "is_paid": true,
+      "slug": "when-instability-tests-your-discipline"
+    },
+    {
+      "title": "When Your Company Starts Drifting: How Organizational Instability Quietly Affects Your Discipline",
+      "url": "https://www.self-disciplined.com/p/when-your-company-starts-drifting",
+      "summary": "What happens inside you when the structure around you shifts — and why it matters for your self-governance",
+      "published": "2025-11-26T15:03:01.207Z",
+      "is_paid": false,
+      "slug": "when-your-company-starts-drifting"
+    },
+    {
+      "title": "How to Stay Centered When Parenting Breaks Your Rhythm",
+      "url": "https://www.self-disciplined.com/p/how-to-stay-centered-when-parenting",
+      "summary": "When interruptions pull you in every direction, these practices help you return with intention.",
+      "published": "2025-11-20T13:01:44.471Z",
+      "is_paid": true,
+      "slug": "how-to-stay-centered-when-parenting"
+    },
+    {
+      "title": "How Parenthood Teaches Self-Governance",
+      "url": "https://www.self-disciplined.com/p/how-parenthood-teaches-self-governance",
+      "summary": "When raising our kids ends up reshaping the way we lead ourselves.",
+      "published": "2025-11-19T05:51:53.930Z",
+      "is_paid": false,
+      "slug": "how-parenthood-teaches-self-governance"
+    },
+    {
+      "title": "Training Awareness Before the Ego Reacts",
+      "url": "https://www.self-disciplined.com/p/training-awareness-before-the-ego",
+      "summary": "Recognize when the ego takes control and retrain your response toward alignment.",
+      "published": "2025-11-13T16:01:41.311Z",
+      "is_paid": true,
+      "slug": "training-awareness-before-the-ego"
+    },
+    {
+      "title": "How Ego Turns Discipline Into Control (And How to Take It Back)",
+      "url": "https://www.self-disciplined.com/p/how-ego-turns-discipline-into-control",
+      "summary": "On role models and the practice of realignment that restores self-governance.",
+      "published": "2025-11-12T15:00:53.541Z",
+      "is_paid": false,
+      "slug": "how-ego-turns-discipline-into-control"
+    },
+    {
+      "title": "Training Calm When the Intruder Knocks",
+      "url": "https://www.self-disciplined.com/p/training-calm-when-the-intruder-knocks",
+      "summary": "How to stay composed when intrusive thoughts try to take over.",
+      "published": "2025-11-06T16:02:11.383Z",
+      "is_paid": true,
+      "slug": "training-calm-when-the-intruder-knocks"
+    },
+    {
+      "title": "Don’t Let the Intruder Run the House",
+      "url": "https://www.self-disciplined.com/p/dont-let-the-intruder-run-the-house",
+      "summary": "When self-doubt sounds like reason, awareness becomes your guardrail",
+      "published": "2025-11-05T15:00:23.194Z",
+      "is_paid": false,
+      "slug": "dont-let-the-intruder-run-the-house"
+    },
+    {
+      "title": "How to Realign When Purpose Fades",
+      "url": "https://www.self-disciplined.com/p/how-to-realign-when-purpose-fades",
+      "summary": "How to notice when achievement replaces meaning, and how to return to what actually matters.",
+      "published": "2025-10-30T15:00:25.745Z",
+      "is_paid": true,
+      "slug": "how-to-realign-when-purpose-fades"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #14: Shellie Vandersluis",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-14-shellie",
+      "summary": "When purpose stops being a goal and becomes a way of living",
+      "published": "2025-10-29T14:03:01.598Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-14-shellie"
+    },
+    {
+      "title": "Design Systems That Fit Your Wiring",
+      "url": "https://www.self-disciplined.com/p/design-systems-that-fit-your-wiring",
+      "summary": "How to create invisible infrastructure that helps you return without resistance.",
+      "published": "2025-10-23T15:01:48.461Z",
+      "is_paid": true,
+      "slug": "design-systems-that-fit-your-wiring"
+    },
+    {
+      "title": "Stop Treating Your Mind Like a Closet",
+      "url": "https://www.self-disciplined.com/p/stop-treating-your-mind-like-a-closet",
+      "summary": "A simple systems lens to sort what stays, park what doesn’t, and recover faster after drift.",
+      "published": "2025-10-22T14:02:47.345Z",
+      "is_paid": false,
+      "slug": "stop-treating-your-mind-like-a-closet"
+    },
+    {
+      "title": "Training Resilience Before the Storm",
+      "url": "https://www.self-disciplined.com/p/training-resilience-before-the-storm",
+      "summary": "How to build steadiness now, one small decision at a time",
+      "published": "2025-10-16T15:02:21.710Z",
+      "is_paid": true,
+      "slug": "training-resilience-before-the-storm"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #13: Maxim Spasskiy",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-13-maxim",
+      "summary": "When your plans fall like a house of cards",
+      "published": "2025-10-15T14:03:02.396Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-13-maxim"
+    },
+    {
+      "title": "When You’re Ready to Begin Again",
+      "url": "https://www.self-disciplined.com/p/when-youre-ready-to-begin-again",
+      "summary": "A two-minute practice for rebuilding rhythm and emotional steadiness",
+      "published": "2025-10-09T15:03:05.406Z",
+      "is_paid": true,
+      "slug": "when-youre-ready-to-begin-again"
+    },
+    {
+      "title": "Micro-Habits: Taking Gentle Steps Back to Yourself After Loss",
+      "url": "https://www.self-disciplined.com/p/micro-habits-taking-gentle-steps",
+      "summary": "How habits can act as anchors to heal from adversity",
+      "published": "2025-10-08T14:01:33.897Z",
+      "is_paid": false,
+      "slug": "micro-habits-taking-gentle-steps"
+    },
+    {
+      "title": "Training the Muscle of Opportunity",
+      "url": "https://www.self-disciplined.com/p/training-the-muscle-of-opportunity",
+      "summary": "How to practice seeing possibility when life closes doors",
+      "published": "2025-10-02T15:02:16.606Z",
+      "is_paid": true,
+      "slug": "training-the-muscle-of-opportunity"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #12: Veronica Llorca-Smith",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-12-veronica",
+      "summary": "When life gives you lemons, use the seeds to plant your lemon tree",
+      "published": "2025-10-01T14:02:42.190Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-12-veronica"
+    },
+    {
+      "title": "Designing Quests That Keep You Coming Back",
+      "url": "https://www.self-disciplined.com/p/designing-quests-that-keep-you-coming",
+      "summary": "How to gamify discipline without losing direction",
+      "published": "2025-09-25T15:00:35.110Z",
+      "is_paid": true,
+      "slug": "designing-quests-that-keep-you-coming"
+    },
+    {
+      "title": "From Hyper-Discipline to Adventure: A Questful Approach",
+      "url": "https://www.self-disciplined.com/p/from-hyper-discipline-to-adventure",
+      "summary": "Small adventures that build real consistency",
+      "published": "2025-09-24T14:02:27.534Z",
+      "is_paid": false,
+      "slug": "from-hyper-discipline-to-adventure"
+    },
+    {
+      "title": "Finding Your Way Back When Purpose Feels Lost",
+      "url": "https://www.self-disciplined.com/p/finding-your-way-back-when-purpose",
+      "summary": "How to reconnect when you feel far from your purpose",
+      "published": "2025-09-18T15:03:01.536Z",
+      "is_paid": true,
+      "slug": "finding-your-way-back-when-purpose"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #11: Grace Grossmann",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-11-grace",
+      "summary": "Two Reasons We Drift and How to Return",
+      "published": "2025-09-17T14:05:48.602Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-11-grace"
+    },
+    {
+      "title": "One Year of Self Disciplined!",
+      "url": "https://www.self-disciplined.com/p/one-year-of-self-disciplined",
+      "summary": "The best is yet to come",
+      "published": "2025-09-13T17:15:24.125Z",
+      "is_paid": false,
+      "slug": "one-year-of-self-disciplined"
+    },
+    {
+      "title": "Growing Into the Identity You Desire",
+      "url": "https://www.self-disciplined.com/p/growing-into-the-identity-you-desire",
+      "summary": "Why self‑acceptance is the first step toward sustainable habits",
+      "published": "2025-09-10T14:00:57.241Z",
+      "is_paid": false,
+      "slug": "growing-into-the-identity-you-desire"
+    },
+    {
+      "title": "Starting From Where You Actually Are",
+      "url": "https://www.self-disciplined.com/p/starting-from-where-you-actually",
+      "summary": "Stop copying someone else’s identity: start practicing your own",
+      "published": "2025-09-10T07:35:47.739Z",
+      "is_paid": true,
+      "slug": "starting-from-where-you-actually"
+    },
+    {
+      "title": "Using Self-Awareness as a Way Back",
+      "url": "https://www.self-disciplined.com/p/using-self-awareness-as-a-way-back",
+      "summary": "Why the skill of noticing matters more than pushing through",
+      "published": "2025-09-04T15:03:08.517Z",
+      "is_paid": true,
+      "slug": "using-self-awareness-as-a-way-back"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #10: Elena Calvillo",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-10-elena",
+      "summary": "How self-awareness becomes the first step back",
+      "published": "2025-09-03T14:01:55.729Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-10-elena"
+    },
+    {
+      "title": "Rewriting the Discipline You Inherited",
+      "url": "https://www.self-disciplined.com/p/rewriting-the-discipline-you-inherited",
+      "summary": "What you carried isn’t what you have to keep",
+      "published": "2025-08-28T15:00:55.154Z",
+      "is_paid": true,
+      "slug": "rewriting-the-discipline-you-inherited"
+    },
+    {
+      "title": "The Discipline You Learned Before You Knew It",
+      "url": "https://www.self-disciplined.com/p/the-discipline-you-learned-before",
+      "summary": "Tracing discipline back to where it begins",
+      "published": "2025-08-27T14:03:08.732Z",
+      "is_paid": false,
+      "slug": "the-discipline-you-learned-before"
+    },
+    {
+      "title": "How to Stay Disciplined When Your Purpose Feels Unclear",
+      "url": "https://www.self-disciplined.com/p/how-to-stay-disciplined-when-your",
+      "summary": "Using principles to guide choices when purpose isn’t enough",
+      "published": "2025-08-21T15:02:54.372Z",
+      "is_paid": true,
+      "slug": "how-to-stay-disciplined-when-your"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #9: Fritz Coetzee",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-9-fritz",
+      "summary": "Living with Purpose, Guided by Principles",
+      "published": "2025-08-20T14:01:41.198Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-9-fritz"
+    },
+    {
+      "title": "A Lot Is Happening!",
+      "url": "https://www.self-disciplined.com/p/a-lot-is-happening",
+      "summary": "And you should know about it",
+      "published": "2025-08-16T17:01:20.268Z",
+      "is_paid": false,
+      "slug": "a-lot-is-happening"
+    },
+    {
+      "title": "Using Awareness to Keep Your Discipline From Slipping",
+      "url": "https://www.self-disciplined.com/p/using-awareness-to-keep-your-discipline",
+      "summary": "Catching the drift before it becomes the detour",
+      "published": "2025-08-14T15:02:39.243Z",
+      "is_paid": true,
+      "slug": "using-awareness-to-keep-your-discipline"
+    },
+    {
+      "title": "The Mental Skill That Makes Every Goal Easier to Reach",
+      "url": "https://www.self-disciplined.com/p/the-mental-skill-that-makes-every",
+      "summary": "5 surprising ways mindfulness builds lasting discipline",
+      "published": "2025-08-13T14:03:30.910Z",
+      "is_paid": false,
+      "slug": "the-mental-skill-that-makes-every"
+    },
+    {
+      "title": "Letting Go Without Giving Up",
+      "url": "https://www.self-disciplined.com/p/letting-go-without-giving-up",
+      "summary": "How to return to your path when everything looks tempting",
+      "published": "2025-08-07T15:01:18.631Z",
+      "is_paid": true,
+      "slug": "letting-go-without-giving-up"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #8: Adi Sharma",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-8-adi",
+      "summary": "That moment when we come back to what matters",
+      "published": "2025-08-06T07:00:22.848Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-8-adi"
+    },
+    {
+      "title": "Attention’s Hidden Currency",
+      "url": "https://www.self-disciplined.com/p/attentions-hidden-currency",
+      "summary": "How neuroscience advances our understanding of focus, concentration and productivity",
+      "published": "2025-07-30T14:02:34.070Z",
+      "is_paid": false,
+      "slug": "attentions-hidden-currency"
+    },
+    {
+      "title": "How to Spend Less Attention on What You Didn’t Choose",
+      "url": "https://www.self-disciplined.com/p/how-to-spend-less-attention-on-what",
+      "summary": "Practices to recognize and return from unintentional distraction",
+      "published": "2025-07-30T06:26:35.740Z",
+      "is_paid": true,
+      "slug": "how-to-spend-less-attention-on-what"
+    },
+    {
+      "title": "Why You Can’t Stop Working (Even When You’re Exhausted)",
+      "url": "https://www.self-disciplined.com/p/why-you-cant-stop-working-even-when",
+      "summary": "Reclaim your agency when discipline starts to feel like pressure",
+      "published": "2025-07-24T15:01:26.287Z",
+      "is_paid": true,
+      "slug": "why-you-cant-stop-working-even-when"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #7: Shane Copeland ",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-7-shane",
+      "summary": "Finding balance in a world that demands discipline.",
+      "published": "2025-07-23T14:03:31.218Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-7-shane"
+    },
+    {
+      "title": "✂️Challenging the Rules Starts With Learning Them - What Now?",
+      "url": "https://www.self-disciplined.com/p/challenging-the-rules-starts-with-d81",
+      "summary": "How to Break the Rules Without Breaking Yourself",
+      "published": "2025-07-17T15:00:43.484Z",
+      "is_paid": true,
+      "slug": "challenging-the-rules-starts-with-d81"
+    },
+    {
+      "title": "✂️ Challenging the Rules Starts With Learning Them",
+      "url": "https://www.self-disciplined.com/p/challenging-the-rules-starts-with",
+      "summary": "Picasso, belief systems, and why unlearning is harder than it sounds",
+      "published": "2025-07-16T14:02:35.605Z",
+      "is_paid": false,
+      "slug": "challenging-the-rules-starts-with"
+    },
+    {
+      "title": "Spotlight #1: Grace Grossmann — What Now?",
+      "url": "https://www.self-disciplined.com/p/spotlight-1-grace-grossmann-what",
+      "summary": "Discipline that Heals, Not Hardens",
+      "published": "2025-07-10T15:01:05.271Z",
+      "is_paid": true,
+      "slug": "spotlight-1-grace-grossmann-what"
+    },
+    {
+      "title": "Spotlight #1: Grace Grossmann",
+      "url": "https://www.self-disciplined.com/p/spotlight-1-grace-grossmann",
+      "summary": "3 Subtle Shifts to Become More Disciplined When Dealing with Mental Health Issues",
+      "published": "2025-07-09T14:01:22.264Z",
+      "is_paid": false,
+      "slug": "spotlight-1-grace-grossmann"
+    },
+    {
+      "title": "⚙️How to Build Discipline That Actually Lasts — What Now?",
+      "url": "https://www.self-disciplined.com/p/how-to-build-discipline-that-actually",
+      "summary": "Let’s turn insight into movement and keep you on the path to who you’re becoming.",
+      "published": "2025-07-03T15:00:30.938Z",
+      "is_paid": true,
+      "slug": "how-to-build-discipline-that-actually"
+    },
+    {
+      "title": "⚙️How to Build Discipline That Actually Lasts",
+      "url": "https://www.self-disciplined.com/p/how-to-build-discipline-that-lasts",
+      "summary": "Willpower fades. Here’s why systems are the missing piece behind habits that stick.",
+      "published": "2025-07-02T14:01:42.885Z",
+      "is_paid": false,
+      "slug": "how-to-build-discipline-that-lasts"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #6 — What Now?",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-6-what",
+      "summary": "Let’s turn insight into movement and keep you on the path to who you’re becoming.",
+      "published": "2025-06-26T15:01:14.210Z",
+      "is_paid": true,
+      "slug": "what-is-your-purpose-issue-6-what"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #6: The Effective Project Manager",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-6-the",
+      "summary": "When your story stops matching who you are, it’s time to realign.",
+      "published": "2025-06-25T14:02:25.205Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-6-the"
+    },
+    {
+      "title": "🧠 The 1% Don’t Have More Willpower — They Have This — What Now?",
+      "url": "https://www.self-disciplined.com/p/the-1-dont-have-more-willpower-they",
+      "summary": "Let’s turn insight into movement and keep you on the path to who you’re becoming.",
+      "published": "2025-06-19T15:02:52.128Z",
+      "is_paid": true,
+      "slug": "the-1-dont-have-more-willpower-they"
+    },
+    {
+      "title": "🧠 The 1% Don’t Have More Willpower — They Have This",
+      "url": "https://www.self-disciplined.com/p/willpower-vs-intentionality",
+      "summary": "Most people burn out trying to force their way forward. The ones who keep going? They’re guided by something deeper.",
+      "published": "2025-06-18T14:03:06.230Z",
+      "is_paid": false,
+      "slug": "willpower-vs-intentionality"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #5 — What Now?",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-5-what",
+      "summary": "Let’s turn insight into movement and keep you on the path to who you’re becoming.",
+      "published": "2025-06-12T15:02:36.116Z",
+      "is_paid": true,
+      "slug": "what-is-your-purpose-issue-5-what"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #5: Ash Stuart",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-5-ash",
+      "summary": "A look inside the mind of a modern-day polymath.",
+      "published": "2025-06-11T14:03:15.190Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-5-ash"
+    },
+    {
+      "title": "You’re Not Meant to Stay the Same — What Now?",
+      "url": "https://www.self-disciplined.com/p/youre-not-meant-to-stay-the-same",
+      "summary": "Let’s turn insight into movement and keep you on the path to who you’re becoming.",
+      "published": "2025-06-05T15:02:27.063Z",
+      "is_paid": true,
+      "slug": "youre-not-meant-to-stay-the-same"
+    },
+    {
+      "title": "You’re Not Meant to Stay the Same",
+      "url": "https://www.self-disciplined.com/p/the-illusion-of-static-identity",
+      "summary": "The courage to become someone new, on your own terms.",
+      "published": "2025-06-04T14:00:35.448Z",
+      "is_paid": false,
+      "slug": "the-illusion-of-static-identity"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #4: Jez L.P. Stuart",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-4-jez",
+      "summary": "The science-backed habit that helped both Jez and me stay aligned",
+      "published": "2025-05-28T14:01:39.777Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-4-jez"
+    },
+    {
+      "title": "Would Your 11-Year-Old Self Be Proud?",
+      "url": "https://www.self-disciplined.com/p/would-your-11-year-old-self-be-proud",
+      "summary": "How reflecting on who you’ve become reveals the discipline of real change",
+      "published": "2025-05-21T14:00:23.799Z",
+      "is_paid": false,
+      "slug": "would-your-11-year-old-self-be-proud"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #3: Colette Molteni",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-3-colette",
+      "summary": "When legacy is fueled by joy, discipline becomes effortless",
+      "published": "2025-05-14T14:02:42.097Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-3-colette"
+    },
+    {
+      "title": "You’re Not Lazy. You’re Healing.",
+      "url": "https://www.self-disciplined.com/p/youre-not-lazy-youre-healing",
+      "summary": "What a virus taught me about real self-discipline, rest, and the biology of burnout.",
+      "published": "2025-05-07T14:01:18.574Z",
+      "is_paid": false,
+      "slug": "youre-not-lazy-youre-healing"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #2: Stefano Miele",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-2-stefano",
+      "summary": "Purpose isn't fixed; it's ever changing",
+      "published": "2025-04-30T14:02:49.573Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-2-stefano"
+    },
+    {
+      "title": "Not All Slips Are Your Fault: Why Discipline Is About Alignment, Not Willpower",
+      "url": "https://www.self-disciplined.com/p/not-all-slips-are-your-fault-why",
+      "summary": "When self-discipline fails, it might not be your fault. Here’s why environment matters.",
+      "published": "2025-04-23T14:00:29.563Z",
+      "is_paid": false,
+      "slug": "not-all-slips-are-your-fault-why"
+    },
+    {
+      "title": "What Is Your Purpose? — Issue #1: Orel Zilberman",
+      "url": "https://www.self-disciplined.com/p/what-is-your-purpose-issue-1-orel",
+      "summary": "When purpose is clear, discipline becomes effortless.",
+      "published": "2025-04-16T14:03:38.041Z",
+      "is_paid": false,
+      "slug": "what-is-your-purpose-issue-1-orel"
+    },
+    {
+      "title": "What If You’ve Been Measuring Progress the Wrong Way All Along?",
+      "url": "https://www.self-disciplined.com/p/what-if-youve-been-measuring-progress",
+      "summary": "Hint: it’s not about how long you stay on track.",
+      "published": "2025-04-09T14:03:42.360Z",
+      "is_paid": false,
+      "slug": "what-if-youve-been-measuring-progress"
+    },
+    {
+      "title": "Purpose Is What Makes Discipline Stick",
+      "url": "https://www.self-disciplined.com/p/purpose-is-what-makes-discipline",
+      "summary": "Discipline doesn’t last on its own. Without a clear purpose, it crumbles. Here’s what I learned from building my writing habit, and how discovering my deeper ‘why’ changed everything.",
+      "published": "2025-04-02T14:03:40.112Z",
+      "is_paid": false,
+      "slug": "purpose-is-what-makes-discipline"
+    },
+    {
+      "title": "Table of Contents",
+      "url": "https://www.self-disciplined.com/p/table-of-contents",
+      "summary": "Think of this as your personal map to the ideas that matter most.",
+      "published": "2025-03-26T14:03:35.788Z",
+      "is_paid": false,
+      "slug": "table-of-contents"
+    },
+    {
+      "title": "How Accountability Can Help You Move Forward (Without the Guilt)",
+      "url": "https://www.self-disciplined.com/p/how-accountability-can-help-you-move",
+      "summary": "A personal journey through chaos, self-doubt, and the pursuit of true accountability.",
+      "published": "2025-03-12T14:02:38.797Z",
+      "is_paid": false,
+      "slug": "how-accountability-can-help-you-move"
+    },
+    {
+      "title": "Struggling to Stay Disciplined? This One Questioning Method Fixes Everything",
+      "url": "https://www.self-disciplined.com/p/struggling-to-stay-disciplined-this",
+      "summary": "Discover how a simple yet powerful questioning technique can help you break bad habits, stay on track, and solve problems at their core.",
+      "published": "2025-03-05T15:02:58.018Z",
+      "is_paid": false,
+      "slug": "struggling-to-stay-disciplined-this"
+    },
+    {
+      "title": "Why Mastering Adaptable Discipline Unlocks Your Greatest Success",
+      "url": "https://www.self-disciplined.com/p/why-mastering-adaptable-discipline",
+      "summary": "Be free from rigid routines and use the power of adaptability to keep on track, overcome setbacks, and have real success.",
+      "published": "2025-02-26T15:02:51.955Z",
+      "is_paid": false,
+      "slug": "why-mastering-adaptable-discipline"
+    },
+    {
+      "title": "How to Stay Focused in a Distracted World",
+      "url": "https://www.self-disciplined.com/p/hard-work-is-overrated",
+      "summary": "It’s Time to Work Smart, Not Just Hard",
+      "published": "2025-02-19T15:03:47.091Z",
+      "is_paid": false,
+      "slug": "hard-work-is-overrated"
+    },
+    {
+      "title": "Why You Shouldn't Be Disciplined On Everything",
+      "url": "https://www.self-disciplined.com/p/why-you-shouldnt-be-disciplined-on",
+      "summary": "Learn why too much of a good thing can backfire.",
+      "published": "2025-02-12T15:03:27.819Z",
+      "is_paid": false,
+      "slug": "why-you-shouldnt-be-disciplined-on"
+    },
+    {
+      "title": "Burnt Noodles and Big Lessons: Why Cooking Matters More Than You Think",
+      "url": "https://www.self-disciplined.com/p/burnt-noodles-and-big-lessons-why",
+      "summary": "Why stepping into the kitchen is about more than just making meals: it's about mastering yourself.",
+      "published": "2025-02-05T15:03:04.020Z",
+      "is_paid": false,
+      "slug": "burnt-noodles-and-big-lessons-why"
+    },
+    {
+      "title": "Meeting the Enemy of Success",
+      "url": "https://www.self-disciplined.com/p/meeting-the-enemy-of-success",
+      "summary": "Why We Get in Our Own Way, and How to Stop",
+      "published": "2025-01-29T15:02:25.891Z",
+      "is_paid": false,
+      "slug": "meeting-the-enemy-of-success"
+    },
+    {
+      "title": "The Benefits of Becoming No One",
+      "url": "https://www.self-disciplined.com/p/the-benefits-of-becoming-no-one",
+      "summary": "When our irrelevance becomes liberating",
+      "published": "2025-01-22T15:02:50.643Z",
+      "is_paid": false,
+      "slug": "the-benefits-of-becoming-no-one"
+    },
+    {
+      "title": "Feeling Stuck? These Strategies Will Get You Moving Again",
+      "url": "https://www.self-disciplined.com/p/feeling-stuck-these-strategies-will",
+      "summary": "It helped me with this very article!",
+      "published": "2025-01-15T15:01:47.467Z",
+      "is_paid": false,
+      "slug": "feeling-stuck-these-strategies-will"
+    },
+    {
+      "title": "The Practice That Will Boost Your 2025",
+      "url": "https://www.self-disciplined.com/p/the-practice-that-will-boost-your",
+      "summary": "Make this your new year resolution!",
+      "published": "2025-01-01T15:01:02.124Z",
+      "is_paid": false,
+      "slug": "the-practice-that-will-boost-your"
+    },
+    {
+      "title": "Is This Silent Habit Undermining Your Discipline?",
+      "url": "https://www.self-disciplined.com/p/is-this-silent-habit-undermining",
+      "summary": "You might be doing it without knowing",
+      "published": "2024-12-11T15:02:54.355Z",
+      "is_paid": false,
+      "slug": "is-this-silent-habit-undermining"
+    },
+    {
+      "title": "This One Practice Can Help You Boost Your Discipline",
+      "url": "https://www.self-disciplined.com/p/this-one-practice-can-help-you-boost",
+      "summary": "If you are not doing it already you should give it a try!",
+      "published": "2024-12-04T15:02:21.760Z",
+      "is_paid": false,
+      "slug": "this-one-practice-can-help-you-boost"
+    },
+    {
+      "title": "What a Wonderful World",
+      "url": "https://www.self-disciplined.com/p/what-a-wonderful-world",
+      "summary": "Let's take a moment to reflect on the good you have in your life",
+      "published": "2024-11-27T15:02:34.849Z",
+      "is_paid": false,
+      "slug": "what-a-wonderful-world"
+    },
+    {
+      "title": "When Pain Knocks On Your Door",
+      "url": "https://www.self-disciplined.com/p/when-pain-comes-your-way",
+      "summary": "What to do when painful things happen to us, that threaten our self-discipline and everything we worked for?",
+      "published": "2024-11-20T15:02:29.222Z",
+      "is_paid": false,
+      "slug": "when-pain-comes-your-way"
+    },
+    {
+      "title": "How an Epiphany Changed the Way I Approach Life",
+      "url": "https://www.self-disciplined.com/p/gratitude",
+      "summary": "And why it will change yours too.",
+      "published": "2024-11-13T15:02:32.738Z",
+      "is_paid": false,
+      "slug": "gratitude"
+    },
+    {
+      "title": "I Don't Want to Write!",
+      "url": "https://www.self-disciplined.com/p/struggles-shape-discipline",
+      "summary": "Is one read not enough? Discover why you might want to dive into this post twice (or even more).",
+      "published": "2024-11-06T15:01:11.602Z",
+      "is_paid": false,
+      "slug": "struggles-shape-discipline"
+    },
+    {
+      "title": "Unlock This Key Trait for Greater Confidence",
+      "url": "https://www.self-disciplined.com/p/unlock-this-key-trait-for-greater",
+      "summary": "The one attribute that can transform your self-discipline, elevate your confidence and bring success.",
+      "published": "2024-10-30T14:02:20.394Z",
+      "is_paid": false,
+      "slug": "unlock-this-key-trait-for-greater"
+    },
+    {
+      "title": "The Clock Keeps Ticking",
+      "url": "https://www.self-disciplined.com/p/the-clock-keeps-ticking",
+      "summary": "What happens when you have to keep going?",
+      "published": "2024-10-23T14:02:02.100Z",
+      "is_paid": false,
+      "slug": "the-clock-keeps-ticking"
+    },
+    {
+      "title": "My Accountability Struggle: What I Learned When I Couldn’t Even Finish This Post",
+      "url": "https://www.self-disciplined.com/p/why-you-shouldnt-be-like-me",
+      "summary": "Join me in an honest reflection on discipline, setbacks, and why progress isn’t always a straight line.",
+      "published": "2024-10-16T15:01:19.492Z",
+      "is_paid": false,
+      "slug": "why-you-shouldnt-be-like-me"
+    },
+    {
+      "title": "The #1 Quality to Attain Real Freedom",
+      "url": "https://www.self-disciplined.com/p/the-1-quality-to-attain-real-freedom",
+      "summary": "What if the secret to unlocking true freedom wasn’t about doing more, but about mastering one simple quality?",
+      "published": "2024-10-09T14:03:35.556Z",
+      "is_paid": false,
+      "slug": "the-1-quality-to-attain-real-freedom"
+    },
+    {
+      "title": "The Five Minute Rule",
+      "url": "https://www.self-disciplined.com/p/the-five-minute-rule",
+      "summary": "How a shift on my mindset enhanced my productivity",
+      "published": "2024-10-02T15:01:07.856Z",
+      "is_paid": false,
+      "slug": "the-five-minute-rule"
+    },
+    {
+      "title": "Battling Ego",
+      "url": "https://www.self-disciplined.com/p/keeping-my-ego-in-check",
+      "summary": "A reminder to focus on what really matters",
+      "published": "2024-09-25T15:00:54.728Z",
+      "is_paid": false,
+      "slug": "keeping-my-ego-in-check"
+    },
+    {
+      "title": "Shoot the arrow",
+      "url": "https://www.self-disciplined.com/p/shoot-the-arrow",
+      "summary": "Don't try to control the uncontrollable.",
+      "published": "2024-09-21T03:30:57.442Z",
+      "is_paid": false,
+      "slug": "shoot-the-arrow"
+    },
+    {
+      "title": "Introducing: Autodisciplina",
+      "url": "https://www.self-disciplined.com/p/introducing-autodisciplina",
+      "summary": "My Journey is now also available in Spanish",
+      "published": "2024-09-19T06:31:04.188Z",
+      "is_paid": false,
+      "slug": "introducing-autodisciplina"
+    },
+    {
+      "title": "Keep Your Ego in Check",
+      "url": "https://www.self-disciplined.com/p/mastering-ego-for-better-discipline",
+      "summary": "How Humility and Self-Control Lead to True Success",
+      "published": "2024-09-14T17:00:56.992Z",
+      "is_paid": false,
+      "slug": "mastering-ego-for-better-discipline"
+    },
+    {
+      "title": "Becoming Disciplined",
+      "url": "https://www.self-disciplined.com/p/becoming-disciplined",
+      "summary": "My Journey for Self-Mastery",
+      "published": "2024-09-07T21:35:34.859Z",
+      "is_paid": false,
+      "slug": "becoming-disciplined"
+    }
+  ]
+}
