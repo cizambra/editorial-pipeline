@@ -1,0 +1,81 @@
+body {
+  font-family: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #20180f;
+  background: 
+    radial-gradient(circle at top left, rgba(240, 171, 105, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(196, 82, 42, 0.12), transparent 24%),
+    linear-gradient(180deg, #fbf7ef, #f5efe3);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(78, 57, 32, 0.24) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(78, 57, 32, 0.24);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #6e6256;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area insets for mobile (notches, home indicators) */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Add bottom padding to main content when mobile nav is visible */
+@media (max-width: 1023px) {
+  body {
+    padding-bottom: 80px;
+  }
+}
+
+/* Native-style slide animations for mobile modals */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}

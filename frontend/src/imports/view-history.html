@@ -1,0 +1,4476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="http://localhost:8000/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Self Disciplined | Editorial Pipeline</title>
+  <style>
+    :root {
+      --bg: #f5efe3;
+      --bg-alt: #fbf7ef;
+      --panel: rgba(255, 251, 243, 0.88);
+      --panel-strong: #fffaf1;
+      --panel-soft: #efe3cf;
+      --ink: #20180f;
+      --muted: #6e6256;
+      --line: rgba(78, 57, 32, 0.14);
+      --line-strong: rgba(78, 57, 32, 0.24);
+      --accent: #c4522a;
+      --accent-strong: #8b3519;
+      --accent-soft: rgba(196, 82, 42, 0.1);
+      --ok: #1c7c52;
+      --warn: #c5771d;
+      --danger: #a0382b;
+      --nav-bg: #171d23;
+      --nav-bg-2: #243241;
+      --nav-text: #d6dfeb;
+      --nav-muted: #8192a7;
+      --shadow: 0 14px 34px rgba(54, 32, 12, 0.08);
+      --r-sm: 10px;
+      --r: 16px;
+      --r-lg: 24px;
+    }
+
+    body[data-theme="dark"] {
+      --bg: #0e0a07;
+      --bg-alt: #130d09;
+      --panel: #271a0e;
+      --panel-strong: #301f12;
+      --panel-soft: #1d1109;
+      --ink: #f2ebe0;
+      --muted: #a08878;
+      --line: rgba(255, 200, 140, 0.16);
+      --line-strong: rgba(255, 200, 140, 0.28);
+      --accent: #f07030;
+      --accent-strong: #f59050;
+      --accent-soft: rgba(240, 112, 48, 0.14);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 200, 140, 0.06) inset;
+    }
+
+    body[data-theme="dark"] .nav.active {
+      box-shadow: inset 3px 0 0 var(--accent), 0 0 16px rgba(240, 112, 48, 0.08);
+    }
+
+    body[data-theme="dark"] .card::before {
+      background: linear-gradient(90deg, transparent, rgba(240, 112, 48, 0.12), transparent);
+      opacity: 1;
+    }
+
+    body[data-theme="dark"] .card {
+      border-color: rgba(255, 200, 140, 0.14);
+    }
+
+    /* === DARK MODE COMPONENT OVERRIDES === */
+
+    /* Inputs — darker than card so they feel inset */
+    body[data-theme="dark"] input[type="text"],
+    body[data-theme="dark"] textarea,
+    body[data-theme="dark"] select {
+      background: var(--bg-alt);
+      border-color: var(--line-strong);
+    }
+    body[data-theme="dark"] input[type="text"]:focus,
+    body[data-theme="dark"] textarea:focus,
+    body[data-theme="dark"] select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(240, 112, 48, 0.18);
+    }
+
+    /* Dropzone */
+    body[data-theme="dark"] .dropzone {
+      background: rgba(240, 112, 48, 0.06);
+      border-color: rgba(255, 200, 140, 0.22);
+    }
+
+    /* Buttons / langs / tabs */
+    body[data-theme="dark"] .btn,
+    body[data-theme="dark"] .tab,
+    body[data-theme="dark"] .lang {
+      background: rgba(255, 200, 140, 0.06);
+      border-color: rgba(255, 200, 140, 0.1);
+    }
+    body[data-theme="dark"] .btn:hover,
+    body[data-theme="dark"] .ghost:hover {
+      background: rgba(255, 200, 140, 0.1);
+      border-color: rgba(255, 200, 140, 0.18);
+    }
+    body[data-theme="dark"] .tab:hover,
+    body[data-theme="dark"] .lang:hover {
+      border-color: rgba(255, 200, 140, 0.18);
+    }
+
+    /* Tags / badges */
+    body[data-theme="dark"] .tag,
+    body[data-theme="dark"] .meta-chip {
+      background: rgba(255, 200, 140, 0.08);
+      border-color: rgba(255, 200, 140, 0.12);
+    }
+
+    /* Segmented controls */
+    body[data-theme="dark"] .seg {
+      background: rgba(255, 200, 140, 0.04);
+      border-color: rgba(255, 200, 140, 0.1);
+    }
+
+    /* Toggle switch */
+    body[data-theme="dark"] .switch-track {
+      background: rgba(255, 200, 140, 0.15);
+    }
+
+    /* Progress / meters */
+    body[data-theme="dark"] .meter { background: rgba(255, 200, 140, 0.1); }
+    body[data-theme="dark"] .progress-bar { background: rgba(255, 200, 140, 0.1); }
+    body[data-theme="dark"] .task-card.todo::after { background: rgba(255, 200, 140, 0.08); }
+
+    /* Code blocks and HR in previews */
+    body[data-theme="dark"] .doc-preview pre,
+    body[data-theme="dark"] .md-preview pre {
+      background: rgba(255, 200, 140, 0.04);
+    }
+    body[data-theme="dark"] .doc-preview hr,
+    body[data-theme="dark"] .md-preview hr {
+      background: linear-gradient(90deg, transparent, rgba(255, 200, 140, 0.14), transparent);
+    }
+
+    /* Settings — prompt editor blocks */
+    body[data-theme="dark"] .md-setting {
+      background: var(--panel-strong);
+      border-color: rgba(255, 200, 140, 0.1);
+    }
+    body[data-theme="dark"] .md-preview { background: rgba(255, 200, 140, 0.04); }
+    body[data-theme="dark"] .md-mode { background: rgba(255, 200, 140, 0.06); }
+
+    /* Marketing — card subcomponents */
+    body[data-theme="dark"] .marketing-current-card,
+    body[data-theme="dark"] .marketing-library-header {
+      background:
+        radial-gradient(circle at top right, rgba(240, 112, 48, 0.08), transparent 28%),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+    body[data-theme="dark"] .marketing-run {
+      background: rgba(255, 200, 140, 0.04);
+      border-color: var(--line);
+    }
+    body[data-theme="dark"] .marketing-run:hover {
+      background: rgba(255, 200, 140, 0.07);
+      border-color: var(--line-strong);
+    }
+    body[data-theme="dark"] .marketing-run.active {
+      background: linear-gradient(180deg, rgba(240, 112, 48, 0.12), rgba(240, 112, 48, 0.06));
+    }
+    /* marketing/studio inputs handled by global input override above */
+    body[data-theme="dark"] .mk-asset-pill {
+      background: rgba(255, 200, 140, 0.06);
+      border-color: rgba(255, 200, 140, 0.1);
+    }
+    body[data-theme="dark"] .mk-asset-pill:hover:not(.active) {
+      background: rgba(255, 200, 140, 0.1);
+    }
+
+    /* Thumbnail page */
+    body[data-theme="dark"] .thumb {
+      background: rgba(255, 200, 140, 0.04);
+      border-color: var(--line);
+    }
+    body[data-theme="dark"] .thumb:hover {
+      background: rgba(255, 200, 140, 0.07);
+      border-color: var(--line-strong);
+    }
+    body[data-theme="dark"] .thumb-detail,
+    body[data-theme="dark"] .library-header {
+      background:
+        radial-gradient(circle at top right, rgba(240, 112, 48, 0.08), transparent 30%),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+    /* library search input handled by global input override */
+
+    /* Social/Thumbnail studio */
+    body[data-theme="dark"] .studio-setup {
+      background:
+        radial-gradient(circle at top right, rgba(240, 112, 48, 0.06), transparent 26%),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+    /* studio setup inputs handled by global input override */
+
+    /* Concept inspector */
+    body[data-theme="dark"] .concept-inspector {
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+    body[data-theme="dark"] .inspector-block { background: rgba(255, 200, 140, 0.04); }
+
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(18, 15, 10, 0.58);
+      backdrop-filter: blur(10px);
+    }
+    .auth-overlay.show { display: flex; }
+    .auth-card {
+      width: min(440px, 100%);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--r-lg);
+      background:
+        radial-gradient(circle at top right, rgba(196, 82, 42, 0.12), transparent 28%),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+    .auth-card h2 {
+      margin: 0 0 8px;
+      font: 700 28px/1.15 "Montserrat", sans-serif;
+    }
+    .auth-card p { margin: 0 0 18px; color: var(--muted); }
+    .auth-status { min-height: 20px; font-size: 12px; color: var(--muted); margin-top: 10px; }
+    .auth-status.error { color: var(--danger); }
+    .auth-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 12px;
+    }
+    .auth-role {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .users-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .user-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: var(--panel-strong);
+    }
+    .user-row-meta { font-size: 12px; color: var(--muted); }
+    .auth-inline {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .hide { display: none !important; }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font: 500 14px/1.6 "Inter", "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(240, 171, 105, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(196, 82, 42, 0.12), transparent 24%),
+        linear-gradient(180deg, var(--bg-alt), var(--bg));
+    }
+
+    button, input, textarea, select { font: inherit; }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 236px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 18px 14px;
+      color: var(--nav-text);
+      background:
+        radial-gradient(circle at top right, rgba(238, 127, 69, 0.18), transparent 28%),
+        linear-gradient(180deg, var(--nav-bg), var(--nav-bg-2));
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 4px; }
+    .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
+
+    /* Global thin scrollbar — adapts via CSS variables to both light and dark mode */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--line-strong) transparent;
+    }
+    *::-webkit-scrollbar { width: 5px; height: 5px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+    *::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sidebar-footer .btn {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--nav-text);
+      border-color: rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .brand {
+      padding: 12px 8px 10px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .brand-kicker {
+      margin-bottom: 6px;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--nav-muted);
+    }
+
+    .brand-title {
+      font: 800 22px/0.92 "Montserrat", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: -0.06em;
+      text-transform: lowercase;
+    }
+
+    .brand-title span { color: var(--accent); }
+    .brand-copy { display: none; }
+
+    .brand-tagline {
+      font-size: 10px;
+      color: var(--nav-muted);
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .nav-group {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-label {
+      padding: 0 8px 6px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--nav-muted);
+      opacity: 0.7;
+    }
+
+    .nav {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 4px;
+      padding: 10px 10px;
+      border: 1px solid transparent;
+      border-radius: var(--r-sm);
+      color: inherit;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      transition: 0.18s ease;
+    }
+
+    .nav:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.06);
+      transform: none;
+    }
+
+    .nav.active {
+      background: rgba(238, 127, 69, 0.14);
+      border-color: rgba(238, 127, 69, 0.3);
+      box-shadow: inset 3px 0 0 rgba(238, 127, 69, 0.8);
+    }
+
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      color: rgba(255, 255, 255, 0.86);
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .nav-icon svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .nav-text strong {
+      display: block;
+      margin-bottom: 0;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-family: "Montserrat", "Inter", sans-serif;
+    }
+
+    .nav-text small {
+      display: block;
+      font-size: 10px;
+      color: var(--nav-muted);
+      margin-top: 1px;
+      font-style: normal;
+      font-family: "Inter", sans-serif;
+    }
+
+    .nav-text span { display: none; }
+
+    .main {
+      padding: 20px;
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .toolbar-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .status-pill,
+    .btn,
+    .ghost,
+    .tab,
+    .lang,
+    .seg button {
+      border-radius: var(--r);
+      transition: 0.18s ease;
+    }
+
+    .status-pill {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+      box-shadow: var(--shadow);
+    }
+
+    .status-pill.show { display: inline-flex; }
+
+    .pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 rgba(196, 82, 42, 0.34);
+      animation: pulse 1.5s infinite;
+    }
+
+    .btn,
+    .ghost,
+    .tab,
+    .lang {
+      border: 1px solid var(--line);
+      padding: 9px 16px;
+      min-height: 36px;
+      background: rgba(255, 255, 255, 0.42);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .btn:hover,
+    .ghost:hover {
+      border-color: var(--line-strong);
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .tab:hover,
+    .lang:hover {
+      border-color: var(--line-strong);
+    }
+
+    .ghost {
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+
+    .pri {
+      width: 100%;
+      border: 1px solid rgba(196, 82, 42, 0.24);
+      border-radius: var(--r);
+      padding: 13px 20px;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+      box-shadow: none;
+      font-weight: 800;
+      font-size: 14px;
+      transition: 0.18s ease;
+    }
+
+    .pri:hover {
+      background: #b94622;
+      border-color: rgba(196, 82, 42, 0.4);
+    }
+    .pri:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+
+    .btn.danger {
+      border-color: rgba(160, 56, 43, 0.32);
+      color: var(--danger);
+      background: transparent;
+    }
+    .btn.danger:hover {
+      border-color: rgba(160, 56, 43, 0.55);
+      background: rgba(160, 56, 43, 0.06);
+    }
+
+    .danger {
+      display: none;
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: var(--r);
+      border: 1px solid rgba(160, 56, 43, 0.28);
+      color: var(--danger);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .hero {
+      display: block;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-card,
+    .card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 0;
+      min-height: auto;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at top right, rgba(196, 82, 42, 0.09), transparent 24%),
+        linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.02));
+    }
+
+    .hero-title,
+    .page-title {
+      position: relative;
+      z-index: 1;
+      font: 800 26px/1.04 "Montserrat", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: -0.05em;
+    }
+
+    .page-title {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .hero-copy,
+    .page-copy,
+    .muted {
+      color: var(--muted);
+    }
+
+    .hero-copy {
+      max-width: 700px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .page-header {
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-grid,
+    .stats-grid,
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-grid { display: grid; }
+
+    .hero-metric { display: block; }
+
+    body[data-theme="dark"] .hero-metric {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .hero-metric strong,
+    .metric-value {
+      display: block;
+      font-size: 28px;
+      font-weight: 800;
+      font-family: "Montserrat", "Inter", sans-serif;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .rail-kicker,
+    .section-label {
+      margin-bottom: 10px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .eyebrow {
+      margin-bottom: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .label-sm {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .workflow-list,
+    .progress-list,
+    .history-list,
+    .ideas-list,
+    .thumbs,
+    .list,
+    .concepts {
+      display: grid;
+      gap: 12px;
+    }
+
+    .layout-primary {
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+    }
+
+    .pipeline-shell {
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .pipeline-setup,
+    .pipeline-status,
+    .pipeline-feed {
+      border-radius: var(--r-lg);
+    }
+
+    .pipeline-feed {
+      display: grid;
+      align-content: start;
+      min-height: 280px;
+    }
+
+    .pipeline-meta {
+      display: grid;
+      gap: 16px;
+      align-items: start;
+      align-content: start;
+      position: sticky;
+      top: 20px;
+    }
+
+    .concepts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+    }
+
+    .workflow-item,
+    .progress-item,
+    .entry,
+    .idea,
+    .thumb,
+    .concept,
+    .stat-card,
+    .empty,
+    .doc,
+    .soc,
+    .task-card,
+    .campaign-banner,
+    .setting-note {
+      position: relative;
+      z-index: 1;
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .workflow-item,
+    .progress-item,
+    .entry,
+    .idea,
+    .thumb,
+    .setting-note,
+    .empty {
+      padding: 14px;
+    }
+
+    .empty {
+      color: var(--muted);
+    }
+
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .stack { display: grid; gap: 16px; }
+    .section { margin-top: 18px; }
+
+    .card {
+      padding: 20px;
+    }
+
+    .entry-item {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      transition: background 0.15s;
+    }
+
+    .entry-item:last-child {
+      border-bottom: 0;
+    }
+
+    .entry-item:hover {
+      background: var(--accent-soft);
+    }
+
+    .entry-active {
+      background: var(--accent-soft);
+      box-shadow: inset 3px 0 0 var(--accent);
+      color: var(--ink);
+    }
+
+    .card-head,
+    .between,
+    .topline {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .card-head {
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 16px;
+      padding-top: 14px;
+    }
+
+    .card-section {
+      border-top: 1px solid var(--line);
+      margin-top: 14px;
+    }
+
+    .card-head + .card-section {
+      border-top: none;
+      margin-top: 0;
+    }
+
+    .card-body {
+      padding: 16px 20px;
+    }
+
+    .section-title {
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      font-family: "Montserrat", "Inter", sans-serif;
+    }
+
+    .section-copy {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .field {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 14px;
+    }
+
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--r);
+      border: 1px solid var(--line-strong);
+      color: var(--ink);
+      background: var(--panel-strong);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+    textarea::-webkit-resizer { display: none; }
+
+    input[type="range"] { width: 100%; }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(196, 82, 42, 0.5);
+      box-shadow: 0 0 0 3px rgba(196, 82, 42, 0.12);
+    }
+
+    .seg {
+      display: inline-flex;
+      gap: 0;
+      padding: 0;
+      border-radius: var(--r-sm);
+      border: 1px solid rgba(196, 82, 42, 0.18);
+      background: rgba(255, 255, 255, 0.22);
+      flex-wrap: wrap;
+      overflow: hidden;
+    }
+
+    .seg button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 12px;
+      font-family: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+      cursor: pointer;
+      border-right: 1px solid var(--line);
+    }
+
+    .seg button:last-child {
+      border-right: 0;
+    }
+
+    .seg button.active {
+      color: #fff;
+      background: var(--accent);
+      box-shadow: none;
+    }
+
+
+    .dropzone {
+      position: relative;
+      z-index: 1;
+      padding: 28px 20px;
+      border-radius: var(--r);
+      border: 1px dashed var(--line-strong);
+      background:
+        linear-gradient(180deg, rgba(196, 82, 42, 0.06), transparent),
+        var(--panel-soft);
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .dropzone.drag {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .dropzone input { display: none; }
+    .drop-title { font-weight: 800; margin-bottom: 6px; }
+    .file-name { margin-top: 8px; color: var(--muted); font-size: 12px; }
+
+    .toggle-row,
+    .mini-stat,
+    .task-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .toggle-row:first-of-type,
+    .task-row:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .switch {
+      position: relative;
+      width: 48px;
+      height: 28px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-track {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--r-sm);
+      background: rgba(120, 100, 75, 0.28);
+      transition: 0.18s ease;
+    }
+
+    .switch-track::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: #fff;
+      transition: 0.18s ease;
+    }
+
+    .switch input:checked + .switch-track {
+      background: var(--accent);
+    }
+
+    .switch input:checked + .switch-track::before {
+      transform: translateX(20px);
+    }
+
+    .meta-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .meta-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .meta-chip,
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.28);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .task-card {
+      padding: 14px;
+      min-height: 118px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .task-card::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 4px;
+      background: rgba(196, 82, 42, 0.08);
+    }
+
+    .task-card.todo::after { background: rgba(120, 100, 75, 0.18); }
+    .task-card.running::after { background: linear-gradient(90deg, var(--accent), var(--accent-strong)); }
+    .task-card.done::after { background: var(--ok); }
+    .task-card.error::after { background: var(--danger); }
+
+    .task-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .task-title {
+      font-weight: 800;
+      font-size: 16px;
+      line-height: 1.15;
+    }
+
+    .task-badge {
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .task-card.running .task-badge {
+      color: var(--accent-strong);
+      border-color: rgba(196, 82, 42, 0.22);
+      background: rgba(196, 82, 42, 0.1);
+    }
+
+    .task-card.done .task-badge {
+      color: var(--ok);
+      border-color: rgba(28, 124, 82, 0.22);
+      background: rgba(28, 124, 82, 0.08);
+    }
+
+    .task-card.error .task-badge {
+      color: var(--danger);
+      border-color: rgba(160, 56, 43, 0.24);
+      background: rgba(160, 56, 43, 0.08);
+    }
+
+    .task-copy { display: block; }
+
+    .task-detail {
+      margin-top: auto;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .resume-banner {
+      display: none;
+      margin-bottom: 16px;
+      padding: 14px 18px;
+      border-radius: var(--r-lg);
+      border: 1px solid rgba(196, 82, 42, 0.28);
+      border-left: 4px solid var(--accent);
+      background: linear-gradient(180deg, rgba(196, 82, 42, 0.1), rgba(196, 82, 42, 0.04)), var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .resume-banner.show { display: block; }
+
+    .progress-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .progress-item:last-child {
+      border-bottom: 0;
+    }
+
+    .progress-shell {
+      display: grid;
+      gap: 10px;
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .progress-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .progress-list {
+      max-height: 320px;
+      overflow: auto;
+      padding-right: 4px;
+      align-content: start;
+    }
+
+    .progress-bar {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(120, 100, 75, 0.16);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+      transition: width 0.24s ease;
+    }
+
+    .progress-fill.error {
+      background: var(--danger);
+    }
+
+    .section-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .spin {
+      width: 15px;
+      height: 15px;
+      border-radius: 999px;
+      border: 2px solid rgba(196, 82, 42, 0.18);
+      border-top-color: var(--accent);
+      animation: spin 0.7s linear infinite;
+      flex: 0 0 auto;
+    }
+
+    .ok { color: var(--ok); font-weight: 900; }
+    .err { color: var(--danger); font-weight: 900; }
+
+    .tabs,
+    .langs,
+    .mode-strip {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tabs {
+      padding: 0 4px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .card > .tabs:first-child {
+      margin: -20px -20px 14px;
+      padding: 0 16px;
+    }
+
+    .panel > .langs {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      margin-bottom: 0;
+      flex-wrap: nowrap;
+      gap: 4px;
+    }
+
+    .tab {
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      color: var(--muted);
+      min-height: unset;
+    }
+
+    .tab.active {
+      font-weight: 700;
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: transparent;
+    }
+
+    .lang {
+      padding: 7px 12px;
+      font-size: 12px;
+    }
+
+    .lang.active {
+      font-weight: 800;
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .panel,
+    .lpanel,
+    .sp {
+      display: none;
+    }
+
+    .panel.active,
+    .lpanel.active,
+    .sp.active,
+    .thumb-pane.active,
+    .marketing-pane.active {
+      display: block;
+    }
+
+    .doc {
+      padding: 14px;
+    }
+
+    .doc-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .doc-actions,
+    .doc-switch {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .doc-surface {
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: var(--panel-soft);
+      overflow: hidden;
+    }
+
+    .doc-code,
+    .doc-preview {
+      display: none;
+      padding: 14px;
+    }
+
+    .doc-surface[data-view="code"] .doc-code,
+    .doc-surface[data-view="preview"] .doc-preview {
+      display: block;
+    }
+
+    .doc pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.74;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .doc-preview,
+    .md-preview {
+      color: var(--ink);
+      line-height: 1.72;
+      font-size: 15px;
+    }
+
+    .doc-preview h1,
+    .doc-preview h2,
+    .doc-preview h3,
+    .doc-preview h4,
+    .doc-preview p,
+    .doc-preview ul,
+    .doc-preview ol,
+    .doc-preview pre,
+    .doc-preview blockquote,
+    .doc-preview hr,
+    .md-preview h1,
+    .md-preview h2,
+    .md-preview h3,
+    .md-preview h4,
+    .md-preview p,
+    .md-preview ul,
+    .md-preview ol,
+    .md-preview pre,
+    .md-preview blockquote,
+    .md-preview hr {
+      margin: 0 0 16px;
+    }
+
+    .doc-preview h1,
+    .doc-preview h2,
+    .doc-preview h3,
+    .doc-preview h4,
+    .md-preview h1,
+    .md-preview h2,
+    .md-preview h3,
+    .md-preview h4 {
+      font-family: "Montserrat", "Inter", sans-serif;
+      letter-spacing: -0.03em;
+      line-height: 1.16;
+    }
+
+    .doc-preview h1,
+    .md-preview h1 { font-size: 1.6rem; }
+    .doc-preview h2,
+    .md-preview h2 { font-size: 1.35rem; }
+    .doc-preview h3,
+    .md-preview h3 { font-size: 1.15rem; }
+    .doc-preview h4,
+    .md-preview h4 { font-size: 1rem; }
+
+    .doc-preview p,
+    .md-preview p {
+      color: var(--ink);
+    }
+
+    .doc-preview ul,
+    .doc-preview ol,
+    .md-preview ul,
+    .md-preview ol {
+      padding-left: 1.35rem;
+    }
+
+    .doc-preview li + li,
+    .md-preview li + li {
+      margin-top: 0.35rem;
+    }
+
+    .doc-preview strong,
+    .md-preview strong {
+      font-weight: 700;
+    }
+
+    .doc-preview em,
+    .md-preview em {
+      font-style: italic;
+    }
+
+    .doc-preview pre,
+    .md-preview pre {
+      padding: 14px 16px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.045);
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .doc-preview blockquote,
+    .md-preview blockquote {
+      padding: 10px 14px 10px 16px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--r-sm) var(--r-sm) 0;
+      background: linear-gradient(90deg, rgba(196, 82, 42, 0.08), rgba(196, 82, 42, 0.02));
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .doc-preview hr,
+    .md-preview hr {
+      height: 1px;
+      margin: 24px 0;
+      border: 0;
+      background: linear-gradient(90deg, transparent, rgba(78, 57, 32, 0.22), transparent);
+    }
+
+    .doc-preview a,
+    .md-preview a {
+      color: var(--accent-strong);
+      text-decoration: underline;
+      text-decoration-color: rgba(196, 82, 42, 0.34);
+      text-underline-offset: 2px;
+    }
+
+    .doc-preview code,
+    .md-preview code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.88em;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+    }
+
+    .icon-btn {
+      width: 38px;
+      min-width: 38px;
+      height: 38px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-copy {
+      position: relative;
+      width: 16px;
+      height: 16px;
+    }
+
+    .icon-copy::before,
+    .icon-copy::after {
+      content: "";
+      position: absolute;
+      border: 1.5px solid currentColor;
+      border-radius: 3px;
+      background: transparent;
+    }
+
+    .icon-copy::before {
+      width: 10px;
+      height: 10px;
+      top: 4px;
+      left: 4px;
+    }
+
+    .icon-copy::after {
+      width: 10px;
+      height: 10px;
+      top: 1px;
+      left: 1px;
+      background: var(--panel-strong);
+    }
+
+    .soc {
+      overflow: visible;
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .social-grid {
+      display: grid;
+      gap: 12px;
+      overflow: visible;
+    }
+
+    .social-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(196, 82, 42, 0.04);
+      flex-wrap: wrap;
+    }
+
+    .social-kicker {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .social-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .social-menu {
+      position: relative;
+    }
+
+    .social-menu summary {
+      list-style: none;
+    }
+
+    .social-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .social-menu[open] summary {
+      border-color: rgba(196, 82, 42, 0.3);
+      background: rgba(196, 82, 42, 0.09);
+    }
+
+    .social-menu-list {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      min-width: 172px;
+      display: grid;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+      box-shadow: var(--shadow);
+      z-index: 6;
+    }
+
+    .social-menu-list .btn,
+    .social-menu-list .ghost {
+      width: 100%;
+      text-align: left;
+      justify-content: flex-start;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .soc-shell { display: grid; gap: 0; }
+
+    .soc-tab-bar {
+      display: flex;
+      gap: 6px;
+      padding: 14px 20px 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .soc-tab {
+      padding: 5px 12px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font: 600 11px/1 "Inter", sans-serif;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: 0.15s ease;
+    }
+
+    .soc-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(196, 82, 42, 0.25);
+    }
+
+    .soc-panel { display: none; }
+    .soc-panel.active { display: block; }
+
+    .social-text {
+      width: 100%;
+      min-height: 140px;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      resize: vertical;
+      background: var(--panel-soft);
+      color: var(--ink);
+      padding: 14px;
+      font: inherit;
+      line-height: 1.6;
+      transition: border-color 0.15s;
+    }
+
+    .social-text:focus {
+      border-color: rgba(196, 82, 42, 0.35);
+      box-shadow: 0 0 0 3px rgba(196, 82, 42, 0.1);
+      outline: none;
+    }
+
+    .soc-footer {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .soc-schedule-picker {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-top: 1px solid var(--line);
+      background: var(--panel-soft);
+      flex-wrap: wrap;
+    }
+    .soc-schedule-picker.open { display: flex; }
+    .soc-schedule-picker input[type="datetime-local"] {
+      padding: 7px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--r-sm);
+      background: var(--panel-strong);
+      color: var(--ink);
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .soc-schedule-picker label { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+
+    #mk-pane-scheduled .card .card-head { padding-left: 20px; padding-right: 20px; }
+
+    /* Instagram image section inside schedule picker */
+    .sched-img-section { display: none; width: 100%; flex-basis: 100%; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); margin-top: 2px; }
+    .sched-img-section.show { display: flex; }
+    .sched-img-row { display: flex; gap: 6px; align-items: flex-start; }
+    .sched-img-prompt { flex: 1; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--panel-strong); color: var(--ink); font-size: 12px; font-family: inherit; resize: vertical; min-height: 56px; line-height: 1.5; }
+    .sched-img-preview { width: 100%; border-radius: var(--r-sm); overflow: hidden; display: none; }
+    .sched-img-preview.show { display: block; }
+    .sched-img-preview img { width: 100%; max-height: 220px; object-fit: cover; display: block; border-radius: var(--r-sm); }
+    .sched-img-url { width: 100%; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--panel-strong); color: var(--ink); font-size: 12px; font-family: inherit; }
+    .sched-img-note { font-size: 10px; color: var(--muted); line-height: 1.4; }
+
+    .sched-platform-sel {
+      padding: 7px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--r-sm);
+      background: var(--panel-strong);
+      color: var(--ink);
+      font-size: 12px;
+      font-family: inherit;
+      min-width: 140px;
+    }
+    .sched-tz-sel {
+      padding: 7px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--r-sm);
+      background: var(--panel-strong);
+      color: var(--ink);
+      font-size: 12px;
+      font-family: inherit;
+      min-width: 160px;
+    }
+
+    /* Scheduled posts queue */
+    .sched-item { padding: 14px 18px; border-bottom: 1px solid var(--line); }
+    .sched-item:last-child { border-bottom: 0; }
+    .sched-item-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .sched-item-text { font-size: 12px; color: var(--muted); line-height: 1.6; max-height: 66px; overflow: hidden; position: relative; margin-top: 6px; }
+    .sched-item-text::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 28px; background: linear-gradient(transparent, var(--panel)); pointer-events: none; }
+    .sched-item-text p { margin: 0; }
+    .sched-item-text p + p { margin-top: 5px; }
+    .sched-item-text strong { color: var(--text); font-weight: 600; }
+    .sched-item-text em { font-style: italic; }
+    .sched-signal-btn { background: none; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 3px 8px; font-size: 13px; cursor: pointer; opacity: 0.5; transition: opacity 0.15s, border-color 0.15s; }
+    .sched-signal-btn:hover { opacity: 1; }
+    .sched-signal-btn.active-pos { opacity: 1; border-color: var(--ok); }
+    .sched-signal-btn.active-neg { opacity: 1; border-color: var(--danger); }
+    .sched-item-expand { display: flex; align-items: center; justify-content: center; width: 100%; background: none; border: none; padding: 4px 0 0; cursor: pointer; color: var(--muted); opacity: 0.6; transition: opacity 0.15s; }
+    .sched-item-expand:hover { opacity: 1; }
+    .sched-item-expand svg { transition: transform 0.2s ease; }
+    .sched-item.expanded .sched-item-expand svg { transform: rotate(180deg); }
+    .sched-item.expanded .sched-item-text { max-height: none; }
+    .sched-item.expanded .sched-item-text::after { display: none; }
+    .sched-status { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 7px; border-radius: var(--r-sm); }
+    .sched-status.pending  { background: var(--accent-soft); color: var(--accent); }
+    .sched-status.published { background: rgba(28,124,82,0.1); color: var(--ok); }
+    .sched-status.failed   { background: rgba(200,50,50,0.1); color: var(--danger); }
+    .sched-status.cancelled { background: var(--panel-soft); color: var(--muted); }
+
+    .char-count {
+      font-size: 10px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+    .char-count.near-limit { color: var(--accent); }
+    .char-count.over-limit { color: var(--danger); font-weight: 700; }
+
+    .campaign-banner {
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .stat-card {
+      padding: 18px;
+      min-height: 138px;
+      display: grid;
+      align-content: start;
+      gap: 6px;
+    }
+
+    .stat-card strong,
+    .metric-value {
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 800;
+      font-family: "Montserrat", "Inter", sans-serif;
+    }
+
+    /* Audience card */
+    .audience-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 14px; }
+    .audience-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+    .aud-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+    .aud-bar-label { width: 68px; flex-shrink: 0; color: var(--muted); }
+    .aud-bar-track { flex: 1; height: 6px; background: var(--panel-soft); border-radius: 3px; overflow: hidden; }
+    .aud-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.4s; }
+    .aud-bar-count { width: 32px; text-align: right; flex-shrink: 0; font-weight: 600; color: var(--fg); }
+    .aud-country-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+    .aud-country-row:last-child { border-bottom: none; }
+    .aud-country-flag { font-size: 16px; flex-shrink: 0; width: 22px; }
+    .aud-country-name { flex: 1; color: var(--fg); }
+    .aud-country-count { font-weight: 700; color: var(--fg); }
+    .aud-growth-bars { display: flex; align-items: flex-end; gap: 3px; height: 48px; margin-top: 8px; }
+    .aud-growth-bar { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; min-height: 2px; opacity: 0.75; transition: opacity 0.1s; }
+    .aud-growth-bar:hover { opacity: 1; }
+    .aud-tier-row { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+    .aud-tier { text-align: center; }
+    .aud-tier-val { font-size: 20px; font-weight: 800; font-family: "Montserrat", sans-serif; line-height: 1; }
+    .aud-tier-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+    @media (max-width: 1220px) { .audience-grid { grid-template-columns: 1fr; } }
+
+    /* Audience browser page */
+    .aud-browser-shell { display: grid; grid-template-columns: minmax(260px, 0.38fr) minmax(0, 0.62fr); gap: 16px; align-items: start; }
+    .aud-list-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .aud-filter-pill { padding: 4px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 11px/1 "Inter",sans-serif; cursor: pointer; transition: .12s; }
+    .aud-filter-pill.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+    .aud-sub-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .1s; }
+    .aud-sub-item:hover { background: var(--panel-soft); }
+    .aud-sub-item.active { background: var(--accent-soft); border-left: 3px solid var(--accent); padding-left: 11px; }
+    .aud-sub-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--panel-soft); flex-shrink: 0; object-fit: cover; }
+    .aud-sub-avatar-ph { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font: 700 13px "Inter",sans-serif; color: var(--accent); }
+    .aud-sub-info { flex: 1; min-width: 0; }
+    .aud-sub-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .aud-sub-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .aud-sub-rating { flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: var(--panel-soft); color: var(--muted); }
+    .aud-sub-rating.r5,.aud-sub-rating.r4 { background: var(--ok-soft,#d4f0dc); color: var(--ok,#1a7a3c); }
+    .aud-sub-rating.r3 { background: var(--accent-soft); color: var(--accent); }
+    .aud-detail-header { display: flex; align-items: center; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+    .aud-detail-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); object-fit: cover; }
+    .aud-detail-name { font-size: 18px; font-weight: 700; }
+    .aud-detail-email { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .aud-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .aud-detail-stat { background: var(--panel-soft); border-radius: var(--r-sm); padding: 10px 12px; }
+    .aud-detail-stat-val { font-size: 20px; font-weight: 800; font-family: "Montserrat",sans-serif; line-height: 1; }
+    .aud-detail-stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 3px; }
+
+    /* Audience insights */
+    .ins-funnel { display: flex; align-items: center; gap: 0; margin: 16px 0; }
+    .ins-funnel-step { flex: 1; text-align: center; padding: 14px 8px; background: var(--panel-soft); border-radius: 0; position: relative; }
+    .ins-funnel-step:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+    .ins-funnel-step:last-child { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+    .ins-funnel-step + .ins-funnel-step::before { content: "→"; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--muted); z-index: 1; }
+    .ins-funnel-val { font-size: 22px; font-weight: 800; font-family: "Montserrat",sans-serif; line-height: 1; }
+    .ins-funnel-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+    .ins-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .ins-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 10px; }
+    .ins-icp-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .ins-icp-pill { padding: 6px 12px; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--accent); font: 700 13px "Inter",sans-serif; }
+    .ins-bucket-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 12px; }
+    .ins-bucket-lbl { width: 64px; flex-shrink: 0; color: var(--muted); }
+    .ins-bucket-track { flex: 1; height: 8px; background: var(--panel-soft); border-radius: 4px; overflow: hidden; }
+    .ins-bucket-fill { height: 100%; border-radius: 4px; background: var(--accent); opacity: 0.8; }
+    .ins-bucket-count { width: 28px; text-align: right; font-weight: 600; }
+    .ins-rec-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .ins-rec-tab { padding: 5px 14px; border-radius: var(--r-sm); border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 12px "Inter",sans-serif; cursor: pointer; transition: .12s; }
+    .ins-rec-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .ins-rec-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    @media (max-width: 1100px) { .ins-rec-cards { grid-template-columns: 1fr 1fr; } }
+    .ins-rec-card { background: var(--panel-soft); border-radius: var(--r-sm); padding: 14px; border-left: 3px solid var(--accent); }
+    .ins-rec-card.retain { border-left-color: var(--ok, #2a8a4a); }
+    .ins-rec-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .ins-rec-action { font-size: 12px; line-height: 1.5; color: var(--fg); margin-bottom: 6px; }
+    .ins-rec-why { font-size: 11px; color: var(--muted); font-style: italic; }
+    .ins-cohort-bars { display: flex; align-items: flex-end; gap: 4px; height: 56px; margin-top: 8px; }
+    .ins-cohort-bar { flex: 1; border-radius: 3px 3px 0 0; min-height: 4px; position: relative; cursor: default; }
+    .ins-at-risk { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--panel-soft); border-radius: var(--r-sm); border-left: 3px solid #e08030; }
+    .ins-at-risk-num { font-size: 28px; font-weight: 800; font-family: "Montserrat",sans-serif; color: #e08030; line-height: 1; }
+    .ins-coverage { font-size: 11px; color: var(--muted); margin-top: 6px; text-align: center; }
+
+    .metric-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .meter {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(120, 100, 75, 0.18);
+    }
+
+    .meter span {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+      transition: width 0.24s ease;
+    }
+
+    .op-panel {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .cost-line {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .platform-card {
+      padding: 14px;
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .queue-item {
+      display: grid;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .queue-item .queue-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .md-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .md-setting {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border-radius: var(--r-lg);
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08)),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .md-preview {
+      padding: 18px;
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.42);
+      min-height: 120px;
+    }
+
+    .md-setting textarea {
+      min-height: 190px;
+      background: var(--bg-alt);
+      border-color: var(--line);
+      font-size: 13px;
+      line-height: 1.7;
+      resize: vertical;
+    }
+
+    .md-mode {
+      background: rgba(255, 255, 255, 0.34);
+    }
+
+    .md-setting .between {
+      align-items: center;
+      margin-bottom: 4px !important;
+    }
+
+    .md-setting label {
+      font-family: "Montserrat", "Inter", sans-serif;
+      letter-spacing: -0.01em;
+      font-size: 13px;
+      color: var(--ink);
+      text-transform: none;
+    }
+
+    .marketing-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .marketing-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 20px;
+      padding: 0 4px;
+    }
+
+    .marketing-tabs .tab {
+      flex: unset;
+      text-align: center;
+    }
+
+    .marketing-tabs .tab.active {
+      font-weight: 700;
+    }
+
+    .marketing-pane {
+      display: none;
+    }
+
+    .marketing-current-shell,
+    .marketing-studio-shell,
+    .marketing-library-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .marketing-current-card,
+    .marketing-studio-setup,
+    .marketing-library-header {
+      border-radius: var(--r-lg);
+      background:
+        radial-gradient(circle at top right, rgba(196, 82, 42, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.06)),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .marketing-current-header {
+      display: grid;
+      gap: 14px;
+    }
+
+    .marketing-current-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .marketing-current-meta {
+      display: grid;
+      gap: 6px;
+    }
+
+    .marketing-studio-setup {
+      padding: 24px;
+    }
+
+    .marketing-studio-grid {
+      display: grid;
+      grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.15fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .marketing-studio-setup .dropzone {
+      min-height: 122px;
+      height: 100%;
+      display: grid;
+      align-content: center;
+    }
+
+    .marketing-studio-setup input[type="text"],
+    .marketing-studio-setup select {
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .marketing-studio-setup textarea {
+      min-height: 220px;
+      background: rgba(255, 255, 255, 0.34);
+    }
+
+    .marketing-studio-actions {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .marketing-studio-actions .pri,
+    .marketing-studio-actions .btn {
+      width: 100%;
+      min-height: 42px;
+      padding-top: 11px;
+      padding-bottom: 11px;
+    }
+
+    .marketing-studio-output {
+      border-radius: var(--r-lg);
+    }
+
+    .marketing-library-header {
+      padding: 16px;
+    }
+
+    .marketing-library-search {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+      margin-top: 14px;
+    }
+
+    .marketing-library-search .field {
+      margin: 0;
+    }
+
+    .marketing-library-search input[type="text"] {
+      padding: 13px 14px;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .marketing-library-meta {
+      display: grid;
+      gap: 4px;
+      justify-items: end;
+      text-align: right;
+      min-width: 150px;
+    }
+
+    .marketing-library-workspace {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.2fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .marketing-library-results,
+    .marketing-library-preview {
+      padding: 16px;
+      border-radius: var(--r-lg);
+    }
+
+    .marketing-library-preview {
+      position: sticky;
+      top: 20px;
+      min-height: 380px;
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
+    }
+
+    .mk-reading-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 14px;
+    }
+
+    .mk-reading-title {
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .mk-reading-url {
+      font-size: 11px;
+      word-break: break-all;
+    }
+
+    .mk-reading-sub {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0;
+      margin-top: 3px;
+      word-break: break-all;
+    }
+
+    .mk-asset-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .mk-asset-pill {
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.42);
+      cursor: pointer;
+      transition: 0.15s ease;
+      color: var(--ink);
+    }
+
+    .mk-asset-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .mk-asset-pill:hover:not(.active) {
+      border-color: var(--line-strong);
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .mk-platform-section {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .mk-platform-section:last-child { border-bottom: 0; }
+
+    .mk-platform-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .mk-platform-name {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .mk-platform-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mk-platform-actions .btn {
+      font-size: 12px;
+      padding: 6px 12px;
+      min-height: 30px;
+    }
+
+    .mk-platform-text {
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--ink);
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 2px 0 4px;
+      user-select: text;
+    }
+
+    .mk-carousel-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mk-nav-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.12s ease;
+      color: var(--ink);
+    }
+
+    .mk-nav-btn:hover { border-color: var(--line-strong); background: rgba(255,255,255,0.6); }
+    .mk-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .mk-carousel-counter {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .marketing-run-list {
+      display: grid;
+      gap: 12px;
+      max-height: 640px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .marketing-run {
+      cursor: pointer;
+      transition: 0.18s ease;
+      padding: 15px 16px;
+      border-radius: var(--r);
+      border: 1px solid transparent;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08)),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+      text-align: left;
+      color: var(--ink);
+    }
+
+    .marketing-run:hover {
+      border-color: var(--line-strong);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(54, 32, 12, 0.06);
+    }
+
+    .marketing-run.active {
+      border-color: var(--accent);
+      box-shadow: inset 3px 0 0 var(--accent);
+      background: linear-gradient(180deg, var(--accent-soft), transparent),
+                  linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .marketing-run-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .marketing-run-title {
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .marketing-run-sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .marketing-run-url {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .marketing-preview-card {
+      display: grid;
+      gap: 16px;
+    }
+
+    .marketing-preview-meta {
+      display: grid;
+      gap: 8px;
+    }
+
+    .marketing-preview-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    #mk-generator-card,
+    #mk-standalone-out {
+      scroll-margin-top: 20px;
+    }
+
+    .companion-shell {
+      display: grid;
+      grid-template-columns: minmax(300px, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .companion-setup {
+      border-radius: var(--r-lg);
+    }
+
+    .companion-progress {
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 14px;
+    }
+
+    .companion-progress .meter {
+      margin-top: 8px;
+    }
+
+    .companion-output {
+      border-radius: var(--r-lg);
+    }
+
+    .thumb img {
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+    }
+
+    .thumb {
+      cursor: pointer;
+      transition: 0.18s ease;
+      padding: 15px 16px;
+      border-radius: var(--r);
+      border: 1px solid transparent;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08)),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+      text-align: left;
+      color: var(--ink);
+    }
+
+    .thumb:hover {
+      border-color: var(--line-strong);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(54, 32, 12, 0.06);
+    }
+
+    .thumb.active {
+      border-color: rgba(196, 82, 42, 0.34);
+      box-shadow: inset 0 0 0 1px rgba(196, 82, 42, 0.18);
+    }
+
+    .thumb-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .thumb-library {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.75fr) minmax(0, 1.25fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .thumb-list {
+      display: grid;
+      gap: 12px;
+      max-height: 640px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .thumb-detail {
+      min-height: 420px;
+      position: sticky;
+      top: 20px;
+      border-radius: var(--r-lg);
+      background:
+        radial-gradient(circle at top right, rgba(196, 82, 42, 0.08), transparent 30%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.06)),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .thumb-detail-card {
+      display: grid;
+      gap: 16px;
+      padding: 18px;
+      border-radius: var(--r-lg);
+      border: 1px solid transparent;
+      background: transparent;
+    }
+
+    .thumb-detail-card img {
+      width: 100%;
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+    }
+
+    .thumb-pane { display: none; }
+
+    .library-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .library-header {
+      padding: 16px;
+      border-radius: var(--r-lg);
+      background:
+        radial-gradient(circle at top right, rgba(196, 82, 42, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.06)),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .library-search {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+      margin-top: 14px;
+    }
+
+    .library-search .field {
+      margin: 0;
+    }
+
+    .library-search input[type="text"] {
+      padding: 13px 14px;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .library-meta {
+      display: grid;
+      gap: 4px;
+      justify-items: end;
+      text-align: right;
+      min-width: 150px;
+    }
+
+    .library-workspace {
+      display: grid;
+      gap: 16px;
+    }
+
+    .library-results,
+    .library-preview {
+      padding: 16px;
+      border-radius: var(--r-lg);
+    }
+
+    .toolbar-split {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .library-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .thumb-meta {
+      display: grid;
+      gap: 6px;
+    }
+
+    .thumb-title {
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .thumb-sub {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .thumb-url {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .thumb-detail-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .thumb-detail-meta {
+      display: grid;
+      gap: 8px;
+    }
+
+    .thumb-detail-url {
+      color: var(--muted);
+      word-break: break-word;
+    }
+
+    .thumb-detail-stamp {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .queue-wrap {
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .queue-list {
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .thumb-tabs {
+      margin-bottom: 12px;
+    }
+
+    .studio-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .studio-setup {
+      padding: 12px 14px 14px;
+      border-radius: var(--r-lg);
+      background:
+        radial-gradient(circle at top right, rgba(196, 82, 42, 0.08), transparent 26%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.06));
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.3fr) auto;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .setup-actions {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      min-width: 170px;
+    }
+
+    .studio-setup .dropzone {
+      min-height: 122px;
+      height: 100%;
+      display: grid;
+      align-content: center;
+    }
+
+    .studio-setup .meta-grid {
+      gap: 10px;
+    }
+
+    .studio-setup input[type="text"] {
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .studio-setup textarea {
+      min-height: 128px;
+      background: rgba(255, 255, 255, 0.34);
+    }
+
+    .status-strip {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(196, 82, 42, 0.18);
+      background:
+        linear-gradient(90deg, rgba(196, 82, 42, 0.08), transparent 34%),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+      box-shadow: 0 10px 22px rgba(54, 32, 12, 0.06);
+    }
+
+    .setup-actions .pri,
+    .setup-actions .btn {
+      width: 100%;
+      min-height: 42px;
+      padding-top: 11px;
+      padding-bottom: 11px;
+    }
+
+    .status-strip .meter {
+      margin-top: 7px;
+      height: 10px;
+    }
+
+    .status-cost {
+      text-align: right;
+    }
+
+    .studio-board {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.7fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .concept-board {
+      padding: 16px;
+      border-radius: var(--r-lg);
+    }
+
+    .concept-board-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .concept {
+      cursor: pointer;
+      transition: 0.18s ease;
+      padding: 0;
+      border-radius: var(--r-lg);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .concept:hover {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+      box-shadow: 0 12px 24px rgba(54, 32, 12, 0.06);
+    }
+
+    .concept.active {
+      border-color: rgba(196, 82, 42, 0.34);
+      box-shadow: inset 0 0 0 1px rgba(196, 82, 42, 0.18);
+    }
+
+    .concept-card-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .concept-inspector {
+      position: sticky;
+      top: 20px;
+      padding: 16px;
+      border-radius: var(--r-lg);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.06)),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .inspector-media {
+      min-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(196, 82, 42, 0.06), transparent), var(--panel-soft);
+      overflow: hidden;
+    }
+
+    .inspector-media img {
+      width: 100%;
+    }
+
+    .inspector-copy {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .inspector-block {
+      padding: 12px;
+      border-radius: var(--r);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.32);
+    }
+
+    .inspector-block pre {
+      margin: 8px 0 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12px;
+      line-height: 1.6;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .status-strip strong {
+      display: block;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+    }
+
+    .status-strip .cost-line {
+      white-space: nowrap;
+    }
+
+    .concept-body {
+      padding: 12px 13px 14px;
+    }
+
+    .concept-body .tag {
+      background: rgba(196, 82, 42, 0.08);
+    }
+
+    .concept-media {
+      min-height: 150px;
+    }
+
+    .concept-board .card-head,
+    .concept-inspector .card-head {
+      margin-bottom: 12px;
+    }
+
+    .concept-media {
+      min-height: 136px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(196, 82, 42, 0.06), transparent), var(--panel-soft);
+    }
+
+    .concept-body {
+      padding: 14px;
+    }
+
+    .hide { display: none !important; }
+
+    /* Run meta bar */
+    .run-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: var(--panel);
+      margin-bottom: 14px;
+    }
+
+    .run-meta-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 500px;
+    }
+
+    .run-meta-sub {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 3px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .run-meta-sep { opacity: 0.35; }
+
+    /* Results 2-column */
+    .results-shell {
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    /* Stages sidebar */
+    .results-stages-card {
+      padding: 0;
+      position: sticky;
+      top: 20px;
+    }
+
+    .results-stages-head {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      padding: 12px 14px 9px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .result-stage {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 8px;
+      align-items: start;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--line);
+      width: 100%;
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      text-align: left;
+      cursor: default;
+      transition: background 0.12s;
+      color: var(--ink);
+    }
+    .result-stage.done, .result-stage.skipped { cursor: pointer; }
+    .result-stage.done:hover, .result-stage.skipped:hover { background: var(--accent-soft); }
+    .result-stage.done:active, .result-stage.skipped:active { background: var(--panel-strong); }
+
+    .result-stage:last-child { border-bottom: 0; }
+
+    .result-stage-num {
+      font: 700 9px/18px "Montserrat", sans-serif;
+      color: var(--muted);
+      opacity: 0.45;
+    }
+
+    .result-stage-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .result-stage-badge {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .result-stage.done .result-stage-num { opacity: 1; color: var(--ok); }
+    .result-stage.done .result-stage-badge { color: var(--ok); }
+    .result-stage.running .result-stage-num { opacity: 1; color: var(--accent); }
+    .result-stage.running .result-stage-badge { color: var(--accent); }
+    .result-stage.error .result-stage-badge { color: var(--danger); }
+
+    /* Results right column */
+    .results-content { display: flex; flex-direction: column; gap: 14px; }
+
+    @media (max-width: 1220px) {
+      .app { grid-template-columns: 100px minmax(0, 1fr); }
+      .brand-copy, .nav-text span, .nav-text strong, .nav-text small, .nav-label { display: none; }
+      .brand { padding: 12px; text-align: center; }
+      .brand-title { font-size: 18px; }
+      .nav { justify-content: center; padding: 12px; }
+      .nav-icon { width: 34px; height: 34px; }
+      .sidebar-footer .btn { font-size: 10px; padding: 8px 4px; }
+      .grid.two, .grid.three, .grid.four, .task-grid, .stats-grid, .hero-grid, .concepts, .layout-primary, .platform-grid, .thumb-library, .studio-board, .setup-grid, .concept-board-grid, .status-strip, .library-search, .pipeline-meta, .pipeline-shell, .companion-shell, .marketing-studio-grid, .marketing-library-search, .marketing-library-workspace {
+        grid-template-columns: 1fr;
+      }
+      .results-shell { grid-template-columns: 1fr; }
+      .results-stages-card { position: static; }
+    }
+
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: static;
+        height: auto;
+        padding-bottom: 12px;
+      }
+      .main { padding: 18px; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar-right { justify-content: space-between; }
+      .meta-grid, .meta-grid.three { grid-template-columns: 1fr; }
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(196, 82, 42, 0.34); }
+      70% { box-shadow: 0 0 0 9px rgba(196, 82, 42, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(196, 82, 42, 0); }
+    }
+
+    /* === SUBSTACK NOTES === */
+    .btn.ok {
+      background: rgba(28, 124, 82, 0.1);
+      border-color: rgba(28, 124, 82, 0.3);
+      color: var(--ok);
+    }
+
+    .sn-shell {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1.45fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .sn-batch-list-card { padding: 0; }
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .skeleton-row {
+      height: 44px;
+      margin: 0;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      background: linear-gradient(90deg, var(--panel-soft) 25%, var(--panel-strong) 50%, var(--panel-soft) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    .skeleton-row:last-child { border-bottom: none; }
+    .sn-batch-list-card .card-head,
+    .sn-shell > .card > .card-head { padding-left: 20px; padding-right: 20px; }
+
+    .sn-note-list { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+    .sn-note {
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: var(--panel-strong);
+      overflow: hidden;
+      transition: border-color 0.12s;
+    }
+    .sn-note.shared { border-color: var(--ok); }
+    .sn-note.signal-positive { border-left: 3px solid var(--ok); }
+    .sn-note.signal-negative { border-left: 3px solid var(--danger); }
+    .sn-note-head { display: flex; align-items: flex-start; gap: 10px; padding: 11px 14px; }
+    .sn-note-issue { font-size: 12px; font-weight: 600; flex: 1; }
+    .sn-note-body { padding: 0 14px 11px; font-size: 13px; line-height: 1.75; white-space: pre-wrap; }
+    .sn-note-actions { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--line); background: var(--panel-soft); flex-wrap: wrap; }
+
+    /* Intent badges — extend .tag with semantic colors */
+    .sn-intent { font-size: 9px; padding: 2px 7px; white-space: nowrap; }
+    .sn-intent.cdt    { color: #7c4dff; border-color: rgba(124,77,255,0.3);  background: rgba(124,77,255,0.08); }
+    .sn-intent.metaphor  { color: var(--accent); border-color: var(--accent-soft); background: var(--accent-soft); }
+    .sn-intent.practice  { color: var(--ok);     border-color: rgba(28,124,82,0.25);  background: rgba(28,124,82,0.08); }
+    .sn-intent.education { color: #0277bd;        border-color: rgba(2,119,189,0.25);  background: rgba(2,119,189,0.08); }
+    .sn-intent.alignment { color: var(--warn);    border-color: rgba(197,119,29,0.25); background: rgba(197,119,29,0.08); }
+    .sn-intent.reflection { color: var(--muted); }
+    .sn-intent.model  { color: #5c35a5;           border-color: rgba(92,53,165,0.25);  background: rgba(92,53,165,0.08); }
+
+    .sn-note-edit { display: none; }
+    .sn-note-edit.open { display: block; }
+    .sn-editor { display: grid; grid-template-columns: 1fr 1fr; }
+    .sn-editor-pane { display: flex; flex-direction: column; }
+    .sn-editor-write { border-right: 1px solid var(--line); }
+    .sn-editor-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 5px 14px 4px; background: var(--panel-soft); border-bottom: 1px solid var(--line); }
+    .sn-editor-ta { flex: 1; border: none; outline: none; width: 100%; min-height: 140px; padding: 10px 14px; font-size: 13px; font-family: monospace; line-height: 1.75; background: var(--panel-strong); color: var(--fg); resize: vertical; box-sizing: border-box; }
+    .sn-edit-preview { padding: 10px 14px; font-size: 13px; line-height: 1.75; min-height: 60px; color: var(--fg); }
+    .sn-note-edit-actions { display: flex; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel-soft); }
+    @media (max-width: 900px) { .sn-editor { grid-template-columns: 1fr; } .sn-editor-write { border-right: none; border-bottom: 1px solid var(--line); } }
+
+    /* ── Rich Text Editor (marketing library substack note) ── */
+    .rte-wrap { border: 1px solid var(--line-strong); border-radius: var(--r); overflow: hidden; background: var(--panel-strong); }
+    .rte-toolbar { display: flex; gap: 4px; padding: 6px 10px; border-bottom: 1px solid var(--line); background: var(--panel-soft); flex-wrap: wrap; align-items: center; }
+    .rte-btn { width: 28px; height: 28px; border: 1px solid transparent; border-radius: 6px; background: transparent; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ink); display: flex; align-items: center; justify-content: center; transition: 0.1s; flex-shrink: 0; }
+    .rte-btn:hover { background: var(--panel-strong); border-color: var(--line); }
+    .rte-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .rte-sep { width: 1px; height: 18px; background: var(--line); margin: 0 2px; flex-shrink: 0; }
+    .rte-body { min-height: 140px; max-height: 360px; overflow-y: auto; padding: 12px 14px; font-size: 13px; line-height: 1.75; outline: none; color: var(--fg); word-break: break-word; }
+    .rte-body:focus { box-shadow: inset 0 0 0 2px var(--accent-soft); }
+    .rte-body p { margin: 0 0 10px 0; } .rte-body p:last-child { margin-bottom: 0; }
+    .rte-body ul { padding-left: 20px; margin: 0 0 10px 0; } .rte-body li { margin-bottom: 4px; }
+    .rte-body a { color: var(--accent); text-decoration: underline; }
+
+    .sn-repurpose { border-top: 1px solid var(--line); background: var(--bg-alt); }
+    .sn-repurpose .tabs { margin-bottom: 0; padding: 0 14px; }
+    .sn-rep-body { padding: 12px 14px; font-size: 13px; line-height: 1.75; white-space: pre-wrap; }
+    .sn-rep-actions { display: flex; gap: 6px; padding: 0 14px 10px; }
+
+    @media (max-width: 1220px) {
+      .sn-shell { grid-template-columns: 1fr; }
+    }
+
+    /* === SOCIAL WORKSPACE (Compose tab) === */
+    .sn-workspace {
+      display: grid;
+      grid-template-columns: minmax(200px, 0.35fr) minmax(0, 0.65fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .sn-left { display: flex; flex-direction: column; gap: 10px; }
+    .sn-new-post-btn { width: 100%; }
+    .sn-batch-entry {
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      overflow: hidden;
+      background: var(--panel-strong);
+    }
+    .sn-batch-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .sn-batch-head:hover { background: var(--panel-soft); }
+    .sn-batch-head-title { flex: 1; }
+    .sn-batch-del {
+      opacity: 0.45;
+      font-size: 14px;
+      background: none;
+      border: none;
+      color: var(--fg);
+      cursor: pointer;
+      padding: 0 2px;
+      line-height: 1;
+    }
+    .sn-batch-del:hover { opacity: 1; color: var(--danger); }
+    .sn-batch-notes { display: none; border-top: 1px solid var(--line); }
+    .sn-batch-notes.open { display: block; }
+    .sn-batch-note-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      width: 100%;
+      text-align: left;
+      color: var(--fg);
+    }
+    .sn-batch-note-item:last-of-type { border-bottom: none; }
+    .sn-batch-note-item:hover { background: var(--panel-soft); }
+    .sn-batch-note-item.active { background: var(--accent-soft); }
+    .sn-batch-note-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sn-batch-more {
+      padding: 6px 14px;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+    }
+    .sn-batch-more:hover { color: var(--accent); }
+    .sn-search-input { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel-soft); font-size: 12px; color: var(--fg); }
+    .sn-search-input::placeholder { color: var(--muted); }
+    .sn-search-input:focus { outline: none; border-color: var(--accent); }
+    .sn-filter-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+    .sn-filter-pill { padding: 4px 10px; border-radius: var(--r-sm); border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 11px/1 "Inter", sans-serif; cursor: pointer; transition: 0.12s; }
+    .sn-filter-pill:hover { color: var(--fg); border-color: var(--line-strong); }
+    .sn-filter-pill.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+    .sn-right-panel { min-height: 200px; }
+    .sn-detail-empty { display: flex; align-items: center; justify-content: center; min-height: 200px; }
+    .sn-plat-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .sn-plat-btn {
+      padding: 5px 12px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.12s;
+    }
+    .sn-plat-btn:hover { color: var(--fg); border-color: var(--line-strong); }
+    .sn-plat-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .sn-plat-panel { display: none; padding: 14px 20px; }
+    .sn-plat-panel.active { display: block; }
+    .sn-det-ta {
+      width: 100%;
+      min-height: 160px;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.75;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      color: var(--fg);
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+    }
+    .sn-det-ta:focus { border-color: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent-soft); }
+    .sn-note-actions-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 20px 10px;
+      border-top: 1px solid var(--line);
+      background: var(--panel-soft);
+    }
+    .sn-rep-section { border-top: 1px solid var(--line); padding: 14px 20px; }
+    .sn-rep-section-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px; }
+    .sn-sched-all-panel { display: none; padding: 12px 20px 14px; border-top: 1px solid var(--line); background: var(--panel-soft); }
+    .sn-sched-all-panel.open { display: block; }
+    #mk-pane-scheduled.active { display: flex; flex-direction: column; gap: 14px; }
+    @media (max-width: 1100px) { .sn-workspace { grid-template-columns: 1fr; } }
+
+    /* ── Quotes ───────────────────────────────────────────────── */
+    .quotes-shell {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1.45fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .quotes-shell > .card > .card-head { padding-left: 20px; padding-right: 20px; }
+    .quotes-run-list { padding: 0; }
+
+    .quote-list { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+    .quote-card {
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: var(--panel-strong);
+      overflow: hidden;
+      transition: border-color 0.12s;
+    }
+    .quote-card.shared { border-color: var(--ok); }
+    .quote-card.signal-positive { border-left: 3px solid var(--ok); }
+    .quote-card.signal-negative { border-left: 3px solid var(--danger); }
+    .quote-card-body { padding: 12px 14px; }
+    .quote-card-body blockquote { margin: 0; padding-left: 12px; border-left: 3px solid var(--accent); font-size: 14px; font-style: italic; line-height: 1.7; color: var(--fg); }
+    .quote-card-body .quote-context { font-size: 11px; color: var(--muted); margin-top: 7px; }
+    .quote-card-foot { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--line); background: var(--panel-soft); flex-wrap: wrap; }
+    .quote-type { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 7px; border-radius: var(--r-sm); background: var(--panel-soft); color: var(--muted); border: 1px solid var(--line); }
+
+    .quote-repurpose { border-top: 1px solid var(--line); background: var(--bg-alt); }
+    .quote-repurpose .tabs { margin-bottom: 0; padding: 0 14px; }
+    .quote-rep-body { padding: 12px 14px; font-size: 13px; line-height: 1.75; white-space: pre-wrap; }
+    .quote-rep-actions { display: flex; gap: 6px; padding: 0 14px 10px; }
+    .qt-rep-panel { display: none; } .qt-rep-panel.active { display: block; }
+
+    /* Pipeline results quote panel (compact — no 2-col shell) */
+    #p-quotes .quote-list { padding: 0; gap: 8px; }
+    #p-quotes .quote-card { border-radius: var(--r-sm); }
+
+    @media (max-width: 1220px) {
+      .quotes-shell { grid-template-columns: 1fr; }
+    }
+
+    /* ── Substack Post Composer ────────────────────────────────── */
+    .substack-composer { display: flex; flex-direction: column; gap: 14px; }
+    .sub-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sub-preview-wrap {
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: var(--panel-strong);
+      overflow: hidden;
+    }
+    .sub-preview-head { padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+    .sub-preview-head span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .sub-preview-body {
+      padding: 16px 18px;
+      font-size: 13px;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      max-height: 380px;
+      overflow-y: auto;
+      color: var(--fg);
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+    .sub-preview-body strong { font-weight: 700; }
+    .sub-cta-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .sub-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+    .role-hidden { display: none !important; }
+    .role-disabled {
+      opacity: 0.48;
+      filter: saturate(0.55);
+      cursor: not-allowed !important;
+      position: relative;
+    }
+    .role-disabled::after {
+      content: attr(data-role-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 10px);
+      transform: translateX(-50%) translateY(4px);
+      background: color-mix(in srgb, var(--ink) 92%, black 8%);
+      color: #fff7ef;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.2;
+      padding: 7px 9px;
+      border-radius: 8px;
+      white-space: nowrap;
+      box-shadow: 0 14px 28px rgba(15, 12, 10, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.14s ease, transform 0.14s ease;
+      z-index: 40;
+    }
+    .role-disabled:hover::after,
+    .role-disabled:focus-visible::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    @media (max-width: 760px) {
+      .sub-field-row { grid-template-columns: 1fr; }
+    }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+  <div class="brand">
+    <div class="brand-kicker">Editorial system</div>
+    <div class="brand-title">self<span>disciplined</span></div>
+    <div class="brand-tagline">Your writing, amplified.</div>
+    <div class="brand-copy">Generate the full article package on demand or run each production lane independently.</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Create</div>
+    <button class="nav active" data-mode="pipeline"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h7v5H4zM13 6h7v5h-7zM4 13h7v5H4zM13 13h7v5h-7z"></path></svg></span><span class="nav-text"><strong>Pipeline</strong><small>Reflection to full campaign</small></span></button>
+    <button class="nav" data-mode="companion"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9a3 3 0 0 1 3 3v13l-4-2-4 2-4-2-4 2V7a3 3 0 0 1 3-3z"></path></svg></span><span class="nav-text"><strong>Companion</strong><small>Paid companion only</small></span></button>
+    <button class="nav" data-mode="thumbnail"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM7 14l2.5-3 2.5 3 3.5-5 1.5 2v5H7zm2-5a1.5 1.5 0 1 0 0 .01z"></path></svg></span><span class="nav-text"><strong>Thumbnail</strong><small>Concepts, renders, library</small></span></button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Review</div>
+    <button class="nav" data-mode="marketing"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V6l11 6zm13-9h3v6h-3z"></path></svg></span><span class="nav-text"><strong>Marketing</strong><small>Current run, studio, library</small></span></button>
+    <button class="nav" data-mode="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z"></path></svg></span><span class="nav-text"><strong>Dashboard</strong><small>Coverage, cost, queue</small></span></button>
+    <button class="nav" data-mode="audience"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"></path></svg></span><span class="nav-text"><strong>Audience</strong><small>Subscriber browser</small></span></button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Manage</div>
+    <button class="nav" data-mode="history"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5a7 7 0 1 1-6.3 4H3l3.5-3.5L10 9H7.7A4.99 4.99 0 1 0 12 7zm-1 3h2v5h-2zm0 6h5v2h-5z"></path></svg></span><span class="nav-text"><strong>History</strong><small>Runs and re-open flow</small></span></button>
+    <button class="nav" data-mode="ideas"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6.5 6.5 0 0 0-4 11.6V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.4A6.5 6.5 0 0 0 12 3zm-3 17h6v2H9z"></path></svg></span><span class="nav-text"><strong>Ideas</strong><small>Research and article prompts</small></span></button>
+    <button class="nav" data-mode="settings"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5A3.5 3.5 0 1 1 8.5 12 3.5 3.5 0 0 1 12 8.5zm8 3-1.7-.5a6.8 6.8 0 0 0-.6-1.4l.9-1.5-1.8-1.8-1.5.9a6.8 6.8 0 0 0-1.4-.6L12.5 4h-1l-.5 1.7a6.8 6.8 0 0 0-1.4.6l-1.5-.9-1.8 1.8.9 1.5a6.8 6.8 0 0 0-.6 1.4L4 11.5v1l1.7.5a6.8 6.8 0 0 0 .6 1.4l-.9 1.5 1.8 1.8 1.5-.9a6.8 6.8 0 0 0 1.4.6l.5 1.7h1l.5-1.7a6.8 6.8 0 0 0 1.4-.6l1.5.9 1.8-1.8-.9-1.5a6.8 6.8 0 0 0 .6-1.4l1.7-.5z"></path></svg></span><span class="nav-text"><strong>Settings</strong><small>Template, prompts, index</small></span></button>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="btn" id="theme-btn">
+      <svg id="theme-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"></path></svg>
+      <span id="theme-label">Dark mode</span>
+    </button>
+  </div>
+</aside>
+
+  <main class="main">
+    <div class="wrap">
+      <div class="toolbar">
+  <div class="status-pill" id="run-chip">
+    <span class="pulse"></span>
+    <span id="run-chip-text">Pipeline running</span>
+    <button class="btn" id="open-run">Open run</button>
+  </div>
+  <div class="toolbar-right">
+    <div class="btn hide" id="cost-badge"></div>
+    <div class="auth-inline hide" id="auth-toolbar">
+      <div class="auth-chip">
+        <span id="auth-user-label">Not signed in</span>
+        <span class="auth-role" id="auth-user-role">guest</span>
+      </div>
+      <button class="btn" id="logout-btn">Log out</button>
+    </div>
+  </div>
+</div>
+      <section class="page active" id="page-pipeline">
+  <div class="page-header">
+    <div class="hero-card">
+      <div class="rail-kicker">Full package orchestration</div>
+      <div class="hero-title">Run the whole article operation with the dependency map visible.</div>
+      <div class="hero-copy">Run the full article package from one source file. The UI keeps the pipeline visible, but the tracker stays reduced to one compact progress surface.</div>
+    </div>
+  </div>
+
+  <div class="resume-banner" id="resume">
+    <div class="between">
+      <div>
+        <div class="section-title">Incomplete run detected</div>
+        <div class="section-copy" id="resume-meta"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="resume-btn">Resume pipeline</button>
+        <button class="ghost" id="dismiss-cp">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipeline-shell">
+    <div class="card pipeline-setup">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">New article</div>
+          <div class="section-title">Set the reflection and production options</div>
+        </div>
+        <button class="btn" id="new-run">New run</button>
+        <button class="ghost" id="clear-form">Clear</button>
+      </div>
+
+      <div class="card-section">
+        <div class="eyebrow" style="margin-bottom:10px">Article source</div>
+        <div class="field">
+          <div class="seg">
+            <button id="src-file" class="active">Upload file</button>
+            <button id="src-paste">Paste text</button>
+          </div>
+        </div>
+
+        <div class="field" id="file-pane">
+          <label>Reflection file</label>
+          <div class="dropzone" id="drop">
+            <input type="file" id="reflection-file" accept=".md,.txt,.markdown">
+            <div class="drop-title">Drop the reflection markdown here</div>
+            <div class="muted">Title and slug are extracted from the file automatically.</div>
+            <div class="file-name" id="file-name"></div>
+          </div>
+        </div>
+
+        <div class="field hide" id="paste-pane">
+          <label for="reflection-text">Reflection text</label>
+          <textarea id="reflection-text" placeholder="Paste the full article draft here."></textarea>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="eyebrow" style="margin-bottom:10px">Article details</div>
+        <div class="meta-grid">
+          <div class="field">
+            <label for="article-title">Article title</label>
+            <input type="text" id="article-title">
+          </div>
+          <div class="field">
+            <label for="article-slug">Slug</label>
+            <input type="text" id="article-slug" placeholder="derived-from-file-or-title">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="article-url">Article URL</label>
+          <input type="text" id="article-url" placeholder="https://www.self-disciplined.com/p/...">
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="eyebrow" style="margin-bottom:10px">Run options</div>
+        <div class="toggle-row">
+          <div>
+            <strong>Generate Spanish versions</strong>
+            <div class="muted">Reflection translation, companion translation, and both social lanes in Spanish.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="include-spanish" checked><span class="switch-track"></span></label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <strong>Auto-run thumbnail lane</strong>
+            <div class="muted">Generate concepts and images in parallel with the text pipeline.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="include-thumbnail"><span class="switch-track"></span></label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <strong>Queue social posts</strong>
+            <div class="muted">Send the generated reflection and companion posts into the same publishing queue used in Marketing.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="queue-social"><span class="switch-track"></span></label>
+        </div>
+
+        <div class="field" style="margin-top:12px">
+          <label for="tone">Social tone <span id="tone-label" style="float:right">Balanced</span></label>
+          <input type="range" id="tone" min="0" max="10" value="5">
+        </div>
+      </div>
+
+      <div class="card-section">
+        <button class="pri" id="run-pipe" disabled>Run full pipeline</button>
+        <button class="danger" id="cancel-pipe">Cancel run</button>
+      </div>
+    </div>
+
+    <div class="pipeline-meta">
+      <div class="card pipeline-status">
+        <div class="card-head">
+          <div>
+            <div class="eyebrow">Status</div>
+            <div class="section-title">Pipeline progress</div>
+          </div>
+        </div>
+        <div class="progress-shell">
+          <div class="progress-top">
+            <strong id="pipe-progress-label">Not started</strong>
+            <span class="progress-note" id="pipe-progress-meta">0 of 6 stages complete</span>
+          </div>
+          <div class="progress-bar"><span class="progress-fill" id="pipe-progress-fill"></span></div>
+          <div class="progress-note" id="pipe-progress-note">Waiting for a run.</div>
+          <div class="cost-line" id="pipeline-cost">Pipeline cost will appear here during the run.</div>
+        </div>
+      </div>
+      <div id="progress" class="hide"></div>
+    </div>
+  </div>
+
+  <div id="results" class="hide section">
+    <div class="run-meta-bar">
+      <div class="run-meta-left">
+        <div class="run-meta-title" id="run-meta-title">—</div>
+        <div class="run-meta-sub">
+          <span id="run-meta-time"></span>
+          <span class="run-meta-sep">·</span>
+          <span id="run-meta-cost"></span>
+          <span class="run-meta-sep" id="run-meta-wc-sep">·</span>
+          <span id="run-meta-wc"></span>
+          <span id="run-meta-tags"></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="langs" style="margin:0">
+          <button class="lang active" data-lg="global" data-lang="en">EN</button>
+          <button class="lang" data-lg="global" data-lang="es">ES</button>
+        </div>
+        <button class="btn" data-a="goto-marketing">Review campaign →</button>
+        <button class="btn" id="run-meta-view" disabled>View in history ↗</button>
+      </div>
+    </div>
+
+    <div class="results-shell">
+      <div class="card results-stages-card">
+        <div class="results-stages-head">Stages</div>
+        <div class="results-stage-list" id="results-stage-list"></div>
+      </div>
+
+      <div class="results-content">
+        <div class="card">
+          <div class="tabs">
+            <button class="tab active" data-rt="related">Related articles</button>
+            <button class="tab" data-rt="reflection">Reflection</button>
+            <button class="tab" data-rt="companion">Paid companion</button>
+            <button class="tab" data-rt="quotes">Quotes</button>
+            <button class="tab" data-rt="substack-post">Substack Post</button>
+          </div>
+
+          <div class="panel active" id="p-related">
+            <div id="related-out"><div class="empty">Related articles will appear here.</div></div>
+          </div>
+
+          <div class="panel" id="p-reflection">
+            <div class="lpanel active" id="ref-en"></div>
+            <div class="lpanel" id="ref-es"></div>
+          </div>
+
+          <div class="panel" id="p-companion">
+            <div class="lpanel active" id="comp-en"></div>
+            <div class="lpanel" id="comp-es"></div>
+          </div>
+
+          <div class="panel" id="p-quotes">
+            <div class="quote-list" id="pipe-quotes-out"><div class="empty">Quotes will appear after the pipeline runs.</div></div>
+          </div>
+
+          <div class="panel" id="p-substack-post">
+            <div class="substack-composer">
+              <div class="sub-field-row">
+                <div class="field">
+                  <label for="sub-title">Title</label>
+                  <input type="text" id="sub-title" placeholder="Article title">
+                </div>
+                <div class="field">
+                  <label for="sub-subtitle">Subtitle</label>
+                  <input type="text" id="sub-subtitle" placeholder="One-line framing">
+                </div>
+              </div>
+              <div class="field">
+                <label for="sub-cta-text">Paid companion CTA box <span class="sub-cta-note">(mid-post upgrade prompt)</span></label>
+                <textarea id="sub-cta-text" style="min-height:70px">👉 Want to actually train this? In the paid companion we go deeper — with frameworks, reflection prompts, and a practical exercise you can do today. Join below.</textarea>
+              </div>
+              <div class="sub-field-row">
+                <div class="field">
+                  <label for="sub-companion-tease">Companion tease</label>
+                  <input type="text" id="sub-companion-tease" placeholder="Companion title or topic">
+                </div>
+                <div class="field">
+                  <label for="sub-sign-off">Sign-off</label>
+                  <input type="text" id="sub-sign-off" value="Have a wonderful week!">
+                </div>
+              </div>
+              <div class="field">
+                <label for="sub-footnotes">Footnotes <span class="sub-cta-note">(APA format, optional)</span></label>
+                <textarea id="sub-footnotes" style="min-height:60px" placeholder="1. Author, A. (2024). Title. Journal, 1(1), 1–10."></textarea>
+              </div>
+              <div class="sub-preview-wrap">
+                <div class="sub-preview-head">
+                  <span>Assembled post preview</span>
+                  <button class="btn" id="sub-refresh-preview">Refresh</button>
+                </div>
+                <div class="sub-preview-body" id="sub-preview-body">Fill in the fields above and click Refresh to see the assembled post.</div>
+              </div>
+              <div class="sub-actions">
+                <button class="btn pri" id="sub-copy-md" style="width:auto">Copy Markdown</button>
+                <button class="btn" id="sub-copy-html" style="width:auto">Copy HTML</button>
+                <span class="muted" id="sub-copy-status" style="font-size:12px"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" id="p-marketing">
+            <div class="between">
+              <div>
+                <div class="section-title">Current run campaign assets</div>
+                <div class="section-copy">Reflection and companion socials, both languages, available from the same campaign surface.</div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div class="seg" id="pipe-src">
+                  <button class="active" data-scope="pipe" data-kind="source" data-val="reflection">Reflection</button>
+                  <button data-scope="pipe" data-kind="source" data-val="companion">Companion</button>
+                </div>
+                <div class="seg" id="pipe-lang">
+                  <button class="active" data-scope="pipe" data-kind="lang" data-val="en">EN</button>
+                  <button data-scope="pipe" data-kind="lang" data-val="es">ES</button>
+                </div>
+              </div>
+            </div>
+            <div class="sp active" id="soc-pipe-reflection-en"></div>
+            <div class="sp" id="soc-pipe-reflection-es"></div>
+            <div class="sp" id="soc-pipe-companion-en"></div>
+            <div class="sp" id="soc-pipe-companion-es"></div>
+          </div>
+        </div>
+
+        <div class="card hide section" id="sched-card">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Queue</div>
+              <div class="section-title">Queue outcome</div>
+            </div>
+            <button class="btn" id="sched-open-queue">Open publishing queue</button>
+          </div>
+          <div id="sched-out"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+      <section class="page" id="page-marketing">
+  <div class="page-header">
+    <div class="hero-card">
+      <div class="rail-kicker">Social library</div>
+      <div class="hero-title">All your social posts in one place — from pipeline runs and on-demand repurposing.</div>
+      <div class="hero-copy">The library shows every saved campaign. Select one to read each platform post and act on it. Use the Repurpose tab to generate socials for any article without running the full pipeline.</div>
+    </div>
+  </div>
+
+  <div class="hide" aria-hidden="true">
+    <div id="mk-cur"></div>
+    <div id="soc-mk-reflection-en"></div>
+    <div id="soc-mk-reflection-es"></div>
+    <div id="soc-mk-companion-en"></div>
+    <div id="soc-mk-companion-es"></div>
+  </div>
+
+  <div class="marketing-shell">
+    <div class="tabs marketing-tabs">
+      <button class="tab active" data-mk-tab="library">Campaigns</button>
+      <button class="tab" data-mk-tab="studio">Repurpose</button>
+      <button class="tab" data-mk-tab="notes">Compose</button>
+      <button class="tab" data-mk-tab="quotes">Quotes</button>
+      <button class="tab" data-mk-tab="scheduled">Publishing <span class="tag" id="sched-tab-count">0</span></button>
+    </div>
+
+    <div class="marketing-pane" id="mk-pane-studio">
+      <div class="marketing-studio-shell">
+        <div class="card marketing-studio-setup" id="mk-generator-card">
+          <div class="marketing-studio-grid">
+            <div>
+              <div class="field">
+                <label>Article source</label>
+                <div class="dropzone" id="mk-drop">
+                  <input type="file" id="mk-file" accept=".md,.txt,.markdown">
+                  <div class="drop-title">Upload an article file</div>
+                  <div class="muted">Metadata and body copy will populate automatically.</div>
+                  <div class="file-name" id="mk-file-name"></div>
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label for="mk-gen-text">Article text</label>
+                <textarea id="mk-gen-text" placeholder="Paste or upload the article body."></textarea>
+              </div>
+            </div>
+
+            <div>
+              <div class="meta-grid">
+                <div class="field">
+                  <label for="mk-gen-title">Article title</label>
+                  <input type="text" id="mk-gen-title">
+                </div>
+                <div class="field">
+                  <label for="mk-gen-slug">Slug</label>
+                  <input type="text" id="mk-gen-slug">
+                </div>
+              </div>
+
+              <div class="meta-grid three">
+                <div class="field">
+                  <label for="mk-gen-url">Article URL</label>
+                  <div style="display:flex;gap:6px">
+                    <input type="text" id="mk-gen-url" placeholder="https://...">
+                    <button class="btn" id="mk-fetch-url" style="white-space:nowrap;flex-shrink:0">Fetch</button>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="mk-gen-date">Publish date</label>
+                  <input type="text" id="mk-gen-date" placeholder="March 2025">
+                </div>
+                <div class="field">
+                  <label for="mk-gen-lang">Language</label>
+                  <select id="mk-gen-lang">
+                    <option value="english">English</option>
+                    <option value="Spanish">Spanish</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="mk-gen-angle">Angle note</label>
+                <input type="text" id="mk-gen-angle" placeholder="Fresh angle, audience, or hook for the repurpose lane">
+              </div>
+
+              <div class="marketing-studio-actions" style="margin-top:4px">
+                <button class="pri" id="mk-gen-run">Generate and save campaign</button>
+                <button class="btn" id="mk-open-library">Open library</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-strip">
+          <div>
+            <strong id="mk-gen-status">Ready.</strong>
+            <div class="meter"><span id="mk-gen-fill"></span></div>
+          </div>
+          <div class="status-cost">
+            <div class="cost-line" id="mk-gen-cost">Standalone marketing cost will appear here.</div>
+          </div>
+        </div>
+
+        <div class="card marketing-studio-output">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Studio output</div>
+              <div class="section-title">Fresh socials from the standalone generator</div>
+            </div>
+          </div>
+          <div id="mk-standalone-out"><div class="empty">No standalone campaign yet.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="marketing-pane" id="mk-pane-notes">
+      <div class="sn-workspace">
+        <div class="sn-left">
+          <button class="btn pri sn-new-post-btn" data-a="sn-new-post">+ New post</button>
+          <div>
+            <input type="text" class="sn-search-input" id="sn-search-q" placeholder="Search notes…" autocomplete="off">
+            <div class="sn-filter-pills" style="margin-top:6px">
+              <button class="sn-filter-pill" data-a="sn-filter" data-filter="shared">Shared</button>
+              <button class="sn-filter-pill" data-a="sn-filter" data-filter="repurposed">Cross-posted</button>
+              <button class="sn-filter-pill" data-a="sn-filter" data-filter="signal-pos">👍</button>
+              <button class="sn-filter-pill" data-a="sn-filter" data-filter="signal-neg">👎</button>
+            </div>
+          </div>
+          <div id="sn-batch-rail">
+            <div class="empty" style="padding:16px 0">No batches yet.</div>
+          </div>
+          <button class="btn" id="sn-gen-btn" style="width:100%;margin-top:4px">⚡ Generate 20 notes</button>
+          <span class="muted" style="font-size:11px;text-align:center" id="sn-gen-status"></span>
+        </div>
+
+        <div class="card sn-right-panel" id="sn-right-panel" style="padding:0">
+          <div id="sn-detail-empty">
+            <div class="sn-detail-empty">
+              <div class="empty" style="padding:40px 20px;text-align:center">Select a note or create a new post.</div>
+            </div>
+          </div>
+          <div id="sn-compose-pane" style="display:none"></div>
+          <div id="sn-note-detail" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="marketing-pane" id="mk-pane-quotes">
+      <div class="quotes-shell">
+        <div class="card" style="padding:0">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Pipeline runs</div>
+              <div class="section-title">Quote library</div>
+            </div>
+            <button class="btn" id="qt-refresh">Refresh</button>
+          </div>
+          <div id="qt-run-list"><div class="empty" style="padding:20px">No quotes saved yet.</div></div>
+        </div>
+
+        <div class="card" style="padding:0">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Quotes</div>
+              <div class="section-title" id="qt-detail-title">Select a run</div>
+            </div>
+            <span style="font-size:11px;color:var(--muted)" id="qt-detail-count"></span>
+          </div>
+          <div id="qt-detail-list"><div class="empty" style="padding:20px">Select a run to see its quotes.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="marketing-pane" id="mk-pane-scheduled">
+      <div class="card" style="padding:0">
+        <div class="card-head">
+          <div>
+            <div class="eyebrow">Publishing queue</div>
+            <div class="section-title">Upcoming <span class="tag" id="sched-header-count">0 queued</span></div>
+            <div class="section-copy">Posts are published automatically by the app — no external service needed. The scheduler checks every minute.</div>
+          </div>
+          <button class="btn" id="sched-refresh">Refresh</button>
+        </div>
+        <div id="sched-queue-list"><div class="empty" style="padding:20px">No scheduled posts yet.</div></div>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="card-head">
+          <div>
+            <div class="eyebrow">History</div>
+            <div class="section-title">Published</div>
+          </div>
+          <button class="btn" id="published-refresh">Refresh</button>
+        </div>
+        <div id="published-feed-list"><div class="empty" style="padding:20px">No published posts yet.</div></div>
+      </div>
+    </div>
+
+    <div class="marketing-pane active" id="mk-pane-library">
+      <div class="marketing-library-shell">
+        <div class="card marketing-library-header">
+          <div class="card-head" style="margin-bottom:0">
+            <div>
+              <div class="eyebrow">Saved archive</div>
+              <div class="section-title">Campaign library</div>
+              <div class="section-copy">Reopen past campaigns without mixing archive browsing into the active generator.</div>
+            </div>
+            <button class="btn" id="mk-refresh">Refresh</button>
+          </div>
+          <div class="marketing-library-search">
+            <div class="field">
+              <label for="mk-search">Search campaigns</label>
+              <input type="text" id="mk-search" placeholder="Search title or article URL">
+            </div>
+            <div class="marketing-library-meta">
+              <strong id="mk-library-count">0 campaigns</strong>
+              <div class="library-note" id="mk-library-note">Select a campaign to inspect it.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="marketing-library-workspace">
+          <div class="card marketing-library-results">
+            <div class="toolbar-split">
+              <div>
+                <div class="section-title">Results</div>
+                <div class="library-note">Recent saved campaigns from pipeline runs and standalone generation.</div>
+              </div>
+            </div>
+            <div class="marketing-run-list" id="mk-list"><div class="empty">Loading previous social runs...</div></div>
+          </div>
+
+          <div class="card marketing-library-preview">
+            <div id="mk-library-preview"><div class="empty">Select a campaign to read its social posts.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+      <section class="page" id="page-companion">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">Companion-only lane</div>
+      <div class="hero-title">Run the paid companion flow without touching the rest of the pipeline.</div>
+      <div class="hero-copy">This mirrors the companion stage inside the full pipeline, but with its own file upload path and focused output surface.</div>
+    </div>
+  </div>
+
+  <div class="companion-shell">
+    <div class="card companion-setup">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Input</div>
+          <div class="section-title">Reflection source</div>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="field" style="margin-bottom:10px">
+          <div class="seg">
+            <button id="co-src-file" class="active">Upload file</button>
+            <button id="co-src-paste">Paste text</button>
+          </div>
+        </div>
+
+        <div class="field" id="co-file-pane" style="margin-bottom:0">
+          <div class="dropzone" id="co-drop">
+            <input type="file" id="co-file" accept=".md,.txt,.markdown">
+            <div class="drop-title">Drop the reflection file here</div>
+            <div class="muted">Title, slug, and article text are derived from the file.</div>
+            <div class="file-name" id="co-file-name"></div>
+          </div>
+        </div>
+
+        <div class="field hide" id="co-paste-pane" style="margin-bottom:0">
+          <label for="co-text">Reflection text</label>
+          <textarea id="co-text"></textarea>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="meta-grid">
+          <div class="field">
+            <label for="co-title">Reflection title</label>
+            <input type="text" id="co-title">
+          </div>
+          <div class="field">
+            <label for="co-slug">Slug</label>
+            <input type="text" id="co-slug">
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label for="co-url">Reflection URL</label>
+          <input type="text" id="co-url">
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="toggle-row" style="margin-bottom:0">
+          <div>
+            <strong>Generate Spanish companion</strong>
+            <div class="muted">Mirrors the bilingual companion lane in the full pipeline.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="co-spanish" checked><span class="switch-track"></span></label>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <button class="pri" id="co-run" style="width:100%">Generate companion</button>
+      </div>
+    </div>
+
+    <div class="card companion-output">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Output</div>
+          <div class="section-title">Paid companion documents</div>
+        </div>
+        <div class="langs" style="margin:0">
+          <button class="lang active" data-lg="co" data-lang="en">EN</button>
+          <button class="lang" data-lg="co" data-lang="es">ES</button>
+        </div>
+      </div>
+      <div class="companion-progress">
+        <div class="between" style="margin-bottom:0">
+          <strong id="co-status">Ready.</strong>
+          <div class="cost-line" id="co-cost">Cost will appear here.</div>
+        </div>
+        <div class="meter"><span id="co-fill"></span></div>
+      </div>
+      <div class="lpanel active" id="co-en"></div>
+      <div class="lpanel" id="co-es"></div>
+    </div>
+  </div>
+</section>
+      <section class="page" id="page-thumbnail">
+  <div class="page-header">
+    <div class="hero-card">
+      <div class="rail-kicker">Thumbnail system</div>
+      <div class="hero-title">Separate the making surface from the library.</div>
+      <div class="hero-copy">Studio is for active generation. Library is for searching and reopening saved thumbnails without loading the whole archive into the page.</div>
+    </div>
+  </div>
+
+  <div class="tabs thumb-tabs">
+    <button class="tab active" data-th-tab="studio">Thumbnail studio</button>
+    <button class="tab" data-th-tab="library">Thumbnail library</button>
+  </div>
+
+  <div class="thumb-pane active" id="th-pane-studio">
+    <div class="studio-shell">
+      <div class="card studio-setup">
+        <div class="setup-grid">
+          <div class="field" style="margin:0">
+            <label>Article source</label>
+            <div class="dropzone" id="th-drop">
+              <input type="file" id="th-file" accept=".md,.txt,.markdown">
+              <div class="drop-title">Upload article file</div>
+              <div class="muted">Title, slug, and article body are derived automatically.</div>
+              <div class="file-name" id="th-file-name"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="meta-grid">
+              <div class="field">
+                <label for="th-title">Article title</label>
+                <input type="text" id="th-title">
+              </div>
+              <div class="field">
+                <label for="th-slug">Slug</label>
+                <input type="text" id="th-slug">
+              </div>
+            </div>
+
+            <div class="meta-grid">
+              <div class="field">
+                <label for="th-url">Article URL</label>
+                <input type="text" id="th-url">
+              </div>
+              <div class="field">
+                <label for="th-prompt">Prompt override</label>
+                <input type="text" id="th-prompt" placeholder="Optional one-off prompt override">
+              </div>
+            </div>
+          </div>
+
+          <div class="setup-actions">
+            <button class="pri" id="th-auto" style="width:auto">Run full studio</button>
+            <button class="btn" id="th-review">Concepts only</button>
+            <button class="btn hide" id="th-images">Render images</button>
+            <button class="btn" id="th-single">One custom</button>
+          </div>
+        </div>
+
+        <div class="field" style="margin:12px 0 0">
+          <label for="th-text">Article text</label>
+          <textarea id="th-text"></textarea>
+        </div>
+      </div>
+
+      <div class="status-strip">
+        <div>
+          <strong id="th-status">Ready.</strong>
+          <div class="meter"><span id="th-fill"></span></div>
+        </div>
+        <div class="status-cost">
+          <div class="cost-line" id="th-cost">Thumbnail generation cost will appear here.</div>
+        </div>
+      </div>
+
+      <div class="studio-board">
+        <div class="card concept-board">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Concept board</div>
+              <div class="section-title">Review concepts first, inspect one at a time</div>
+            </div>
+          </div>
+          <div class="concept-board-grid" id="th-concepts"><div class="empty">No thumbnail concepts yet.</div></div>
+        </div>
+
+        <div class="card concept-inspector">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Inspector</div>
+              <div class="section-title">Selected concept details</div>
+            </div>
+          </div>
+          <div id="th-inspector"><div class="empty">Select a concept to inspect it here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="thumb-pane" id="th-pane-library">
+    <div class="library-shell">
+      <div class="card library-header">
+        <div class="card-head" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow">Saved archive</div>
+            <div class="section-title">Search by article or concept</div>
+            <div class="section-copy">Use the archive as a retrieval surface, not a dump of old thumbnails.</div>
+          </div>
+          <button class="btn" id="th-refresh">Refresh</button>
+        </div>
+        <div class="library-search">
+          <div class="field">
+            <label for="th-search">Search archive</label>
+            <input type="text" id="th-search" placeholder="Search by article title, URL, or concept">
+          </div>
+          <div class="library-meta">
+            <div class="muted" id="th-lib-meta">Library is idle.</div>
+            <div class="library-note">Images load only when you open one.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="thumb-library">
+        <div class="card library-results">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Results</div>
+              <div class="section-title">Matching thumbnails</div>
+            </div>
+          </div>
+          <div class="thumb-list" id="th-lib"><div class="empty">Open the library to load saved thumbnails.</div></div>
+        </div>
+        <div class="card library-preview">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">Preview</div>
+              <div class="section-title">Selected asset</div>
+            </div>
+          </div>
+          <div class="thumb-detail" id="th-detail"><div class="empty">Select a thumbnail to preview it here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+      <section class="page" id="page-dashboard">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">Operating picture</div>
+      <div class="hero-title">The dashboard should explain the editorial machine, not just list counters.</div>
+      <div class="hero-copy">Track article coverage, spending, image production, platform reach, and the backlog of articles that have not yet been processed into campaigns.</div>
+    </div>
+  </div>
+
+  <div class="stats-grid" id="dash-stats"></div>
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Coverage and queue</div>
+        <div class="section-title">Compact platform coverage above a bounded repurpose queue</div>
+      </div>
+    </div>
+    <div id="dash-platforms"><div class="empty">Loading...</div></div>
+    <div class="queue-wrap section">
+      <div class="between" style="margin-bottom:10px">
+        <div>
+          <div class="eyebrow">Repurpose queue</div>
+          <div class="section-copy">Open the article first or move it straight into marketing.</div>
+        </div>
+        <div class="muted" id="dash-queue-meta"></div>
+      </div>
+      <div class="list queue-list" id="dash-queue"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Pillar distribution</div>
+        <div class="section-title">Articles by Adaptable Discipline pillar (primary tag)</div>
+      </div>
+    </div>
+    <div id="dash-tags"><div class="empty">Loading...</div></div>
+  </div>
+  <div class="card section" id="audience-card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Substack audience</div>
+        <div class="section-title">Subscriber breakdown, activity, and geographic reach</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="muted" style="font-size:11px" id="aud-sync-label"></span>
+        <button class="btn" id="aud-refresh-btn">Refresh</button>
+      </div>
+    </div>
+    <div id="audience-body"><div class="empty">Click Refresh to load audience data.</div></div>
+  </div>
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Recent runs</div>
+        <div class="section-title">Latest activity across the editorial system</div>
+      </div>
+      <button class="ghost" data-mode="history">Open history</button>
+    </div>
+    <div class="history-list" id="dash-runs"><div class="empty">Loading...</div></div>
+  </div>
+</section>
+      <section class="page" id="page-settings">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">System design surface</div>
+      <div class="hero-title">Settings should shape output quality, not feel like a leftover admin page.</div>
+      <div class="hero-copy">Template control, index maintenance, and prompt guidance live here because they materially influence production quality.</div>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Companion template</div>
+          <div class="section-title">The structural brief for the paid companion lane</div>
+        </div>
+      </div>
+      <div class="setting-note" id="template-status">Loading...</div>
+      <div class="field" style="margin-top:12px">
+        <input type="file" id="template-file" accept=".md,.txt,.markdown">
+      </div>
+      <button class="btn" id="template-upload">Upload template</button>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Article index</div>
+          <div class="section-title">Refresh the source archive used for related article retrieval</div>
+        </div>
+      </div>
+      <div class="setting-note" id="articles-status">Loading...</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn" id="articles-refresh">Full refresh</button>
+        <button class="btn" id="articles-new">Index only new articles</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card hide" id="users-card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Access control</div>
+        <div class="section-title">Create and review internal accounts</div>
+      </div>
+    </div>
+    <div class="setting-note" id="users-status">Only superadmins can manage accounts.</div>
+    <div class="meta-grid three" style="margin-top:12px">
+      <div class="field">
+        <label for="new-user-email">Email</label>
+        <input type="text" id="new-user-email" placeholder="operator@epicureanmedia.com">
+      </div>
+      <div class="field">
+        <label for="new-user-name">Display name</label>
+        <input type="text" id="new-user-name" placeholder="Operator">
+      </div>
+      <div class="field">
+        <label for="new-user-role">Role</label>
+        <select id="new-user-role">
+          <option value="operator">Operator</option>
+          <option value="admin">Admin</option>
+          <option value="superadmin">Superadmin</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label for="new-user-password">Temporary password</label>
+      <input type="password" id="new-user-password" placeholder="Set an initial password">
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px">
+      <div class="muted">Create accounts directly now. Invite flows can sit on top of the same user model later.</div>
+      <button class="pri" id="create-user-btn" style="width:auto">Create account</button>
+    </div>
+    <div class="users-list" id="users-list"><div class="empty">Sign in as superadmin to manage users.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Substack</div>
+        <div class="section-title">Session cookie for Notes scheduling</div>
+      </div>
+      <button class="btn" id="sub-test-conn">Test connection</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">
+      Get your <code style="font-size:11px;background:var(--panel-soft);padding:1px 5px;border-radius:4px">connect.sid</code> cookie from Substack via Chrome DevTools → Application → Cookies → substack.com, then add it to your <code style="font-size:11px;background:var(--panel-soft);padding:1px 5px;border-radius:4px">.env</code> as <code style="font-size:11px;background:var(--panel-soft);padding:1px 5px;border-radius:4px">SUBSTACK_SESSION_COOKIE</code>. Valid for months even with MFA enabled.
+    </div>
+    <div class="setting-note" id="sub-conn-status">Not tested.</div>
+  </div>
+
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Prompt system</div>
+        <div class="section-title">Editorial guidance that changes the feel of the output</div>
+      </div>
+    </div>
+    <div class="md-stack">
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Social voice brief</div>
+            <div style="font-size:12px;color:var(--muted)">Tone and style applied to all social post generation.</div>
+          </div>
+          <div class="seg md-mode" data-md="voice">
+            <button class="active" data-md-view="edit" data-md-target="voice">Edit</button>
+            <button data-md-view="read" data-md-target="voice">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-voice" data-md-editor="voice"></textarea>
+        <div class="md-preview hide" id="cfg-voice-preview" data-md-preview="voice"></div>
+      </div>
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Companion voice brief</div>
+            <div style="font-size:12px;color:var(--muted)">Editorial guidance shaping the paid companion writing style.</div>
+          </div>
+          <div class="seg md-mode" data-md="comp">
+            <button class="active" data-md-view="edit" data-md-target="comp">Edit</button>
+            <button data-md-view="read" data-md-target="comp">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-comp" data-md-editor="comp"></textarea>
+        <div class="md-preview hide" id="cfg-comp-preview" data-md-preview="comp"></div>
+      </div>
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Spanish style guide</div>
+            <div style="font-size:12px;color:var(--muted)">Stylistic rules applied to Spanish translation and social posts.</div>
+          </div>
+          <div class="seg md-mode" data-md="es">
+            <button class="active" data-md-view="edit" data-md-target="es">Edit</button>
+            <button data-md-view="read" data-md-target="es">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-es" data-md-editor="es"></textarea>
+        <div class="md-preview hide" id="cfg-es-preview" data-md-preview="es"></div>
+      </div>
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Thumbnail prompt</div>
+            <div style="font-size:12px;color:var(--muted)">Base context injected into every thumbnail concept generation.</div>
+          </div>
+          <div class="seg md-mode" data-md="th">
+            <button class="active" data-md-view="edit" data-md-target="th">Edit</button>
+            <button data-md-view="read" data-md-target="th">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-th" data-md-editor="th"></textarea>
+        <div class="md-preview hide" id="cfg-th-preview" data-md-preview="th"></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px">
+      <div class="muted" id="cfg-status">Ready.</div>
+      <button class="pri" id="cfg-save" style="width:auto">Save overrides</button>
+    </div>
+  </div>
+</section>
+      <section class="page" id="page-audience">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">Subscriber browser</div>
+      <div class="hero-title">Browse, search, and inspect individual subscribers — country, activity, and subscription details fetched on demand.</div>
+      <div class="hero-copy">Data is synced from the Substack dashboard and cached locally. Individual profiles are lazy-loaded when you click.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Subscribers</div>
+        <div class="section-title"><span id="aud-br-count">—</span> subscribers cached · <span id="aud-enriched-count" class="muted" style="font-size:12px"></span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="muted" style="font-size:11px" id="aud-br-sync-label"></span>
+        <button class="btn pri" data-a="aud-sync">⟳ Sync</button>
+      </div>
+    </div>
+
+    <div class="tabs" style="margin: -20px -20px 16px; padding: 0 16px; border-bottom: 1px solid var(--line);">
+      <button class="tab active" data-a="aud-tab" data-tab="browser">Subscribers</button>
+      <button class="tab" data-a="aud-tab" data-tab="insights">Insights</button>
+    </div>
+
+    <div id="aud-pane-browser">
+      <div class="aud-browser-shell">
+        <div>
+          <input type="text" id="aud-br-search" class="sn-search-input" placeholder="Search name or email…" autocomplete="off" style="margin-bottom:8px">
+          <div class="aud-list-filters">
+            <button class="aud-filter-pill" data-a="aud-filt" data-filt="paid">Paid</button>
+            <button class="aud-filter-pill" data-a="aud-filt" data-filt="free">Free</button>
+            <button class="aud-filter-pill" data-a="aud-filt" data-filt="r5">⭐ Top (5)</button>
+            <button class="aud-filter-pill" data-a="aud-filt" data-filt="r4">Active (4)</button>
+          </div>
+          <div class="list" id="aud-br-list" style="max-height:580px;overflow-y:auto"><div class="empty">Click Sync to load subscribers.</div></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;justify-content:center">
+            <button class="btn" data-a="aud-page" data-dir="-1" id="aud-pg-prev" style="display:none">← Prev</button>
+            <span class="muted" style="font-size:11px" id="aud-pg-label"></span>
+            <button class="btn" data-a="aud-page" data-dir="1" id="aud-pg-next" style="display:none">Next →</button>
+          </div>
+        </div>
+        <div class="card" style="padding:0" id="aud-br-detail">
+          <div class="empty" style="padding:48px 20px;text-align:center">Select a subscriber to view details.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="aud-pane-insights" style="display:none">
+      <div id="aud-insights-body">
+        <div class="empty" style="padding:40px;text-align:center">
+          Click <strong>Generate Insights</strong> to analyse your audience.
+        </div>
+      </div>
+      <div style="margin-top:16px;text-align:center">
+        <button class="btn pri" data-a="aud-insights-load">Generate Insights</button>
+        <span class="muted" style="font-size:11px;margin-left:10px" id="aud-ins-note">Requires enriched profiles — runs in background automatically.</span>
+      </div>
+    </div>
+  </div>
+</section>
+      <section class="page" id="page-history">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">Run archive</div>
+      <div class="hero-title">Re-open previous work quickly and move back into production without context loss.</div>
+      <div class="hero-copy">History is useful when it behaves like a working archive, not a dead log.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Recent runs</div>
+        <div class="section-title">Saved pipeline and standalone campaign runs</div>
+      </div>
+      <button class="btn" id="hist-refresh">Refresh</button>
+    </div>
+    <div class="history-list" id="hist-list"><div class="empty">Loading run history...</div></div>
+  </div>
+</section>
+      <section class="page" id="page-ideas">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="rail-kicker">Idea system</div>
+      <div class="hero-title">Research, capture, and convert repeatable themes into production-ready article prompts.</div>
+      <div class="hero-copy">This is where discovered struggles, manual angles, and writing candidates stay live instead of getting lost in notes.</div>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Manual idea</div>
+          <div class="section-title">Add an article idea directly</div>
+        </div>
+      </div>
+      <div class="field"><label for="idea-theme">Theme</label><input type="text" id="idea-theme"></div>
+      <div class="meta-grid">
+        <div class="field"><label for="idea-cat">Category</label><input type="text" id="idea-cat"></div>
+        <div class="field"><label for="idea-emoji">Emoji</label><input type="text" id="idea-emoji" value="*"></div>
+      </div>
+      <div class="field"><label for="idea-angle">Article angle</label><input type="text" id="idea-angle"></div>
+      <button class="pri" id="idea-save">Save idea</button>
+      <div class="setting-note" style="margin-top:12px" id="idea-status">Ready.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Research miner</div>
+          <div class="section-title">Reddit struggles scan</div>
+        </div>
+        <button class="btn" id="reddit-run">Scan Reddit</button>
+      </div>
+      <div class="setting-note" id="reddit-status">Ready.</div>
+      <div class="list section" id="reddit-results"><div class="empty">No Reddit scan yet.</div></div>
+    </div>
+  </div>
+
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Ideas pool</div>
+        <div class="section-title">Themes waiting to become articles</div>
+      </div>
+      <button class="btn" id="ideas-refresh">Refresh</button>
+    </div>
+    <div class="ideas-list" id="ideas-list"><div class="empty">Loading ideas...</div></div>
+  </div>
+</section>
+    </div>
+  </main>
+</div>
+
+<style>
+  #auth-overlay { display: none !important; }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const view = {"mode":"history","file":"view-history.png"};
+    document.querySelectorAll('.nav').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+
+    const nav = document.querySelector(`button.nav[data-mode="${view.mode}"]`);
+    const page = document.getElementById(`page-${view.mode}`);
+    if (nav) nav.classList.add('active');
+    if (page) page.classList.add('active');
+
+    document.querySelectorAll('[data-mk-tab]').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.marketing-pane').forEach(el => el.classList.remove('active'));
+    if (view.mode === 'marketing') {
+      const tab = view.tab || 'library';
+      const mkBtn = document.querySelector(`[data-mk-tab="${tab}"]`);
+      const mkPane = document.getElementById(`mk-pane-${tab}`);
+      if (mkBtn) mkBtn.classList.add('active');
+      if (mkPane) mkPane.classList.add('active');
+    }
+
+    document.querySelectorAll('[data-th-tab]').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.thumb-pane').forEach(el => el.classList.remove('active'));
+    if (view.mode === 'thumbnail') {
+      const tab = view.tab || 'studio';
+      const thBtn = document.querySelector(`[data-th-tab="${tab}"]`);
+      const thPane = document.getElementById(`th-pane-${tab}`);
+      if (thBtn) thBtn.classList.add('active');
+      if (thPane) thPane.classList.add('active');
+    }
+
+    document.querySelectorAll('[data-a="aud-tab"]').forEach(el => el.classList.remove('active'));
+    const audBrowser = document.getElementById('aud-pane-browser');
+    const audInsights = document.getElementById('aud-pane-insights');
+    if (audBrowser) audBrowser.style.display = 'none';
+    if (audInsights) audInsights.style.display = 'none';
+    if (view.mode === 'audience') {
+      const tab = view.tab || 'browser';
+      const audBtn = document.querySelector(`[data-a="aud-tab"][data-tab="${tab}"]`);
+      if (audBtn) audBtn.classList.add('active');
+      const pane = document.getElementById(`aud-pane-${tab}`);
+      if (pane) pane.style.display = '';
+    }
+  });
+</script>
+</body>
+</html>

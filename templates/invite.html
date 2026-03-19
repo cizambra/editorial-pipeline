@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accept Invite | Editorial Pipeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="invite-shell" data-auth-mode="{{ auth_mode }}">
+  <section class="invite-layout">
+    <div class="invite-hero">
+      <div class="rail-kicker">Epicurean Media</div>
+      <h1>Join the editorial workspace without the back-office friction.</h1>
+      <p>This invite connects you to the production system used to draft, queue, and publish the editorial pipeline.</p>
+      <div class="invite-meta-strip">
+        <span class="tag">Private access</span>
+        <span class="tag">{{ auth_mode|upper }}</span>
+      </div>
+    </div>
+
+    <div class="invite-card">
+      <div class="eyebrow">Invite acceptance</div>
+      <div class="section-title">Complete your account setup</div>
+      <p class="invite-copy">Set your display name and finish the invitation. For local auth, you also create your password here.</p>
+
+      <div class="field hide" id="invite-token-wrap">
+        <label for="invite-token">Invite token</label>
+        <input type="text" id="invite-token" value="{{ invite_token }}" autocomplete="off">
+      </div>
+
+      <div class="field" style="margin-top:12px">
+        <label for="invite-display-name">Display name</label>
+        <input type="text" id="invite-display-name" placeholder="Your name">
+      </div>
+
+      <div class="field" style="margin-top:12px" id="invite-password-wrap">
+        <label for="invite-password">Password</label>
+        <input type="password" id="invite-password" placeholder="Create your password" autocomplete="new-password">
+      </div>
+
+      <div class="field hide" style="margin-top:12px" id="invite-access-token-wrap">
+        <label for="invite-access-token">Supabase access token</label>
+        <textarea id="invite-access-token" rows="5" placeholder="Paste the authenticated Supabase access token"></textarea>
+      </div>
+
+      <div class="invite-status" id="invite-status">Ready.</div>
+
+      <div class="invite-actions-row">
+        <button class="pri" id="invite-accept-btn" style="width:auto">Accept invite</button>
+        <a class="btn" href="/" style="width:auto;text-decoration:none">Back to sign in</a>
+      </div>
+    </div>
+  </section>
+
+  <script src="/static/js/invite.js"></script>
+</body>
+</html>
