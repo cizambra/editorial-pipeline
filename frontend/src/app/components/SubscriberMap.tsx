@@ -1,7 +1,7 @@
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from "react-simple-maps";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+const GEO_URL = "/countries-110m.json";
 const TOP_N = 10;
 
 // ISO 3166-1 alpha-2 → numeric (world-atlas uses numeric codes as string IDs)
@@ -44,8 +44,57 @@ interface SubscriberMapProps {
 export function SubscriberMap({ allCountries, mobile }: SubscriberMapProps) {
   const [view, setView] = useState<"all" | "top">("all");
   const [tooltip, setTooltip] = useState<{ name: string; count: number; x: number; y: number } | null>(null);
+  const [geography, setGeography] = useState<any | null>(null);
+  const [geoFailed, setGeoFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setGeoFailed(false);
+    fetch(GEO_URL)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!cancelled) setGeography(data);
+      })
+      .catch(() => {
+        if (!cancelled) setGeoFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (allCountries.length === 0) return null;
+
+  if (geoFailed) {
+    return (
+      <div
+        className="rounded-xl p-4"
+        style={{ background: "rgba(var(--border-rgb),0.04)", border: "1px solid rgba(var(--border-rgb),0.08)" }}
+      >
+        <div className="text-sm font-semibold mb-2" style={{ color: "var(--foreground)" }}>
+          Map unavailable
+        </div>
+        <div className="text-xs" style={{ color: "var(--text-subtle)" }}>
+          The geographic data could not be loaded. Country totals are still listed below.
+        </div>
+      </div>
+    );
+  }
+  if (!geography) {
+    return (
+      <div
+        className="rounded-xl p-4"
+        style={{ background: "rgba(var(--border-rgb),0.04)", border: "1px solid rgba(var(--border-rgb),0.08)" }}
+      >
+        <div className="text-xs" style={{ color: "var(--text-subtle)" }}>
+          Loading map…
+        </div>
+      </div>
+    );
+  }
 
   const topSet = new Set(allCountries.slice(0, TOP_N).map(([c]) => c));
 
@@ -93,7 +142,7 @@ export function SubscriberMap({ allCountries, mobile }: SubscriberMapProps) {
         style={{ width: "100%", height: "100%" }}
       >
         <ZoomableGroup zoom={mobile ? 1.6 : 1} minZoom={1} maxZoom={8}>
-          <Geographies geography={GEO_URL}>
+          <Geographies geography={geography}>
             {({ geographies }) =>
               geographies.map((geo) => {
                 const numericId = String(geo.id);

@@ -74,6 +74,19 @@ function StatCell({ label, value }: { label: string; value: string }) {
   );
 }
 
+function normalizeCountryPairs(value: unknown): [string, number][] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!Array.isArray(item) || item.length < 2) return null;
+      const code = typeof item[0] === "string" ? item[0].trim() : "";
+      const count = Number(item[1]);
+      if (!code || !Number.isFinite(count) || count <= 0) return null;
+      return [code, count] as [string, number];
+    })
+    .filter((item): item is [string, number] => item !== null);
+}
+
 // Activity rating 0–5 → human label + color
 const ACTIVITY_LEVELS: Record<number, { label: string; color: string; bg: string }> = {
   0: { label: "None",     color: "#c4b89a", bg: "rgba(var(--border-rgb),0.07)"   },
@@ -727,11 +740,13 @@ function InsightsTab({
   subscribers,
   total,
   insights,
+  allSubscribersLoaded,
   mobile,
 }: {
   subscribers: any[];
   total: number;
   insights: any | null;
+  allSubscribersLoaded: boolean;
   mobile?: boolean;
 }) {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
@@ -797,16 +812,16 @@ function InsightsTab({
     .sort(([, a], [, b]) => b - a) as [string, number][];
   // For all-time view, prefer the backend's full country aggregation so the map
   // is complete even before every subscriber page has loaded in the browser.
-  const backendCountries: [string, number][] = Array.isArray(insights?.country_distribution)
-    ? insights.country_distribution
-    : Array.isArray(insights?.top_countries)
-      ? insights.top_countries
-      : [];
+  const backendCountries = normalizeCountryPairs(insights?.country_distribution);
+  const fallbackCountries = normalizeCountryPairs(insights?.top_countries);
   const mapCountries: [string, number][] = hasRange
     ? allCountries
-    : (backendCountries.length > 0 ? backendCountries : allCountries);
-  const countryCoverage = Object.values(countryCounts).reduce((a, b) => a + b, 0)
-    || (insights?.country_coverage ?? 0);
+    : allSubscribersLoaded
+      ? allCountries
+      : (backendCountries.length > 0 ? backendCountries : (allCountries.length > 0 ? allCountries : fallbackCountries));
+  const countryCoverage = hasRange || allSubscribersLoaded
+    ? Object.values(countryCounts).reduce((a, b) => a + b, 0)
+    : (insights?.country_coverage ?? Object.values(countryCounts).reduce((a, b) => a + b, 0));
 
   // Growth — compute from subscriber data
   const growthByMonth: Record<string, number> = {};
@@ -1068,9 +1083,11 @@ export function AudienceView() {
   const [syncing, setSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState<"subscribers" | "insights">("subscribers");
   const [insights, setInsights] = useState<any>(null);
+  const [allSubscribersLoaded, setAllSubscribersLoaded] = useState(false);
 
   const load = async () => {
     setLoading(true);
+    setAllSubscribersLoaded(false);
     try {
       const PAGE = 100;
       const first = await audience.list({ limit: PAGE, offset: 0 });
@@ -1087,8 +1104,10 @@ export function AudienceView() {
         all = [...all, ...batch];
         setSubscribers([...all]);
       }
+      setAllSubscribersLoaded(true);
     } catch {
       setLoading(false);
+      setAllSubscribersLoaded(false);
     }
   };
 
@@ -1134,7 +1153,7 @@ export function AudienceView() {
             mobile
           />
         ) : (
-          <InsightsTab subscribers={subscribers} total={total} insights={insights} mobile />
+          <InsightsTab subscribers={subscribers} total={total} insights={insights} allSubscribersLoaded={allSubscribersLoaded} mobile />
         )}
 
         {/* Bottom tab nav */}
@@ -1207,7 +1226,7 @@ export function AudienceView() {
               onSync={handleSync}
             />
           ) : (
-            <InsightsTab subscribers={subscribers} total={total} insights={insights} />
+            <InsightsTab subscribers={subscribers} total={total} insights={insights} allSubscribersLoaded={allSubscribersLoaded} />
           )}
         </div>
       </div>
