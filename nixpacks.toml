@@ -1,13 +1,14 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "python312", "python312Packages.pip"]
+nixPkgs = ["nodejs_20", "python312", "python312Packages.venvShellHook"]
 
 [phases.install]
 cmds = [
   "node --version",
   "python3 --version",
-  "python3 -m pip --version",
   "npm install",
-  "python3 -m pip install -v -r requirements.txt"
+  "python3 -m venv .venv",
+  ". .venv/bin/activate && python -m ensurepip --upgrade",
+  ". .venv/bin/activate && python -m pip install -v -r requirements.txt"
 ]
 
 [phases.build]
@@ -16,4 +17,4 @@ cmds = [
 ]
 
 [start]
-cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+cmd = ". .venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port $PORT"
