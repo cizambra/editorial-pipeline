@@ -184,6 +184,17 @@ def patch_run_data(run_id: int, patch: dict) -> None:
     db.patch_run_data(run_id, patch)
 
 
+def patch_run_content(
+    run_id: int,
+    section: str,
+    lang: str,
+    platform: str,
+    sample_index: int,
+    text: str,
+) -> None:
+    db.patch_run_content(run_id, section, lang, platform, sample_index, text)
+
+
 def delete_history_run(run_id: int) -> None:
     db.delete_run(run_id)
     from app.persistence import storage_reports

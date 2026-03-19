@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { createPortal } from "react-dom";
+import type { LucideIcon } from "lucide-react";
 
 interface Option {
   value: string;
@@ -13,9 +14,10 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   id?: string;
+  icon?: LucideIcon;
 }
 
-export function CustomSelect({ options, value, onChange, placeholder = "Select...", id }: CustomSelectProps) {
+export function CustomSelect({ options, value, onChange, placeholder = "Select...", id, icon: Icon }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -121,7 +123,10 @@ export function CustomSelect({ options, value, onChange, placeholder = "Select..
         }}
         ref={buttonRef}
       >
-        <span>{selectedOption ? selectedOption.label : placeholder}</span>
+        <span className="flex items-center gap-1.5">
+          {Icon && <Icon className="w-3.5 h-3.5" style={{ color: 'var(--muted-foreground)' }} />}
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
         <ChevronDown 
           className="w-4 h-4 transition-transform" 
           style={{ 

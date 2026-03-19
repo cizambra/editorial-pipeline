@@ -23,6 +23,10 @@ _logger = get_logger("editorial.routes.media")
 
 _IMG_PRICE_MEDIUM = 0.063
 _IMG_PRICE_HIGH = 0.250
+_SONNET_PRICE_IN = 3.0 / 1_000_000
+_SONNET_PRICE_CACHE_W = 3.75 / 1_000_000
+_SONNET_PRICE_CACHE_R = 0.30 / 1_000_000
+_SONNET_PRICE_OUT = 15.0 / 1_000_000
 _REDDIT_SUBREDDITS = ["Discipline", "getdisciplined"]
 _REDDIT_POSTS_PER_SUB = 50
 _SITE_CONTEXT_TTL_DAYS = 7
@@ -560,6 +564,17 @@ async def reddit_struggles():
                     }],
                 )
             )
+            usage = response.usage
+            _cw = getattr(usage, "cache_creation_input_tokens", 0) or 0
+            _cr = getattr(usage, "cache_read_input_tokens", 0) or 0
+            _cost = round(
+                usage.input_tokens * _SONNET_PRICE_IN
+                + usage.output_tokens * _SONNET_PRICE_OUT
+                + _cw * _SONNET_PRICE_CACHE_W
+                + _cr * _SONNET_PRICE_CACHE_R,
+                6,
+            )
+            storage.record_image_cost("reddit_ideas", 1, _cost)
             raw = response.content[0].text.strip()
             if raw.startswith("```"):
                 raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()

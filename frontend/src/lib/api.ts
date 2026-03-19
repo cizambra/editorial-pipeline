@@ -102,7 +102,41 @@ export async function thumbnailConceptsFetch(
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, article_text: articleText, auto_generate: true }),
+    body: JSON.stringify({ title, article_text: articleText, auto_generate: false }),
+    signal,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  let eventType = "message";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop()!;
+    for (const line of lines) {
+      if (line.startsWith("event:")) eventType = line.slice(6).trim();
+      else if (line.startsWith("data:")) {
+        const raw = line.slice(5).trim();
+        try { onEvent(eventType, JSON.parse(raw)); } catch { onEvent(eventType, raw); }
+        eventType = "message";
+      }
+    }
+  }
+}
+
+export async function thumbnailImagesFetch(
+  concepts: Array<{ index: number; name: string; scene: string; dalle_prompt: string }>,
+  onEvent: (event: string, data: any) => void,
+  signal?: AbortSignal
+): Promise<void> {
+  const res = await fetch("/api/generate-thumbnail-images", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ concepts }),
     signal,
   });
   if (!res.ok) throw new Error(await res.text());
@@ -146,6 +180,8 @@ export const history = {
   delete: (runId: string) => request<any>(`/api/history/${runId}`, { method: "DELETE" }),
   saveThumbnailConcepts: (runId: string, concepts: any[]) =>
     request<any>(`/api/history/${runId}/thumbnail-concepts`, { method: "POST", body: JSON.stringify({ concepts }) }),
+  patchContent: (runId: string, data: { section: string; lang: string; platform: string; sample_index: number; text: string }) =>
+    request<any>(`/api/history/${runId}/content`, { method: "PATCH", body: JSON.stringify(data) }),
 };
 
 // ── Marketing / Campaigns ─────────────────────────────────────────────────────
@@ -170,6 +206,7 @@ export const notes = {
   deleteBatch: (id: string) => request<any>(`/api/substack-notes/batches/${id}`, { method: "DELETE" }),
   repurpose: (id: string) => request<any>(`/api/substack-notes/${id}/repurpose`, { method: "POST" }),
   composeRepurpose: (data: any) => request<any>("/api/social/compose/repurpose", { method: "POST", body: JSON.stringify(data) }),
+  editHistory: (id: string) => request<{ history: Record<string, Array<{ timestamp: string; text: string }>> }>(`/api/substack-notes/${id}/history`),
 };
 
 // ── Quotes ────────────────────────────────────────────────────────────────────
@@ -183,9 +220,13 @@ export const quotes = {
 
 // ── Thumbnails ────────────────────────────────────────────────────────────────
 export const thumbnails = {
-  list: (q?: string) => request<any[]>(`/api/thumbnails${q ? `?q=${encodeURIComponent(q)}` : ""}`),
+  list: (q?: string) => request<{ thumbnails: any[] }>(`/api/thumbnails${q ? `?q=${encodeURIComponent(q)}` : ""}`),
   get: (id: string) => request<any>(`/api/thumbnails/${id}`),
-  save: (data: any) => request<any>("/api/thumbnails", { method: "POST", body: JSON.stringify(data) }),
+  save: (data: any) => request<any>("/api/thumbnails/save", { method: "POST", body: JSON.stringify(data) }),
+  saveDraft: (data: any) => request<any>("/api/thumbnails/save", { method: "POST", body: JSON.stringify({ ...data, is_draft: true }) }),
+  listDrafts: () => request<{ drafts: any[] }>("/api/thumbnails/drafts"),
+  confirm: (id: string) => request<any>(`/api/thumbnails/${id}/confirm`, { method: "POST" }),
+  deleteDrafts: () => request<any>("/api/thumbnails/drafts", { method: "DELETE" }),
   delete: (id: string) => request<any>(`/api/thumbnails/${id}`, { method: "DELETE" }),
   generate: (data: any) => request<any>("/api/imagen/generate", { method: "POST", body: JSON.stringify(data) }),
 };
@@ -247,6 +288,7 @@ export const social = {
   schedule: (data: any) => request<any>("/api/social/schedule", { method: "POST", body: JSON.stringify(data) }),
   scheduled: () => request<any>("/api/social/scheduled"),
   published: (limit = 50) => request<any>(`/api/social/published?limit=${limit}`),
+  cancelScheduled: (id: string | number) => request<any>(`/api/social/scheduled/${id}`, { method: "DELETE" }),
 };
 
 // ── Settings / Config ─────────────────────────────────────────────────────────

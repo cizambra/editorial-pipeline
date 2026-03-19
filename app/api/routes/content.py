@@ -74,6 +74,9 @@ class SubstackNoteUpdate(BaseModel):
     shared: Optional[bool] = None
     signal: Optional[str] = None
     note_text: Optional[str] = None
+    linkedin_post: Optional[str] = None
+    threads_post: Optional[str] = None
+    instagram_post: Optional[str] = None
 
 
 class ComposeRepurposeRequest(BaseModel):
@@ -233,9 +236,25 @@ async def get_substack_notes(batch_id: int):
 async def update_substack_note(note_id: int, body: SubstackNoteUpdate, request: Request = None):
     if request is not None:
         auth.require_admin(request)
-    storage.update_substack_note(note_id, shared=body.shared, signal=body.signal, note_text=body.note_text)
+    storage.update_substack_note(
+        note_id,
+        shared=body.shared,
+        signal=body.signal,
+        note_text=body.note_text,
+        linkedin_post=body.linkedin_post,
+        threads_post=body.threads_post,
+        instagram_post=body.instagram_post,
+    )
     _logger.info("Substack note updated", extra={"fields": {"note_id": note_id}})
     return {"ok": True}
+
+
+@router.get("/api/substack-notes/{note_id}/history")
+async def get_note_edit_history(note_id: int, request: Request = None):
+    if request is not None:
+        auth.require_admin(request)
+    history = await run_in_threadpool(storage.get_note_edit_history, note_id)
+    return {"history": history}
 
 
 @router.delete("/api/substack-notes/{note_id}")

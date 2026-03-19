@@ -6,7 +6,7 @@ import { SubscriberMap } from "./SubscriberMap";
 import { PageHeader } from "./PageHeader";
 import { Card, Eyebrow, CardSection } from "./Card";
 import { MobileBottomNav } from "./MobileBottomNav";
-import { Users, Search, RefreshCw, TrendingUp, ChevronRight, ChevronLeft, X, ArrowUp, ArrowDown } from "lucide-react";
+import { Users, Search, RefreshCw, TrendingUp, ChevronRight, ChevronLeft, X, ArrowUp, ArrowDown, Filter } from "lucide-react";
 import { CustomSelect } from "./CustomSelect";
 import { DateRangePicker } from "./DateRangePicker";
 import {
@@ -432,7 +432,7 @@ function SubscribersTab({
     </div>
   );
 
-  const filterBar = (
+  const filterBar = mobile ? (
     <div className="flex items-center gap-1.5 flex-wrap">
       {FILTERS.map(({ id, label }) => (
         <button
@@ -447,6 +447,15 @@ function SubscribersTab({
           {label}
         </button>
       ))}
+    </div>
+  ) : (
+    <div style={{ minWidth: 140 }}>
+      <CustomSelect
+        options={FILTERS.map(({ id, label }) => ({ value: id, label }))}
+        value={filter}
+        onChange={(v) => setFilter(v as FilterType)}
+        icon={Filter}
+      />
     </div>
   );
 

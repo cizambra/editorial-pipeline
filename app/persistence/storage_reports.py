@@ -75,28 +75,13 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
     total_tokens_out = sum(row["tokens_out"] or 0 for row in runs)
     total_cost = sum(row["cost_usd"] or 0 for row in runs)
 
+    # Count actually-published posts from scheduled_posts (status='published')
     platforms = {"linkedin": 0, "instagram": 0, "threads": 0, "substack_note": 0}
-    for run in runs:
-        try:
-            data = json.loads(run["data_json"])
-        except Exception:
-            continue
-        social = data.get("social", {})
-        if isinstance(social, dict):
-            for platform in platforms:
-                if social.get(platform):
-                    platforms[platform] += 1
-        for source in ("reflection", "companion"):
-            source_data = data.get(source, {})
-            if not isinstance(source_data, dict):
-                continue
-            for lang_key in ("repurposed_en", "repurposed_es", "social_en", "social_es"):
-                social_data = source_data.get(lang_key, {})
-                if not isinstance(social_data, dict):
-                    continue
-                for platform in platforms:
-                    if social_data.get(platform):
-                        platforms[platform] += 1
+    published_posts = db.list_scheduled_posts(status="published", limit=10000)
+    for post in published_posts:
+        plat = post.get("platform", "")
+        if plat in platforms:
+            platforms[plat] += 1
 
     this_month = datetime.now().strftime("%Y-%m")
     monthly_runs = [row for row in runs if row["timestamp"].startswith(this_month)]
@@ -185,7 +170,7 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
             {
                 "id": row["id"],
                 "title": row["title"],
-                "timestamp": row["timestamp"],
+                "timestamp": _fmt_ts(row["timestamp"]),
                 "article_url": row["article_url"],
                 "cost_usd": row["cost_usd"],
                 "tags": row.get("tags", "") or "",

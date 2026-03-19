@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Copy, ChevronDown, ChevronLeft, X, Loader2 } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "./ui/carousel";
 
 function ConceptBody({ concept }: { concept: any }) {
   return (
@@ -61,46 +62,125 @@ interface ThumbnailConceptsPanelProps {
 
 export function ThumbnailConceptsPanel({ concepts, emptyLabel = "No thumbnail concepts generated." }: ThumbnailConceptsPanelProps) {
   const [selectedConcept, setSelectedConcept] = useState<any>(null);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const onCarouselSelect = useCallback((api: CarouselApi) => {
+    if (!api) return;
+    setCurrentSlide(api.selectedScrollSnap());
+  }, []);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    carouselApi.on("select", onCarouselSelect);
+    return () => { carouselApi.off("select", onCarouselSelect); };
+  }, [carouselApi, onCarouselSelect]);
 
   return (
     <>
       {concepts.length === 0 ? (
         <p className="text-sm py-6 text-center" style={{ color: "var(--text-subtle)" }}>{emptyLabel}</p>
       ) : (
-        <div className="space-y-3">
-          {concepts.map((concept: any, idx: number) => (
-            <button
-              key={idx}
-              className="w-full text-left p-4 rounded-xl transition-all active:scale-[0.99]"
-              style={{ background: "#fff", border: "1px solid rgba(var(--border-rgb), 0.12)" }}
-              onClick={() => setSelectedConcept(concept)}
-            >
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span
-                    className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded flex-shrink-0"
-                    style={{ background: "rgba(var(--primary-rgb), 0.1)", color: "var(--primary)" }}
-                  >
-                    {idx + 1}
-                  </span>
-                  <span className="text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>{concept.name}</span>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {concept.image_b64 && (
-                    <img
-                      src={`data:image/png;base64,${concept.image_b64}`}
-                      alt={concept.name}
-                      className="w-10 h-10 rounded-lg object-cover"
-                      style={{ border: "1px solid rgba(var(--border-rgb),0.12)" }}
-                    />
-                  )}
-                  <ChevronDown size={14} style={{ color: "var(--text-subtle)", transform: "rotate(-90deg)" }} />
-                </div>
+        <>
+          {/* Mobile: swipeable carousel */}
+          <div className="lg:hidden">
+            <Carousel opts={{ align: "start", loop: false }} setApi={setCarouselApi}>
+              <CarouselContent className="-ml-3">
+                {concepts.map((concept: any, idx: number) => (
+                  <CarouselItem key={idx} className="pl-3">
+                    <button
+                      className="w-full text-left rounded-xl overflow-hidden transition-all active:scale-[0.98]"
+                      style={{ background: "#fff", border: "1px solid rgba(var(--border-rgb), 0.12)" }}
+                      onClick={() => setSelectedConcept(concept)}
+                    >
+                      {concept.image_b64 ? (
+                        <img
+                          src={`data:image/png;base64,${concept.image_b64}`}
+                          alt={concept.name}
+                          className="w-full object-cover"
+                          style={{ maxHeight: "180px" }}
+                        />
+                      ) : (
+                        <div
+                          className="w-full flex items-center justify-center py-10"
+                          style={{ background: "var(--secondary)" }}
+                        >
+                          <Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--text-subtle)" }} />
+                        </div>
+                      )}
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span
+                            className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded flex-shrink-0"
+                            style={{ background: "rgba(var(--primary-rgb), 0.1)", color: "var(--primary)" }}
+                          >
+                            {idx + 1}
+                          </span>
+                          <span className="text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>{concept.name}</span>
+                          <ChevronDown size={14} className="ml-auto flex-shrink-0" style={{ color: "var(--text-subtle)", transform: "rotate(-90deg)" }} />
+                        </div>
+                        <p className="text-xs leading-relaxed line-clamp-3" style={{ color: "var(--muted-foreground)" }}>{concept.scene}</p>
+                      </div>
+                    </button>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+            {concepts.length > 1 && (
+              <div className="flex justify-center gap-1.5 mt-3">
+                {concepts.map((_: any, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => carouselApi?.scrollTo(idx)}
+                    className="rounded-full transition-all"
+                    style={{
+                      width: idx === currentSlide ? "16px" : "6px",
+                      height: "6px",
+                      background: idx === currentSlide ? "var(--primary)" : "rgba(var(--border-rgb), 0.4)",
+                    }}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
               </div>
-              <p className="text-xs leading-relaxed line-clamp-2" style={{ color: "var(--muted-foreground)" }}>{concept.scene}</p>
-            </button>
-          ))}
-        </div>
+            )}
+          </div>
+
+          {/* Desktop: list */}
+          <div className="hidden lg:block space-y-3">
+            {concepts.map((concept: any, idx: number) => (
+              <button
+                key={idx}
+                className="w-full text-left p-4 rounded-xl transition-all active:scale-[0.99]"
+                style={{ background: "#fff", border: "1px solid rgba(var(--border-rgb), 0.12)" }}
+                onClick={() => setSelectedConcept(concept)}
+              >
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded flex-shrink-0"
+                      style={{ background: "rgba(var(--primary-rgb), 0.1)", color: "var(--primary)" }}
+                    >
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>{concept.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {concept.image_b64 && (
+                      <img
+                        src={`data:image/png;base64,${concept.image_b64}`}
+                        alt={concept.name}
+                        className="w-10 h-10 rounded-lg object-cover"
+                        style={{ border: "1px solid rgba(var(--border-rgb),0.12)" }}
+                      />
+                    )}
+                    <ChevronDown size={14} style={{ color: "var(--text-subtle)", transform: "rotate(-90deg)" }} />
+                  </div>
+                </div>
+                <p className="text-xs leading-relaxed line-clamp-2" style={{ color: "var(--muted-foreground)" }}>{concept.scene}</p>
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Concept detail modal */}

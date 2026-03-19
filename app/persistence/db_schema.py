@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import (
     and_,
     case,
+    Boolean,
     Column,
     DateTime,
     Float,
@@ -134,6 +135,11 @@ thumbnails = Table(
     Column("concept_name", Text, nullable=False, server_default=""),
     Column("image_hash", Text, nullable=False, server_default=""),
     Column("image_b64", Text, nullable=False),
+    Column("is_draft", Boolean, nullable=False, server_default="0"),
+    Column("user_id", Integer, nullable=True),
+    Column("concept_scene", Text, nullable=True),
+    Column("concept_why", Text, nullable=True),
+    Column("concept_prompt", Text, nullable=True),
 )
 
 post_feedback = Table(
@@ -228,6 +234,7 @@ substack_notes = Table(
     Column("linkedin_post", Text, nullable=False, server_default=""),
     Column("threads_post", Text, nullable=False, server_default=""),
     Column("instagram_post", Text, nullable=False, server_default=""),
+    Column("edit_history", Text, nullable=False, server_default="{}"),
 )
 
 audit_log = Table(
@@ -325,6 +332,9 @@ def ensure_schema() -> bool:
     ])
     _add_missing_columns(engine, "runs", [
         ("status", "TEXT NOT NULL DEFAULT 'done'"),
+    ])
+    _add_missing_columns(engine, "substack_notes", [
+        ("edit_history", "TEXT NOT NULL DEFAULT '{}'"),
     ])
     return True
 

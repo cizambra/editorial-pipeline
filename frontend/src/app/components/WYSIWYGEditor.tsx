@@ -822,7 +822,7 @@ export function WYSIWYGEditor({ value, onChange, placeholder }: WYSIWYGEditorPro
       </div>
 
       {/* Editor Area */}
-      <div className="flex-1 overflow-auto flex flex-col">
+      <div className="flex-1 overflow-auto flex flex-col" style={{ background: '#fff' }}>
         {showRawMarkdown ? (
           // Raw Markdown Mode
           <textarea

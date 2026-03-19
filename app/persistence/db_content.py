@@ -27,20 +27,29 @@ def save_thumbnail(
     concept_name: str,
     image_hash: str,
     image_b64: str,
+    is_draft: bool = False,
+    user_id: Optional[int] = None,
+    concept_scene: Optional[str] = None,
+    concept_why: Optional[str] = None,
+    concept_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     ensure_schema()
-    stmt = select(thumbnails.c.id).where(
-        and_(
-            thumbnails.c.article_title == article_title,
-            thumbnails.c.article_url == article_url,
-            thumbnails.c.concept_name == concept_name,
-            thumbnails.c.image_hash == image_hash,
+    # Deduplication only applies to confirmed thumbnails
+    if not is_draft:
+        stmt = select(thumbnails.c.id).where(
+            and_(
+                thumbnails.c.article_title == article_title,
+                thumbnails.c.article_url == article_url,
+                thumbnails.c.concept_name == concept_name,
+                thumbnails.c.image_hash == image_hash,
+                thumbnails.c.is_draft == False,  # noqa: E712
+            )
         )
-    )
+        with get_engine().begin() as conn:
+            existing = conn.execute(stmt).scalar_one_or_none()
+            if existing is not None:
+                return {"id": int(existing), "created": False}
     with get_engine().begin() as conn:
-        existing = conn.execute(stmt).scalar_one_or_none()
-        if existing is not None:
-            return {"id": int(existing), "created": False}
         result = conn.execute(
             insert(thumbnails).values(
                 timestamp=datetime.utcnow(),
@@ -49,6 +58,11 @@ def save_thumbnail(
                 concept_name=concept_name,
                 image_hash=image_hash,
                 image_b64=image_b64,
+                is_draft=is_draft,
+                user_id=user_id,
+                concept_scene=concept_scene,
+                concept_why=concept_why,
+                concept_prompt=concept_prompt,
             )
         )
         return {"id": int(result.inserted_primary_key[0]), "created": True}
@@ -62,7 +76,7 @@ def list_thumbnails(query: str = "", limit: int = 100) -> List[Dict[str, Any]]:
         thumbnails.c.article_title,
         thumbnails.c.article_url,
         thumbnails.c.concept_name,
-    )
+    ).where(thumbnails.c.is_draft == False)  # noqa: E712
     if query:
         needle = f"%{query.lower()}%"
         stmt = stmt.where(
@@ -77,6 +91,38 @@ def list_thumbnails(query: str = "", limit: int = 100) -> List[Dict[str, Any]]:
         return [_row_to_dict(row) for row in conn.execute(stmt).mappings().all()]
 
 
+def list_draft_thumbnails(user_id: Optional[int]) -> List[Dict[str, Any]]:
+    ensure_schema()
+    stmt = select(
+        thumbnails.c.id,
+        thumbnails.c.timestamp,
+        thumbnails.c.article_title,
+        thumbnails.c.article_url,
+        thumbnails.c.concept_name,
+        thumbnails.c.image_b64,
+        thumbnails.c.concept_scene,
+        thumbnails.c.concept_why,
+        thumbnails.c.concept_prompt,
+    ).where(
+        and_(
+            thumbnails.c.is_draft == True,  # noqa: E712
+            thumbnails.c.user_id == user_id,
+        )
+    ).order_by(thumbnails.c.id.asc())
+    with get_engine().begin() as conn:
+        return [_row_to_dict(row) for row in conn.execute(stmt).mappings().all()]
+
+
+def confirm_thumbnail(thumb_id: int) -> None:
+    ensure_schema()
+    with get_engine().begin() as conn:
+        conn.execute(
+            update(thumbnails)
+            .where(thumbnails.c.id == thumb_id)
+            .values(is_draft=False)
+        )
+
+
 def get_thumbnail(thumb_id: int) -> Optional[Dict[str, Any]]:
     ensure_schema()
     stmt = select(
@@ -86,6 +132,9 @@ def get_thumbnail(thumb_id: int) -> Optional[Dict[str, Any]]:
         thumbnails.c.article_url,
         thumbnails.c.concept_name,
         thumbnails.c.image_b64,
+        thumbnails.c.concept_scene,
+        thumbnails.c.concept_why,
+        thumbnails.c.concept_prompt,
     ).where(thumbnails.c.id == thumb_id)
     with get_engine().begin() as conn:
         return _row_to_dict(conn.execute(stmt).mappings().first())
@@ -95,6 +144,19 @@ def delete_thumbnail(thumb_id: int) -> None:
     ensure_schema()
     with get_engine().begin() as conn:
         conn.execute(delete(thumbnails).where(thumbnails.c.id == thumb_id))
+
+
+def delete_user_drafts(user_id: Optional[int]) -> None:
+    ensure_schema()
+    with get_engine().begin() as conn:
+        conn.execute(
+            delete(thumbnails).where(
+                and_(
+                    thumbnails.c.is_draft == True,  # noqa: E712
+                    thumbnails.c.user_id == user_id,
+                )
+            )
+        )
 
 
 def save_feedback(
@@ -721,7 +783,11 @@ def update_substack_note(
     shared: Optional[bool] = None,
     signal: Optional[str] = None,
     note_text: Optional[str] = None,
+    linkedin_post: Optional[str] = None,
+    threads_post: Optional[str] = None,
+    instagram_post: Optional[str] = None,
 ) -> None:
+    import json as _json
     ensure_schema()
     values: Dict[str, Any] = {}
     if shared is not None:
@@ -730,10 +796,53 @@ def update_substack_note(
         values["signal"] = signal
     if note_text is not None:
         values["note_text"] = note_text
+    if linkedin_post is not None:
+        values["linkedin_post"] = linkedin_post
+    if threads_post is not None:
+        values["threads_post"] = threads_post
+    if instagram_post is not None:
+        values["instagram_post"] = instagram_post
     if not values:
         return
+    # Archive old content values before overwriting
+    content_fields = {
+        "note_text": "substack",
+        "linkedin_post": "linkedin",
+        "threads_post": "threads",
+        "instagram_post": "instagram",
+    }
+    content_updates = {k: v for k, v in values.items() if k in content_fields}
     with get_engine().begin() as conn:
+        if content_updates:
+            row = conn.execute(
+                select(substack_notes).where(substack_notes.c.id == note_id)
+            ).mappings().first()
+            if row:
+                now = datetime.utcnow().isoformat()
+                history = _json.loads(row.get("edit_history") or "{}")
+                for col, platform_key in content_fields.items():
+                    if col not in content_updates:
+                        continue
+                    old_text = row.get(col) or ""
+                    new_text = content_updates[col]
+                    if old_text and old_text != new_text:
+                        entries = history.get(platform_key, [])
+                        entries = [{"timestamp": now, "text": old_text}] + entries[:19]
+                        history[platform_key] = entries
+                values["edit_history"] = _json.dumps(history)
         conn.execute(update(substack_notes).where(substack_notes.c.id == note_id).values(**values))
+
+
+def get_note_edit_history(note_id: int) -> Dict[str, Any]:
+    """Return the edit_history dict for a note, keyed by platform."""
+    import json as _json
+    ensure_schema()
+    stmt = select(substack_notes.c.edit_history).where(substack_notes.c.id == note_id)
+    with get_engine().begin() as conn:
+        row = conn.execute(stmt).mappings().first()
+    if not row:
+        return {}
+    return _json.loads(row.get("edit_history") or "{}")
 
 
 def save_substack_repurpose(note_id: int, linkedin: str, threads: str, instagram: str) -> None:

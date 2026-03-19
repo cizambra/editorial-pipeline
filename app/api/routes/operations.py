@@ -22,6 +22,18 @@ class SaveThumbnailRequest(BaseModel):
     article_url: str = ""
     concept_name: str = ""
     image_b64: str
+    is_draft: bool = False
+    concept_scene: str = ""
+    concept_why: str = ""
+    concept_prompt: str = ""
+
+
+class RunContentPatch(BaseModel):
+    section: str
+    lang: str
+    platform: str
+    sample_index: int
+    text: str
 
 
 class IdeaCreate(BaseModel):
@@ -67,6 +79,17 @@ async def save_run_thumbnail_concepts(run_id: int, body: dict):
     return {"ok": True}
 
 
+@router.patch("/api/history/{run_id}/content")
+async def patch_run_content(run_id: int, body: RunContentPatch, request: Request = None):
+    if request is not None:
+        auth.require_admin(request)
+    await run_in_threadpool(
+        storage.patch_run_content,
+        run_id, body.section, body.lang, body.platform, body.sample_index, body.text,
+    )
+    return {"ok": True}
+
+
 @router.delete("/api/history/{run_id}")
 async def delete_history_run(run_id: int, request: Request = None):
     if request is not None:
@@ -77,19 +100,48 @@ async def delete_history_run(run_id: int, request: Request = None):
 
 
 @router.post("/api/thumbnails/save")
-async def save_thumbnail(req: SaveThumbnailRequest):
+async def save_thumbnail(req: SaveThumbnailRequest, request: Request):
+    user = auth.current_user_from_request(request)
+    user_id = user.id if user else 0
     saved = await run_in_threadpool(
         storage.save_thumbnail,
         req.article_title,
         req.article_url,
         req.concept_name,
         req.image_b64,
+        req.is_draft,
+        user_id,
+        req.concept_scene or None,
+        req.concept_why or None,
+        req.concept_prompt or None,
     )
     return {
         "id": saved["id"],
         "created": saved["created"],
         "message": "Saved" if saved["created"] else "Already saved",
     }
+
+
+@router.get("/api/thumbnails/drafts")
+async def list_draft_thumbnails(request: Request):
+    user = auth.current_user_from_request(request)
+    user_id = user.id if user else 0
+    drafts = await run_in_threadpool(storage.list_draft_thumbnails, user_id)
+    return {"drafts": drafts}
+
+
+@router.post("/api/thumbnails/{thumb_id}/confirm")
+async def confirm_thumbnail(thumb_id: int):
+    await run_in_threadpool(storage.confirm_thumbnail, thumb_id)
+    return {"ok": True}
+
+
+@router.delete("/api/thumbnails/drafts")
+async def delete_user_drafts(request: Request):
+    user = auth.current_user_from_request(request)
+    user_id = user.id if user else 0
+    await run_in_threadpool(storage.delete_user_drafts, user_id)
+    return {"ok": True}
 
 
 @router.get("/api/thumbnails")
@@ -106,9 +158,8 @@ async def get_thumbnail(thumb_id: int):
 
 
 @router.delete("/api/thumbnails/{thumb_id}")
-async def delete_thumbnail(thumb_id: int, request: Request = None):
-    if request is not None:
-        auth.require_superadmin(request)
+async def delete_thumbnail(thumb_id: int, request: Request):
+    auth.require_superadmin(request)
     await run_in_threadpool(storage.delete_thumbnail, thumb_id)
     _logger.info("Thumbnail deleted", extra={"fields": {"thumbnail_id": thumb_id}})
     return {"message": "Deleted"}

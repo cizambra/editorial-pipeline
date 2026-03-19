@@ -20,21 +20,56 @@ from .db_schema import (
 )
 
 
+def _to_utc_datetime(scheduled_at: "datetime | str", timezone_name: str = "") -> datetime:
+    """Parse scheduled_at (string or datetime) and return a naive UTC datetime.
+
+    Bug fix: the client sends an ISO string like "2026-03-19T15:00:00".  SQLite
+    stores it as-is (with 'T').  SQLAlchemy formats datetime.utcnow() with a
+    space separator, so the string comparison 'T...' <= ' ...' is always False,
+    meaning no post ever becomes due.  Storing a proper Python datetime avoids
+    this by letting SQLAlchemy render both sides with the same format.
+    """
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+    from datetime import timezone as _tz
+
+    if isinstance(scheduled_at, str):
+        dt = datetime.fromisoformat(scheduled_at)
+    else:
+        dt = scheduled_at
+
+    # Already tz-aware → convert to UTC and strip tzinfo for naive storage
+    if dt.tzinfo is not None:
+        return dt.astimezone(_tz.utc).replace(tzinfo=None)
+
+    # Apply the user's named timezone before converting to UTC
+    if timezone_name:
+        try:
+            tz = ZoneInfo(timezone_name)
+            dt = dt.replace(tzinfo=tz)
+            return dt.astimezone(_tz.utc).replace(tzinfo=None)
+        except (ZoneInfoNotFoundError, Exception):
+            pass
+
+    # No timezone info available — treat as UTC
+    return dt
+
+
 def create_scheduled_post(
     platform: str,
     text: str,
-    scheduled_at: datetime,
+    scheduled_at: "datetime | str",
     image_url: str = "",
     source_label: str = "",
     timezone: str = "",
     note_id: Optional[int] = None,
 ) -> int:
     ensure_schema()
+    utc_dt = _to_utc_datetime(scheduled_at, timezone)
     stmt = insert(scheduled_posts).values(
         platform=platform,
         text=text,
         image_url=image_url,
-        scheduled_at=scheduled_at,
+        scheduled_at=utc_dt,
         source_label=source_label,
         timezone=timezone,
         note_id=note_id,
@@ -96,8 +131,8 @@ def update_scheduled_post_status(
     ensure_schema()
     values: Dict[str, Any] = {
         "status": status,
-        "post_id": post_id_result,
-        "error": error,
+        "post_id": post_id_result or "",  # guard against None — Postgres NOT NULL constraint
+        "error": error or "",
     }
     values["published_at"] = datetime.utcnow() if status == "published" else None
     stmt = update(scheduled_posts).where(scheduled_posts.c.id == post_id).values(**values)
@@ -396,6 +431,58 @@ def patch_run_data(run_id: int, patch: dict) -> None:
             data = {}
         data.update(patch)
         conn.execute(update(runs).where(runs.c.id == run_id).values(data_json=json.dumps(data, ensure_ascii=False)))
+
+
+def patch_run_content(
+    run_id: int,
+    section: str,
+    lang: str,
+    platform: str,
+    sample_index: int,
+    text: str,
+) -> None:
+    """Update one sample for a section/lang/platform and archive the old value in _edit_history."""
+    ensure_schema()
+    with get_engine().begin() as conn:
+        row = conn.execute(select(runs.c.data_json).where(runs.c.id == run_id)).scalar()
+        if row is None:
+            return
+        try:
+            data = json.loads(row)
+        except Exception:
+            data = {}
+
+        repurposed_key = f"repurposed_{lang}"
+        current_raw: str = (
+            (data.get(section) or {}).get(repurposed_key, {}) or {}
+        ).get(platform, "") or ""
+
+        samples = [s.strip() for s in current_raw.split("\n---\n") if s.strip()] if current_raw else []
+
+        # Archive the old sample text before overwriting
+        content_key = f"{section}-{lang}::{platform}::{sample_index}"
+        old_text = samples[sample_index] if sample_index < len(samples) else ""
+        if old_text and old_text.strip() != text.strip():
+            history_map = data.setdefault("_edit_history", {})
+            entries = history_map.setdefault(content_key, [])
+            entries.append({"timestamp": datetime.utcnow().isoformat(), "text": old_text})
+            if len(entries) > 20:
+                history_map[content_key] = entries[-20:]
+
+        # Write updated sample
+        while len(samples) <= sample_index:
+            samples.append("")
+        samples[sample_index] = text
+
+        section_data = data.setdefault(section, {})
+        repurposed_data = section_data.setdefault(repurposed_key, {})
+        repurposed_data[platform] = "\n---\n".join(s for s in samples if s)
+
+        conn.execute(
+            update(runs).where(runs.c.id == run_id).values(
+                data_json=json.dumps(data, ensure_ascii=False)
+            )
+        )
 
 
 def delete_run(run_id: int) -> None:

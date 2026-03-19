@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { FileText, Calendar, StickyNote, Quote, Search, ChevronRight, ChevronLeft, ExternalLink, Plus, ThumbsUp, Filter, X, Copy, Send, Clock, Share2, ThumbsDown, Upload, Loader2 } from "lucide-react";
+import { FileText, Calendar, StickyNote, Quote, Search, ChevronRight, ChevronLeft, ExternalLink, Plus, ThumbsUp, Filter, X, Copy, Send, Clock, Share2, ThumbsDown, Upload, Loader2, History, RotateCcw, Check, Zap } from "lucide-react";
 import { notes as notesApi, marketing, social } from "../../lib/api";
 import type { Note } from "./NotesInfiniteList";
 import { Card } from "./Card";
@@ -82,6 +82,20 @@ export function MarketingView() {
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
+  // History & save status
+  const [dbHistory, setDbHistory] = useState<Record<string, Array<{ timestamp: string; text: string }>>>({});
+  const [showHistory, setShowHistory] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "unsaved" | "saving" | "saved">("idle");
+  const [originalContent, setOriginalContent] = useState({ substack: "", linkedin: "", threads: "", instagram: "" });
+  const [toasts, setToasts] = useState<Array<{ id: number; message: string; type: "success" | "error" }>>([]);
+  const toastIdRef = useRef(0);
+
+  const addToast = useCallback((message: string, type: "success" | "error" = "success") => {
+    const id = ++toastIdRef.current;
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
+  }, []);
+
   const scheduledPosts: any[] = [];
 
   // Load campaigns from API
@@ -118,32 +132,64 @@ export function MarketingView() {
   const handleSelectNote = useCallback((note: Note) => {
     setSelectedNote(String(note.id));
     setSelectedNoteData(note);
-    setPlatformContent({
+    const content = {
       substack: note.note_text ?? "",
       linkedin: note.linkedin_post ?? "",
       threads: note.threads_post ?? "",
       instagram: note.instagram_post ?? "",
-    });
+    };
+    setPlatformContent(content);
+    setOriginalContent(content);
     setActivePlatform("substack");
+    setSaveStatus("idle");
+    setShowHistory(false);
+    // Load DB history for this note
+    notesApi.editHistory(String(note.id))
+      .then(res => setDbHistory(res.history ?? {}))
+      .catch(() => setDbHistory({}));
   }, []);
 
   const handleCreateNewNote = () => {
-    setPlatformContent({ substack: "", linkedin: "", threads: "", instagram: "" });
+    const empty = { substack: "", linkedin: "", threads: "", instagram: "" };
+    setPlatformContent(empty);
+    setOriginalContent(empty);
     setInstagramImage("");
     setInstagramImageFile(null);
     setActivePlatform("substack");
     setSelectedNote("new-note");
     setSelectedNoteData(null);
+    setSaveStatus("idle");
+    setShowHistory(false);
   };
 
   const handleSave = async () => {
     if (!selectedNoteData) return;
     setSaving(true);
+    setSaveStatus("saving");
     try {
-      await notesApi.update(String(selectedNoteData.id), { note_text: platformContent.substack });
-      setSelectedNoteData((prev) => prev ? { ...prev, note_text: platformContent.substack } : prev);
+      await notesApi.update(String(selectedNoteData.id), {
+        note_text: platformContent.substack,
+        linkedin_post: platformContent.linkedin,
+        threads_post: platformContent.threads,
+        instagram_post: platformContent.instagram,
+      });
+      setSelectedNoteData((prev) => prev ? {
+        ...prev,
+        note_text: platformContent.substack,
+        linkedin_post: platformContent.linkedin,
+        threads_post: platformContent.threads,
+        instagram_post: platformContent.instagram,
+      } : prev);
+      setOriginalContent({ ...platformContent });
+      // Refresh DB history so both browsers see updated restore points
+      notesApi.editHistory(String(selectedNoteData.id))
+        .then(res => setDbHistory(res.history ?? {}))
+        .catch(() => {});
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (err) {
       console.error("Save failed", err);
+      setSaveStatus("unsaved");
     } finally {
       setSaving(false);
     }
@@ -210,6 +256,43 @@ export function MarketingView() {
     } finally {
       setGenerating(false);
     }
+  };
+
+  // Detect unsaved changes when content drifts from what was loaded
+  useEffect(() => {
+    if (!selectedNoteData) return;
+    const changed =
+      platformContent.substack !== originalContent.substack ||
+      platformContent.linkedin !== originalContent.linkedin ||
+      platformContent.threads !== originalContent.threads ||
+      platformContent.instagram !== originalContent.instagram;
+    if (changed && saveStatus !== "saving" && saveStatus !== "saved") {
+      setSaveStatus("unsaved");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [platformContent]);
+
+  const platformHistoryKey = activePlatform === "substack" ? "substack" : activePlatform;
+  const currentHistory = dbHistory[platformHistoryKey] ?? [];
+
+  const SaveIndicator = () => {
+    if (saveStatus === "saving") return (
+      <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-subtle)' }}>
+        <Loader2 className="w-3 h-3 animate-spin" /> Saving…
+      </span>
+    );
+    if (saveStatus === "saved") return (
+      <span className="flex items-center gap-1 text-xs" style={{ color: '#059669' }}>
+        <Check className="w-3 h-3" /> Saved
+      </span>
+    );
+    if (saveStatus === "unsaved") return (
+      <span className="flex items-center gap-1 text-xs" style={{ color: '#d97706' }}>
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500" />
+        Unsaved changes
+      </span>
+    );
+    return null;
   };
 
   // Dynamic page header content based on active tab
@@ -458,11 +541,11 @@ export function MarketingView() {
                   <button
                     onClick={handleGenerate}
                     disabled={generating}
-                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
-                    style={{ background: 'rgba(var(--border-rgb),0.07)', color: 'var(--muted-foreground)' }}
+                    className="p-2 rounded-lg transition-all hover:bg-opacity-90"
+                    style={{ background: 'var(--primary)', color: '#fff', opacity: generating ? 0.7 : 1 }}
+                    title="Generate notes"
                   >
-                    {generating ? <Loader2 className="w-3 h-3 animate-spin" /> : "⚡"}
-                    {generating ? "Generating…" : "Generate"}
+                    {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -588,13 +671,27 @@ export function MarketingView() {
                     <h3 className="text-base font-bold leading-snug" style={{ color: 'var(--foreground)' }}>
                       {selectedNoteData?.issue || "New Note"}
                     </h3>
+                    {saveStatus !== "idle" && (
+                      <div className="mt-1">
+                        <SaveIndicator />
+                      </div>
+                    )}
                   </div>
-                  <button
-                    onClick={() => { setSelectedNote(null); setSelectedNoteData(null); }}
-                    className="p-2 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0 ml-4"
-                  >
-                    <X className="w-5 h-5" style={{ color: 'var(--muted-foreground)' }} />
-                  </button>
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-4">
+                    <button
+                      onClick={() => setShowHistory(true)}
+                      className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      title="Edit history"
+                    >
+                      <History className="w-4 h-4" style={{ color: 'var(--muted-foreground)' }} />
+                    </button>
+                    <button
+                      onClick={() => { setSelectedNote(null); setSelectedNoteData(null); setSaveStatus("idle"); }}
+                      className="p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <X className="w-5 h-5" style={{ color: 'var(--muted-foreground)' }} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Platform Tabs */}
@@ -1000,10 +1097,22 @@ export function MarketingView() {
                   <h3 className="text-[18px] font-bold truncate" style={{ color: 'var(--foreground)' }}>
                     {selectedNote === 'new-note' ? 'New Note' : (selectedNoteData?.issue || 'Compose Post')}
                   </h3>
-                  <p className="text-[13px]" style={{ color: 'var(--text-subtle)' }}>
-                    {activePlatform || 'Select platform'}
-                  </p>
+                  {saveStatus !== "idle" ? (
+                    <SaveIndicator />
+                  ) : (
+                    <p className="text-[13px]" style={{ color: 'var(--text-subtle)' }}>
+                      {activePlatform || 'Select platform'}
+                    </p>
+                  )}
                 </div>
+                <button
+                  onClick={() => setShowHistory(true)}
+                  className="p-2 rounded-xl active:bg-black active:bg-opacity-5"
+                  style={{ color: 'var(--muted-foreground)' }}
+                  title="Edit history"
+                >
+                  <History className="w-5 h-5" />
+                </button>
                 <button
                   className="px-4 py-2 rounded-xl text-[15px] font-semibold transition-all active:scale-95 flex items-center gap-1.5"
                   style={{ background: 'var(--primary)', color: '#fff', opacity: saving ? 0.7 : 1 }}
@@ -1244,19 +1353,25 @@ export function MarketingView() {
       <ScheduleModal
         isOpen={showScheduleModal}
         onClose={() => setShowScheduleModal(false)}
-        onSchedule={(date, time, timezone) => {
+        onSchedule={async (date, time, timezone) => {
           const text = platformContent[activePlatform as keyof typeof platformContent];
           const apiPlatform = activePlatform === "substack" ? "substack_note" : activePlatform;
           const scheduled_at = `${date}T${time}:00`;
-          social.schedule({
-            platform: apiPlatform,
-            text,
-            scheduled_at,
-            timezone,
-            source_label: selectedNoteData?.issue ?? "",
-            note_id: selectedNoteData?.id,
-          }).catch(console.error);
-          setShowScheduleModal(false);
+          try {
+            await social.schedule({
+              platform: apiPlatform,
+              text,
+              scheduled_at,
+              timezone,
+              source_label: selectedNoteData?.issue ?? "",
+              note_id: selectedNoteData?.id,
+            });
+            setShowScheduleModal(false);
+            const label = new Date(scheduled_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+            addToast(`Scheduled for ${label}`, "success");
+          } catch {
+            addToast("Failed to schedule. Please try again.", "error");
+          }
         }}
         platform={activePlatform as "substack" | "linkedin" | "instagram" | "threads"}
         title="Schedule Post"
@@ -1273,6 +1388,79 @@ export function MarketingView() {
         title="Schedule to All Platforms"
         description="Schedule this note to multiple platforms at once. Posts will be published automatically at the scheduled time."
       />
+
+      {/* History Panel */}
+      {showHistory && (
+        <div
+          className="fixed inset-y-0 right-0 z-50 w-80 shadow-2xl flex flex-col"
+          style={{
+            background: 'var(--card)',
+            borderLeft: '1px solid rgba(var(--border-rgb), 0.15)',
+            animation: 'slideInRight 0.2s cubic-bezier(0.22,1,0.36,1)',
+          }}
+        >
+          <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid rgba(var(--border-rgb), 0.12)' }}>
+            <div>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>Edit History</h3>
+              <p className="text-xs mt-0.5 capitalize" style={{ color: 'var(--text-subtle)' }}>{activePlatform} · {currentHistory.length} versions</p>
+            </div>
+            <button
+              onClick={() => setShowHistory(false)}
+              className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <X className="w-4 h-4" style={{ color: 'var(--muted-foreground)' }} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {currentHistory.length === 0 ? (
+              <p className="text-xs text-center py-8" style={{ color: 'var(--text-subtle)' }}>
+                No history yet. Save a change to start tracking.
+              </p>
+            ) : currentHistory.map((entry, idx) => (
+              <div key={idx} className="rounded-xl p-3" style={{ background: 'var(--secondary)', border: '1px solid rgba(var(--border-rgb), 0.1)' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-semibold" style={{ color: 'var(--text-subtle)' }}>
+                    {new Date(entry.timestamp).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setPlatformContent(prev => ({ ...prev, [platformHistoryKey]: entry.text }));
+                      setShowHistory(false);
+                    }}
+                    className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg transition-all"
+                    style={{ background: 'rgba(var(--primary-rgb), 0.1)', color: 'var(--primary)' }}
+                  >
+                    <RotateCcw className="w-2.5 h-2.5" />
+                    Restore
+                  </button>
+                </div>
+                <p className="text-xs leading-relaxed line-clamp-4" style={{ color: 'var(--muted-foreground)' }}>
+                  {entry.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notifications */}
+      {toasts.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 pointer-events-none">
+          {toasts.map(toast => (
+            <div
+              key={toast.id}
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg pointer-events-auto"
+              style={{
+                background: toast.type === "success" ? '#059669' : '#dc2626',
+                color: '#fff',
+                animation: 'slideInRight 0.2s cubic-bezier(0.22,1,0.36,1)',
+              }}
+            >
+              {toast.message}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -178,6 +178,52 @@ Postgres does not survive WSL restarts. Add this to your `~/.zshrc` or `~/.bashr
 
 ```bash
 # Auto-start PostgreSQL in WSL
+
+## Railway Deployment
+
+Recommended production shape for this app:
+
+- one Railway web service
+- one Railway PostgreSQL service
+- one app replica only
+- `APP_ENV=production`
+- `AUTH_MODE=local`
+
+The frontend should not run as a separate Vite process in production. The React app is built into `static/dist`, and the FastAPI app serves both the UI and the API.
+
+### Required Railway setup
+
+Set these in the Railway web service:
+
+```env
+APP_ENV=production
+AUTH_MODE=local
+SESSION_SECRET=<strong random secret>
+BOOTSTRAP_ADMIN_EMAIL=<your email>
+BOOTSTRAP_ADMIN_PASSWORD=<strong password>
+BOOTSTRAP_ADMIN_NAME=<your name>
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+```
+
+Add any provider keys you use, such as:
+
+```env
+ANTHROPIC_API_KEY=...
+OPENAI_API_KEY=...
+GOOGLE_API_KEY=...
+```
+
+### Start and healthcheck
+
+The repo includes `railway.json` with the intended commands:
+
+- build: `npm install && pip install -r requirements.txt`
+- start: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- healthcheck: `/readyz`
+
+### Important operational note
+
+The scheduler runs inside the FastAPI process. Keep the Railway service at a single replica to avoid duplicate scheduled jobs.
 if ! pg_isready -q 2>/dev/null; then
     sudo service postgresql start
 fi

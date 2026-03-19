@@ -9,13 +9,35 @@ from typing import Any, Dict, List, Optional
 from app.persistence import db
 
 
-def save_thumbnail(article_title: str, article_url: str, concept_name: str, image_b64: str) -> Dict[str, Any]:
+def save_thumbnail(
+    article_title: str,
+    article_url: str,
+    concept_name: str,
+    image_b64: str,
+    is_draft: bool = False,
+    user_id: Optional[int] = None,
+    concept_scene: Optional[str] = None,
+    concept_why: Optional[str] = None,
+    concept_prompt: Optional[str] = None,
+) -> Dict[str, Any]:
     image_hash = hashlib.sha1((image_b64 or "").encode("utf-8")).hexdigest()
-    return db.save_thumbnail(article_title, article_url, concept_name, image_hash, image_b64)
+    return db.save_thumbnail(
+        article_title, article_url, concept_name, image_hash, image_b64,
+        is_draft=is_draft, user_id=user_id,
+        concept_scene=concept_scene, concept_why=concept_why, concept_prompt=concept_prompt,
+    )
 
 
 def list_thumbnails(query: str = "", limit: int = 100) -> List[Dict[str, Any]]:
     return db.list_thumbnails(query=query, limit=limit)
+
+
+def list_draft_thumbnails(user_id: Optional[int]) -> List[Dict[str, Any]]:
+    return db.list_draft_thumbnails(user_id=user_id)
+
+
+def confirm_thumbnail(thumb_id: int) -> None:
+    db.confirm_thumbnail(thumb_id)
 
 
 def get_thumbnail(thumb_id: int) -> Optional[Dict[str, Any]]:
@@ -24,6 +46,10 @@ def get_thumbnail(thumb_id: int) -> Optional[Dict[str, Any]]:
 
 def delete_thumbnail(thumb_id: int) -> None:
     db.delete_thumbnail(thumb_id)
+
+
+def delete_user_drafts(user_id: Optional[int]) -> None:
+    db.delete_user_drafts(user_id)
 
 
 def save_feedback(
@@ -339,8 +365,23 @@ def update_substack_note(
     shared: Optional[bool] = None,
     signal: Optional[str] = None,
     note_text: Optional[str] = None,
+    linkedin_post: Optional[str] = None,
+    threads_post: Optional[str] = None,
+    instagram_post: Optional[str] = None,
 ) -> None:
-    db.update_substack_note(note_id, shared=shared, signal=signal, note_text=note_text)
+    db.update_substack_note(
+        note_id,
+        shared=shared,
+        signal=signal,
+        note_text=note_text,
+        linkedin_post=linkedin_post,
+        threads_post=threads_post,
+        instagram_post=instagram_post,
+    )
+
+
+def get_note_edit_history(note_id: int):
+    return db.get_note_edit_history(note_id)
 
 
 def save_substack_repurpose(note_id: int, linkedin: str, threads: str, instagram: str) -> None:
