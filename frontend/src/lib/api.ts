@@ -2,6 +2,26 @@
 
 const BASE = "";  // same-origin
 
+export interface AuthUser {
+  id: number;
+  email: string;
+  display_name?: string;
+  role: string;
+  status?: string;
+}
+
+export interface AuthMeResponse {
+  authenticated: boolean;
+  auth_mode: string;
+  user?: AuthUser | null;
+}
+
+export interface AuthLoginResponse {
+  authenticated: boolean;
+  auth_mode: string;
+  user: AuthUser;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(BASE + path, {
     credentials: "include",
@@ -18,9 +38,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const auth = {
-  me: () => request<{ id: string; email: string; role: string; name?: string }>("/api/auth/me"),
+  me: () => request<AuthMeResponse>("/api/auth/me"),
   login: (email: string, password: string) =>
-    request<{ ok: boolean }>("/api/auth/login", {
+    request<AuthLoginResponse>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),

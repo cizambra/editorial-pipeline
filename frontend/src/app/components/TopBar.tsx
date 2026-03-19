@@ -1,10 +1,15 @@
 import { Menu } from "lucide-react";
+import { useAuth } from "../../lib/auth-context";
 
 interface TopBarProps {
   onMenuClick?: () => void;
 }
 
 export function TopBar({ onMenuClick }: TopBarProps) {
+  const { user, logout } = useAuth();
+  const displayName = user?.display_name || user?.email || "Not signed in";
+  const roleLabel = user?.role || "guest";
+
   return (
     <div 
       className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b"
@@ -29,7 +34,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           Cost <span style={{ color: 'var(--foreground)' }}>$0.7052</span> / <span style={{ color: 'var(--foreground)' }}>83.9k</span> tokens
         </div>
         <div className="hidden md:block text-sm lg:text-xs" style={{ color: 'var(--muted-foreground)' }}>
-          Epicurean Admin
+          {displayName}
         </div>
         <div 
           className="text-[11px] lg:text-[10px] font-bold tracking-[0.08em] uppercase px-2 py-0.5 rounded"
@@ -38,10 +43,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             color: '#8b3519'
           }}
         >
-          <span className="hidden sm:inline">SUPERADMIN</span>
-          <span className="sm:hidden">ADMIN</span>
+          <span className="hidden sm:inline">{roleLabel}</span>
+          <span className="sm:hidden">{roleLabel}</span>
         </div>
         <button 
+          onClick={() => void logout()}
           className="text-sm lg:text-xs hover:underline hidden sm:block"
           style={{ color: 'var(--muted-foreground)' }}
         >

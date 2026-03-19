@@ -1,15 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { auth } from "./api";
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  name?: string;
-}
+import { auth, type AuthUser } from "./api";
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -19,13 +12,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refetch = async () => {
     try {
       const me = await auth.me();
-      setUser(me);
+      setUser(me.authenticated ? me.user ?? null : null);
     } catch {
       setUser(null);
     }
@@ -36,8 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    await auth.login(email, password);
-    await refetch();
+    const result = await auth.login(email, password);
+    setUser(result.user);
   };
 
   const logout = async () => {
