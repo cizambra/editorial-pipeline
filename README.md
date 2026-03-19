@@ -135,7 +135,7 @@ Current behavior:
 ## Run the app
 
 ```bash
-python3 main.py
+python3 -m uvicorn app.main:app --reload
 ```
 
 Then open:
@@ -146,31 +146,48 @@ http://localhost:8000
 
 ## Local Postgres
 
-The repo now includes a local Postgres container:
+Postgres is required. The app will not start if `DATABASE_URL` is not set or if the database is unreachable.
+
+### Option A — Docker (recommended for most setups)
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-Use it for local development.
+This creates the `editorial` user and `editorial_pipeline` database automatically.
 
-When `DATABASE_URL` is set, these features already use the DB-backed path:
+### Option B — Native Postgres (WSL or bare Linux)
 
-- internal users / auth accounts
-- scheduled publishing queue
-- config overrides
-- pipeline checkpoint
-- run history
-- image cost records
-- ideas
-- thumbnails
-- post feedback
-- quotes
-- Substack subscribers
-- Substack note batches
-- Substack notes
+If you have Postgres installed directly on the system, create the user and database once:
 
-Postgres is now the required runtime store for the app.
+```bash
+bash scripts/setup_db.sh
+```
+
+This is idempotent — safe to run again if something went wrong.
+
+Then set `DATABASE_URL` in your `.env`:
+
+```env
+DATABASE_URL=postgresql://editorial:editorial@localhost:5432/editorial_pipeline
+```
+
+#### WSL: auto-start on each session
+
+Postgres does not survive WSL restarts. Add this to your `~/.zshrc` or `~/.bashrc`:
+
+```bash
+# Auto-start PostgreSQL in WSL
+if ! pg_isready -q 2>/dev/null; then
+    sudo service postgresql start
+fi
+```
+
+To avoid the password prompt, run this once in your terminal:
+
+```bash
+echo "$USER ALL=(ALL) NOPASSWD: /usr/sbin/service postgresql start" | sudo tee /etc/sudoers.d/postgresql-wsl
+```
 
 ## Import existing local data into Postgres
 
@@ -327,13 +344,70 @@ or upload it from the Settings page in the UI.
 5. Schedules or publishes supported social outputs
 6. Stores history, notes, quotes, thumbnails, and related operational data locally
 
+## Frontend (React)
+
+The frontend is a React + Vite + Tailwind app located in `frontend/`. It builds into `static/dist/` and is served by FastAPI at the root route. The old Jinja2 templates are kept as a fallback during development but are no longer the primary UI.
+
+### Build the frontend
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+The built files land in `static/dist/` and are automatically picked up when the Python server starts.
+
+### Frontend dev server (hot reload)
+
+```bash
+cd frontend
+npm run dev
+```
+
+Runs on `http://localhost:5173`. API calls still hit `http://localhost:8000` (same-origin via browser proxy or direct, depending on your setup). For local dev with hot reload, run both servers in parallel.
+
+### Frontend structure
+
+```
+frontend/
+├── src/
+│   ├── lib/
+│   │   ├── api.ts            # Typed API client for all backend endpoints
+│   │   └── auth-context.tsx  # React auth context (session + login/logout)
+│   ├── components/
+│   │   └── LoginOverlay.tsx  # Login screen shown when unauthenticated
+│   └── app/
+│       ├── Root.tsx          # Layout: sidebar, topbar, mobile bottom nav, auth guard
+│       ├── routes.tsx        # React Router routes (one per page)
+│       └── components/       # All page views + shared UI components
+│           ├── PipelineView.tsx     — wired to SSE pipeline stream
+│           ├── MarketingView.tsx    — campaigns, compose, scheduling
+│           ├── CompanionView.tsx
+│           ├── ThumbnailView.tsx
+│           ├── DashboardView.tsx
+│           ├── SettingsView.tsx
+│           ├── HistoryView.tsx      — run history
+│           ├── IdeasView.tsx        — content ideas
+│           └── AudienceView.tsx     — subscriber browser
+```
+
+### Mobile layout
+
+On mobile (`< 1024px`):
+- Full-screen sidebar overlay (accessed via **More** in the bottom nav)
+- **Bottom navigation bar** with: Pipeline · Marketing · Companion · More
+- Desktop sidebar is hidden; replaced by the bottom nav + overlay pattern
+
 ## What changed recently
 
+- Replaced Jinja2/vanilla-JS frontend with a React + Vite + Tailwind SPA (`frontend/`)
+- Wired React frontend to all existing FastAPI API endpoints
+- Added mobile bottom nav (Pipeline / Marketing / Companion / More) matching proto-UI design
+- Built HistoryView, IdeasView, AudienceView (were placeholders in the proto-UI)
+- FastAPI now serves the React build at `/` with SPA fallback for client-side routing
 - Added login and local superadmin bootstrapping
 - Added internal account creation through the UI
 - Added `.env.example` with explained variables
-- Added local Postgres dev compose file
-
-## Next planned infrastructure step
-
-Move the app's canonical persistence from local SQLite/JSON to Postgres while preserving the new auth flow.
+- Moved canonical persistence from SQLite/JSON to Postgres
+- Added local Postgres dev compose file and `scripts/setup_db.sh` for native installs

@@ -3,7 +3,15 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
-import db
+from app.persistence import db
+
+
+def create_pending_run(title: str, article_url: str) -> int:
+    run_id = db.create_pending_run(title, article_url)
+    from app.persistence import storage_reports
+
+    storage_reports.invalidate_dashboard_cache()
+    return run_id
 
 
 def save_run(
@@ -11,19 +19,30 @@ def save_run(
     article_url: str,
     data: Dict[str, Any],
     token_summary: Optional[Dict[str, Any]] = None,
+    pending_run_id: Optional[int] = None,
 ) -> int:
     ts = token_summary or {}
     tags_list = data.get("tags", [])
     tags_str = ",".join(str(t) for t in tags_list) if isinstance(tags_list, list) else ""
-    return db.create_run(
-        title,
-        article_url,
-        json.dumps(data, ensure_ascii=False),
+    data_json = json.dumps(data, ensure_ascii=False)
+    kwargs = dict(
+        data_json=data_json,
         tokens_in=ts.get("input_tokens", 0),
         tokens_out=ts.get("output_tokens", 0),
         cost_usd=ts.get("estimated_cost_usd", 0),
         tags=tags_str,
     )
+    if pending_run_id is not None:
+        db.complete_run(pending_run_id, **kwargs)
+        from app.persistence import storage_reports
+
+        storage_reports.invalidate_dashboard_cache()
+        return pending_run_id
+    run_id = db.create_run(title, article_url, **kwargs)
+    from app.persistence import storage_reports
+
+    storage_reports.invalidate_dashboard_cache()
+    return run_id
 
 
 def _get_social_payload(source_data: Dict[str, Any], lang: str) -> Dict[str, Any]:
@@ -72,7 +91,32 @@ def _marketing_summary(data: Dict[str, Any]) -> Dict[str, Any]:
 def record_image_cost(source: str, count: int, price_per_image: float) -> float:
     total = round(count * price_per_image, 6)
     db.record_image_cost(source, count, total)
+    from app.persistence import storage_reports
+
+    storage_reports.invalidate_dashboard_cache()
     return total
+
+
+def fail_run(run_id: int) -> None:
+    db.fail_run(run_id)
+    from app.persistence import storage_reports
+
+    storage_reports.invalidate_dashboard_cache()
+
+
+def cancel_run(run_id: int) -> None:
+    db.cancel_run(run_id)
+    from app.persistence import storage_reports
+
+    storage_reports.invalidate_dashboard_cache()
+
+
+def fail_all_running_runs() -> int:
+    count = db.fail_all_running_runs()
+    from app.persistence import storage_reports
+
+    storage_reports.invalidate_dashboard_cache()
+    return count
 
 
 def list_history_runs(limit: int = 50) -> List[Dict[str, Any]]:
@@ -81,12 +125,15 @@ def list_history_runs(limit: int = 50) -> List[Dict[str, Any]]:
         {
             "id": row["id"],
             "timestamp": row["timestamp"],
+            "created_at": row["timestamp"],
             "title": row["title"],
             "article_url": row["article_url"],
             "tokens_in": row["tokens_in"] or 0,
             "tokens_out": row["tokens_out"] or 0,
             "cost_usd": row["cost_usd"] or 0,
-            "tags": row["tags"] or "",
+            "cost": row["cost_usd"] or 0,
+            "tags": [tag.strip() for tag in (row["tags"] or "").split(",") if tag.strip()],
+            "status": row.get("status", "") or "done",
         }
         for row in rows
     ]
@@ -129,8 +176,16 @@ def get_history_run(run_id: int) -> Optional[Dict[str, Any]]:
         "tokens_in": row["tokens_in"] or 0,
         "tokens_out": row["tokens_out"] or 0,
         "cost_usd": row["cost_usd"] or 0,
+        "status": row.get("status", "") or "done",
     }
+
+
+def patch_run_data(run_id: int, patch: dict) -> None:
+    db.patch_run_data(run_id, patch)
 
 
 def delete_history_run(run_id: int) -> None:
     db.delete_run(run_id)
+    from app.persistence import storage_reports
+
+    storage_reports.invalidate_dashboard_cache()

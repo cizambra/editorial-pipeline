@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 from sqlalchemy import insert, select, update
 
-import db
+from app.persistence import db
 
 
 def _coerce_datetime(value: Any) -> Any:

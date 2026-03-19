@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from tests import clear_test_modules
 
 
 class LegacyImportTests(unittest.TestCase):
@@ -26,8 +27,7 @@ class LegacyImportTests(unittest.TestCase):
         os.environ["STATIC_GENERATED_DIR"] = str(base / "generated")
         os.environ["COMPANION_TEMPLATE_PATH"] = str(base / "template.md")
 
-        for name in ["storage", "settings", "db", "scripts.import_legacy_data"]:
-            sys.modules.pop(name, None)
+        clear_test_modules()
 
         self.storage = importlib.import_module("storage")
         self.importer = importlib.import_module("scripts.import_legacy_data")

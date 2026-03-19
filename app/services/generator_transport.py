@@ -36,7 +36,7 @@ def get_token_summary() -> Dict[str, Any]:
         "output_tokens": out,
         "cache_write_tokens": cw,
         "cache_read_tokens": cr,
-        "estimated_cost_usd": round(cost, 4),
+        "estimated_cost_usd": round(cost, 6),
     }
 
 

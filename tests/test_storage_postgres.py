@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from tests import clear_test_modules
 
 
 class StoragePostgresTests(unittest.TestCase):
@@ -24,8 +25,7 @@ class StoragePostgresTests(unittest.TestCase):
         os.environ["STATIC_GENERATED_DIR"] = str(base / "generated")
         os.environ["COMPANION_TEMPLATE_PATH"] = str(base / "template.md")
 
-        for name in ["storage", "settings", "db"]:
-            sys.modules.pop(name, None)
+        clear_test_modules()
 
         self.storage = importlib.import_module("storage")
         self.storage.init_db()
@@ -73,7 +73,8 @@ class StoragePostgresTests(unittest.TestCase):
         self.assertEqual(len(history), 1)
         self.assertEqual(history[0]["id"], run_id)
         self.assertEqual(history[0]["title"], "Epicurean Test Run")
-        self.assertEqual(history[0]["tags"], "media,ops")
+        self.assertEqual(history[0]["tags"], ["media", "ops"])
+        self.assertEqual(history[0]["status"], "done")
 
         marketing = self.storage.list_marketing_runs()
         self.assertEqual(len(marketing), 1)
@@ -86,9 +87,39 @@ class StoragePostgresTests(unittest.TestCase):
         self.assertEqual(run["tokens_in"], 111)
         self.assertEqual(run["tokens_out"], 222)
         self.assertEqual(run["cost_usd"], 0.45)
+        self.assertEqual(run["status"], "done")
 
         self.storage.delete_history_run(run_id)
         self.assertEqual(self.storage.list_history_runs(), [])
+
+    def test_pending_run_is_visible_in_history(self) -> None:
+        run_id = self.storage.create_pending_run("Live Run", "https://example.com/live")
+
+        history = self.storage.list_history_runs()
+
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]["id"], run_id)
+        self.assertEqual(history[0]["status"], "running")
+        self.assertEqual(history[0]["cost_usd"], 0)
+
+    def test_fail_all_running_runs_marks_orphaned_runs_as_error(self) -> None:
+        run_id = self.storage.create_pending_run("Interrupted Run", "https://example.com/interrupted")
+
+        changed = self.storage.fail_all_running_runs()
+        run = self.storage.get_history_run(run_id)
+
+        self.assertEqual(changed, 1)
+        self.assertEqual(run["status"], "error")
+
+    def test_cancel_run_marks_pending_run_as_cancelled(self) -> None:
+        run_id = self.storage.create_pending_run("Cancelled Run", "https://example.com/cancelled")
+
+        self.storage.cancel_run(run_id)
+        run = self.storage.get_history_run(run_id)
+        history = self.storage.list_history_runs()
+
+        self.assertEqual(run["status"], "cancelled")
+        self.assertEqual(history[0]["status"], "cancelled")
 
     def test_dashboard_uses_database_runs_and_image_costs(self) -> None:
         self.storage.save_run(
@@ -127,6 +158,11 @@ class StoragePostgresTests(unittest.TestCase):
         self.assertEqual(dashboard["total_cost_usd"], 1.25)
         self.assertEqual(dashboard["total_image_cost_usd"], 0.66)
         self.assertEqual(dashboard["image_cost_by_source"]["openai"]["count"], 2)
+        self.assertIn("daily_spend", dashboard)
+        daily = next(iter(dashboard["daily_spend"].values()))
+        self.assertEqual(daily["run_cost_usd"], 1.25)
+        self.assertEqual(daily["image_cost_usd"], 0.66)
+        self.assertEqual(daily["total_cost_usd"], 1.91)
 
     def test_thumbnails_feedback_and_ideas_use_database_url_store(self) -> None:
         saved = self.storage.save_thumbnail(

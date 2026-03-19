@@ -127,8 +127,16 @@ def build_pipeline_stream(
             storage.save_checkpoint(checkpoint_meta)
 
     def stream():
+        pending_run_id: Optional[int] = None
         try:
             final_result = None
+            # Reserve a DB row immediately so history shows the run from the moment it starts
+            try:
+                pending_run_id = storage.create_pending_run(reflection_title, article_url)
+                yield f"event: run_pending\ndata: {json.dumps({'run_id': pending_run_id})}\n\n"
+            except Exception:
+                pass  # non-fatal — run will still be saved at the end
+
             with log_context(reflection_title=reflection_title, article_url=article_url):
                 for chunk in generator.run_full_pipeline_stream(
                     reflection=reflection_text,
@@ -147,6 +155,11 @@ def build_pipeline_stream(
                         final_result = json.loads(data_line)
 
             if cancel_ev.is_set():
+                if pending_run_id:
+                    try:
+                        storage.cancel_run(pending_run_id)
+                    except Exception:
+                        pass
                 yield "event: cancelled\ndata: {}\n\n"
                 return
 
@@ -155,7 +168,10 @@ def build_pipeline_stream(
 
             if final_result:
                 try:
-                    run_id = storage.save_run(reflection_title, article_url, final_result, token_summary)
+                    run_id = storage.save_run(
+                        reflection_title, article_url, final_result, token_summary,
+                        pending_run_id=pending_run_id,
+                    )
                     quotes = final_result.get("quotes") or []
                     if quotes:
                         storage.save_quotes(run_id, reflection_title, article_url, quotes)
@@ -163,11 +179,18 @@ def build_pipeline_stream(
                         "Persisted completed pipeline run",
                         extra={"fields": {"run_id": run_id, "quote_count": len(quotes)}},
                     )
-                except Exception:
+                    yield f"event: run_saved\ndata: {json.dumps({'run_id': run_id})}\n\n"
+                except Exception as exc:
+                    if pending_run_id:
+                        try:
+                            storage.fail_run(pending_run_id)
+                        except Exception:
+                            pass
                     _logger.exception(
                         "Failed to persist completed pipeline run",
                         extra={"fields": {"title": reflection_title, "article_url": article_url}},
                     )
+                    yield f"event: save_error\ndata: {json.dumps({'message': str(exc)})}\n\n"
 
             yield f"event: tokens\ndata: {json.dumps(token_summary)}\n\n"
 
@@ -202,6 +225,11 @@ def build_pipeline_stream(
 
             yield "event: done\ndata: {}\n\n"
         except Exception as exc:
+            if pending_run_id:
+                try:
+                    storage.fail_run(pending_run_id)
+                except Exception:
+                    pass
             yield f"event: error\ndata: {json.dumps({'message': str(exc)})}\n\n"
 
     return stream()

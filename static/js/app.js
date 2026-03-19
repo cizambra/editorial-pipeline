@@ -994,6 +994,32 @@
       }
     }
 
+    function parseIdeaSampleUrls(rawValue) {
+      if (!rawValue) return [];
+      if (Array.isArray(rawValue)) return rawValue.filter(Boolean);
+      if (typeof rawValue !== "string") return [];
+      try {
+        const parsed = JSON.parse(rawValue);
+        return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+      } catch (_err) {
+        return rawValue ? [rawValue] : [];
+      }
+    }
+
+    function renderIdeaSampleLinks(idea) {
+      const sampleUrls = parseIdeaSampleUrls(idea.sample_urls).slice(0, 3);
+      if (!sampleUrls.length) return "";
+      return '<div class="muted" style="margin-top:10px;font-size:12px">' +
+        '<span style="margin-right:8px">Sample posts:</span>' +
+        sampleUrls.map((url, index) =>
+          '<a href="' + H(url) + '" target="_blank" rel="noopener noreferrer" ' +
+          'style="color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb, var(--accent) 35%, transparent);margin-right:10px">' +
+          'Post ' + (index + 1) +
+          "</a>"
+        ).join("") +
+      "</div>";
+    }
+
     function ideasRender() {
       const statusBorderColor = { new: "var(--line-strong)", writing: "var(--accent)", done: "var(--ok)" };
       $("ideas-list").innerHTML = S.ideas.length
@@ -1008,6 +1034,7 @@
               '</div>' +
               '<span class="tag" style="text-transform:capitalize">' + H(status) + '</span>' +
             '</div>' +
+            renderIdeaSampleLinks(idea) +
             '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">' +
               '<button class="btn" data-a="idea-status" data-id="' + idea.id + '" data-status="new">New</button>' +
               '<button class="btn" data-a="idea-status" data-id="' + idea.id + '" data-status="writing">Writing</button>' +

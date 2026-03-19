@@ -6,7 +6,7 @@ from collections import Counter
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-import db
+from app.persistence import db
 
 
 def save_thumbnail(article_title: str, article_url: str, concept_name: str, image_b64: str) -> Dict[str, Any]:
@@ -66,9 +66,17 @@ def _find_duplicate_idea_id(existing_themes: Dict[str, int], theme: str) -> Opti
     return None
 
 
+def _normalize_sample_urls(raw_urls: Any) -> List[str]:
+    if isinstance(raw_urls, list):
+        return [str(url).strip() for url in raw_urls if str(url).strip()]
+    if isinstance(raw_urls, str) and raw_urls.strip():
+        return [raw_urls.strip()]
+    return []
+
+
 def save_ideas_batch(categories: List[Dict[str, Any]], source: str = "reddit") -> Dict[str, Any]:
     now = datetime.utcnow()
-    saved = updated = 0
+    saved = updated = skipped = 0
     existing = db.list_idea_themes()
     existing_themes = {row["theme"].lower()[:60]: row["id"] for row in existing}
 
@@ -79,9 +87,23 @@ def save_ideas_batch(categories: List[Dict[str, Any]], source: str = "reddit") -
             theme = struggle.get("theme", "").strip()
             if not theme:
                 continue
+            sample_urls = _normalize_sample_urls(struggle.get("sample_urls", []))
+            if source == "reddit" and not sample_urls:
+                skipped += 1
+                continue
             match_id = _find_duplicate_idea_id(existing_themes, theme)
             if match_id is not None:
                 db.increment_idea_frequency(match_id, int(struggle.get("frequency", 1)), now)
+                db.update_idea_metadata(
+                    match_id,
+                    category=cat_label,
+                    emoji=cat_emoji,
+                    article_angle=struggle.get("article_angle", ""),
+                    example=struggle.get("example", ""),
+                    main_struggle=struggle.get("main_struggle", ""),
+                    sample_urls=json.dumps(sample_urls),
+                    updated_at=now,
+                )
                 updated += 1
                 continue
 
@@ -93,6 +115,8 @@ def save_ideas_batch(categories: List[Dict[str, Any]], source: str = "reddit") -
                     "frequency": int(struggle.get("frequency", 1)),
                     "article_angle": struggle.get("article_angle", ""),
                     "example": struggle.get("example", ""),
+                    "main_struggle": struggle.get("main_struggle", ""),
+                    "sample_urls": json.dumps(sample_urls),
                     "source": source,
                     "status": "new",
                     "created_at": now,
@@ -102,7 +126,7 @@ def save_ideas_batch(categories: List[Dict[str, Any]], source: str = "reddit") -
             existing_themes[theme.lower()[:60]] = idea_id
             saved += 1
 
-    return {"saved": saved, "updated": updated}
+    return {"saved": saved, "updated": updated, "skipped_without_sample_urls": skipped}
 
 
 def save_quotes(run_id: int, article_title: str, article_url: str, quotes: List[Dict[str, Any]]) -> List[int]:
@@ -145,6 +169,10 @@ def delete_quote(quote_id: int) -> None:
 
 def upsert_subscribers(subscribers: List[Dict[str, Any]]) -> int:
     return db.upsert_subscribers(subscribers)
+
+
+def backfill_subscriber_countries() -> int:
+    return db.backfill_subscriber_countries()
 
 
 def get_subscribers(

@@ -213,6 +213,34 @@ def increment_idea_frequency(idea_id: int, amount: int, updated_at: datetime) ->
         )
 
 
+def update_idea_metadata(
+    idea_id: int,
+    *,
+    category: str,
+    emoji: str,
+    article_angle: str,
+    example: str,
+    main_struggle: str,
+    sample_urls: str,
+    updated_at: datetime,
+) -> None:
+    ensure_schema()
+    with get_engine().begin() as conn:
+        conn.execute(
+            update(ideas)
+            .where(ideas.c.id == idea_id)
+            .values(
+                category=category,
+                emoji=emoji,
+                article_angle=article_angle,
+                example=example,
+                main_struggle=main_struggle,
+                sample_urls=sample_urls,
+                updated_at=updated_at,
+            )
+        )
+
+
 def create_idea_row(values: Dict[str, Any]) -> int:
     ensure_schema()
     with get_engine().begin() as conn:
@@ -309,23 +337,65 @@ def get_quote_by_id(quote_id: int) -> Optional[Dict[str, Any]]:
 def upsert_subscribers(subscribers: List[Dict[str, Any]]) -> int:
     ensure_schema()
     now = datetime.utcnow().isoformat()
-    with get_engine().begin() as conn:
-        for sub in subscribers:
-            values = {
-                "id": sub.get("user_id"),
-                "email": sub.get("user_email_address", ""),
-                "name": sub.get("user_name") or "",
-                "photo_url": sub.get("user_photo_url") or "",
-                "subscription_interval": sub.get("subscription_interval") or "free",
-                "is_subscribed": 1 if sub.get("is_subscribed") else 0,
-                "is_comp": 1 if sub.get("is_comp") else 0,
-                "activity_rating": int(sub.get("activity_rating") or 0),
-                "subscription_created_at": sub.get("subscription_created_at") or "",
-                "total_revenue_generated": int(sub.get("total_revenue_generated") or 0),
-                "subscription_country": sub.get("subscription_country") or "",
-                "synced_at": now,
-            }
-            _upsert_row(substack_subscribers, "email", values["email"], values)
+    synced_emails: set = set()
+    for sub in subscribers:
+        email = sub.get("user_email_address", "")
+        if not email:
+            continue
+        synced_emails.add(email)
+        country_from_api = sub.get("subscription_country") or ""
+        values = {
+            "id": sub.get("user_id"),
+            "email": email,
+            "name": sub.get("user_name") or "",
+            "photo_url": sub.get("user_photo_url") or "",
+            "subscription_interval": sub.get("subscription_interval") or "free",
+            "is_subscribed": 1 if sub.get("is_subscribed") else 0,
+            "is_comp": 1 if sub.get("is_comp") else 0,
+            "activity_rating": int(sub.get("activity_rating") or 0),
+            "subscription_created_at": sub.get("subscription_created_at") or "",
+            "total_revenue_generated": int(sub.get("total_revenue_generated") or 0),
+            "subscription_country": country_from_api,
+            "synced_at": now,
+            "unsubscribed_at": None,  # clear if they re-subscribed
+        }
+        with get_engine().begin() as conn:
+            existing = conn.execute(
+                select(substack_subscribers.c.email, substack_subscribers.c.subscription_country)
+                .where(substack_subscribers.c.email == email)
+            ).mappings().first()
+            if existing is None:
+                conn.execute(insert(substack_subscribers).values(**values))
+            else:
+                update_values = dict(values)
+                # Preserve richer country data already in DB if sync doesn't provide one
+                if not country_from_api and existing.get("subscription_country"):
+                    del update_values["subscription_country"]
+                conn.execute(
+                    update(substack_subscribers)
+                    .where(substack_subscribers.c.email == email)
+                    .values(**update_values)
+                )
+    # Mark subscribers absent from this sync as unsubscribed (only stamp first time)
+    if synced_emails:
+        with get_engine().begin() as conn:
+            to_mark = conn.execute(
+                select(substack_subscribers.c.email).where(
+                    and_(
+                        substack_subscribers.c.email.not_in(list(synced_emails)),
+                        or_(
+                            substack_subscribers.c.unsubscribed_at.is_(None),
+                            substack_subscribers.c.unsubscribed_at == "",
+                        ),
+                    )
+                )
+            ).scalars().all()
+            if to_mark:
+                conn.execute(
+                    update(substack_subscribers)
+                    .where(substack_subscribers.c.email.in_(to_mark))
+                    .values(is_subscribed=0, unsubscribed_at=now)
+                )
     return len(subscribers)
 
 
@@ -395,6 +465,47 @@ def save_subscriber_detail(email: str, detail: Dict[str, Any]) -> None:
         )
 
 
+def backfill_subscriber_countries() -> int:
+    """For rows where subscription_country is empty, try to extract it from detail_json."""
+    ensure_schema()
+    updated = 0
+    with get_engine().begin() as conn:
+        rows = conn.execute(
+            select(substack_subscribers.c.email, substack_subscribers.c.detail_json)
+            .where(
+                and_(
+                    or_(
+                        substack_subscribers.c.subscription_country == "",
+                        substack_subscribers.c.subscription_country.is_(None),
+                    ),
+                    substack_subscribers.c.detail_json.is_not(None),
+                    substack_subscribers.c.detail_json != "",
+                )
+            )
+        ).mappings().all()
+        for row in rows:
+            try:
+                detail = json.loads(row["detail_json"]) or {}
+                crm = detail.get("crmData") or {}
+                country = (
+                    crm.get("subscription_country")
+                    or crm.get("country")
+                    or detail.get("subscription_country")
+                    or detail.get("country")
+                    or ""
+                )
+                if country:
+                    conn.execute(
+                        update(substack_subscribers)
+                        .where(substack_subscribers.c.email == row["email"])
+                        .values(subscription_country=country)
+                    )
+                    updated += 1
+            except Exception:
+                pass
+    return updated
+
+
 def get_audience_stats() -> Dict[str, Any]:
     ensure_schema()
     with get_engine().begin() as conn:
@@ -432,7 +543,6 @@ def get_audience_stats() -> Dict[str, Any]:
             .where(substack_subscribers.c.subscription_country != "")
             .group_by(substack_subscribers.c.subscription_country)
             .order_by(func.count().desc())
-            .limit(15)
         ).mappings().all()
         country_coverage = int(
             conn.execute(
@@ -461,6 +571,7 @@ def get_audience_stats() -> Dict[str, Any]:
         "paid": paid,
         "comp": comp,
         "activity_distribution": activity_dist,
+        "country_distribution": [(row["subscription_country"], row["count"]) for row in country_rows],
         "top_countries": [(row["subscription_country"], row["count"]) for row in country_rows],
         "country_coverage": country_coverage,
         "monthly_growth": monthly_growth,

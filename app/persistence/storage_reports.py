@@ -6,7 +6,17 @@ from datetime import datetime
 from email.utils import parsedate_to_datetime
 from typing import Any, Dict, List, Tuple
 
-import db
+from app.persistence import db
+
+
+def _fmt_ts(ts: str) -> str:
+    """Truncate microseconds to ms, normalise to ISO 8601+Z so JS Date() parses as UTC."""
+    if not ts:
+        return ts
+    s = str(ts).replace(" ", "T")   # "2026-03-18 18:42:12…" → "2026-03-18T18:42:12…"
+    if "." not in s:
+        s = s + ".000"               # ensure millisecond field exists
+    return s[:23] + "Z"             # keep only ms precision and mark as UTC
 
 
 _DASHBOARD_CACHE_TTL_SECONDS = 30
@@ -15,6 +25,12 @@ _dashboard_cache: Dict[str, Any] = {
     "value": None,
     "expires_at": 0.0,
 }
+
+
+def invalidate_dashboard_cache() -> None:
+    _dashboard_cache["key"] = None
+    _dashboard_cache["value"] = None
+    _dashboard_cache["expires_at"] = 0.0
 
 
 def _parse_article_date(value: str):
@@ -41,6 +57,7 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
 
     runs = db.list_runs(limit=10000, include_data=True)
     img_rows = db.get_image_cost_summary()
+    all_img_costs = db.get_all_image_costs()
 
     img_by_source = {
         row["source"]: {"count": row["cnt"], "cost_usd": round(row["total"], 4)}
@@ -103,6 +120,40 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
                 if index == 0:
                     tag_primary[tag] = tag_primary.get(tag, 0) + 1
 
+    # Build per-month breakdown for time-filtered dashboard
+    monthly: Dict[str, Dict] = {}
+    for run in runs:
+        month = (str(run["timestamp"] or ""))[:7]
+        if not month:
+            continue
+        m = monthly.setdefault(month, {"runs": 0, "cost_usd": 0.0, "image_cost_usd": 0.0, "tokens_in": 0, "tokens_out": 0})
+        m["runs"] += 1
+        m["cost_usd"] = round(m["cost_usd"] + (run["cost_usd"] or 0), 4)
+        m["tokens_in"] += run["tokens_in"] or 0
+        m["tokens_out"] += run["tokens_out"] or 0
+    for img in all_img_costs:
+        month = (str(img["timestamp"] or ""))[:7]
+        if not month:
+            continue
+        m = monthly.setdefault(month, {"runs": 0, "cost_usd": 0.0, "image_cost_usd": 0.0, "tokens_in": 0, "tokens_out": 0})
+        m["image_cost_usd"] = round(m["image_cost_usd"] + (img["cost_usd"] or 0), 4)
+
+    daily_spend: Dict[str, Dict[str, float]] = {}
+    for row in runs:
+        day = str(row["timestamp"] or "")[:10]
+        if not day:
+            continue
+        entry = daily_spend.setdefault(day, {"run_cost_usd": 0.0, "image_cost_usd": 0.0, "total_cost_usd": 0.0})
+        entry["run_cost_usd"] = round(entry["run_cost_usd"] + (row["cost_usd"] or 0), 4)
+        entry["total_cost_usd"] = round(entry["run_cost_usd"] + entry["image_cost_usd"], 4)
+    for img in all_img_costs:
+        day = str(img["timestamp"] or "")[:10]
+        if not day:
+            continue
+        entry = daily_spend.setdefault(day, {"run_cost_usd": 0.0, "image_cost_usd": 0.0, "total_cost_usd": 0.0})
+        entry["image_cost_usd"] = round(entry["image_cost_usd"] + (img["cost_usd"] or 0), 4)
+        entry["total_cost_usd"] = round(entry["run_cost_usd"] + entry["image_cost_usd"], 4)
+
     result = {
         "articles_total": len(articles),
         "articles_covered": len(covered),
@@ -119,6 +170,17 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
         "tag_primary_counts": tag_primary,
         "tag_total_counts": tag_total,
         "repurpose_queue": repurpose_queue[:20],
+        "monthly_breakdown": dict(sorted(monthly.items())),
+        "daily_spend": dict(sorted(daily_spend.items())),
+        "run_costs": [
+            {"timestamp": _fmt_ts(row["timestamp"]), "cost_usd": row["cost_usd"] or 0,
+             "tokens_in": row["tokens_in"] or 0, "tokens_out": row["tokens_out"] or 0}
+            for row in runs
+        ],
+        "image_cost_records": [
+            {"timestamp": _fmt_ts(img["timestamp"]), "cost_usd": img["cost_usd"] or 0}
+            for img in all_img_costs
+        ],
         "recent_runs": [
             {
                 "id": row["id"],
@@ -127,6 +189,7 @@ def get_dashboard_data(articles: List[Dict[str, Any]]) -> Dict[str, Any]:
                 "article_url": row["article_url"],
                 "cost_usd": row["cost_usd"],
                 "tags": row.get("tags", "") or "",
+                "status": row.get("status", "") or "done",
             }
             for row in runs[:5]
         ],

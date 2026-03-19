@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from settings import get_settings
+from app.core.settings import get_settings
 
 
 DEFAULT_CONCEPTS_SYSTEM = """\
@@ -108,8 +108,8 @@ _thumbnail_prompt = DEFAULT_CONCEPTS_SYSTEM
 
 
 def initialize_runtime() -> None:
-    import generator
-    import storage
+    from app.persistence import storage
+    from app.services import generator
 
     startup_config = storage.load_config()
     if startup_config:

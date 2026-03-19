@@ -12,6 +12,7 @@ from pathlib import Path
 from unittest import mock
 
 from starlette.datastructures import UploadFile
+from tests import clear_test_modules
 
 
 class ApiQueueTests(unittest.TestCase):
@@ -35,8 +36,7 @@ class ApiQueueTests(unittest.TestCase):
 
         (base / "template.md").write_text("template", encoding="utf-8")
 
-        for name in ["main", "storage", "settings", "auth", "db"]:
-            sys.modules.pop(name, None)
+        clear_test_modules()
 
         fake_sessions = types.ModuleType("starlette.middleware.sessions")
 

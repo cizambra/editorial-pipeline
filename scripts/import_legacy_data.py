@@ -10,8 +10,7 @@ from app.core.env import load_environment
 
 load_environment()
 
-import db
-import db_import
+from app.persistence import db, db_import
 
 
 TABLE_IMPORTERS = {

@@ -3,15 +3,14 @@ from __future__ import annotations
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.core.logging import get_logger
+from app.persistence import storage
+from app.services import social_client, substack_client
 
 
 _logger = get_logger("editorial.scheduler")
 
 
 def publish_due_posts() -> None:
-    import social_client
-    import storage
-
     due = storage.get_due_scheduled_posts()
     for post in due:
         try:
@@ -32,9 +31,6 @@ def publish_due_posts() -> None:
 
 
 def enrich_subscriber_profiles() -> None:
-    import storage
-    import substack_client
-
     try:
         sub = storage.get_next_subscriber_for_enrichment()
         if not sub:

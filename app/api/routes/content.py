@@ -8,7 +8,11 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
+from app.core import auth
+from app.core.ai_clients import get_claude_client
 from app.core.logging import get_logger
+from app.persistence import storage
+from app.services import generator, substack_client
 
 
 router = APIRouter()
@@ -143,10 +147,6 @@ def _parse_batch_repurpose(raw: str, notes: List[Dict[str, Any]]) -> List[Dict[s
 
 @router.post("/api/substack-notes/generate")
 async def generate_substack_notes(request: Request = None):
-    from ai_clients import get_claude_client
-    import auth
-    import storage
-
     if request is not None:
         auth.require_admin(request)
     try:
@@ -210,8 +210,6 @@ INSTAGRAM:
 
 @router.get("/api/substack-notes/search")
 async def search_substack_notes(q: str = "", shared: str = "", repurposed: str = "", signal: str = ""):
-    import storage
-
     notes = storage.search_substack_notes(
         q=q,
         shared=shared == "1",
@@ -223,23 +221,16 @@ async def search_substack_notes(q: str = "", shared: str = "", repurposed: str =
 
 @router.get("/api/substack-notes/batches")
 async def list_substack_batches():
-    import storage
-
     return {"batches": storage.list_substack_batches()}
 
 
 @router.get("/api/substack-notes/batches/{batch_id}")
 async def get_substack_notes(batch_id: int):
-    import storage
-
     return {"notes": storage.get_substack_notes(batch_id)}
 
 
 @router.patch("/api/substack-notes/{note_id}")
 async def update_substack_note(note_id: int, body: SubstackNoteUpdate, request: Request = None):
-    import auth
-    import storage
-
     if request is not None:
         auth.require_admin(request)
     storage.update_substack_note(note_id, shared=body.shared, signal=body.signal, note_text=body.note_text)
@@ -249,9 +240,6 @@ async def update_substack_note(note_id: int, body: SubstackNoteUpdate, request: 
 
 @router.delete("/api/substack-notes/{note_id}")
 async def delete_substack_note(note_id: int, request: Request = None):
-    import auth
-    import storage
-
     if request is not None:
         auth.require_admin(request)
     storage.delete_substack_note(note_id)
@@ -261,9 +249,6 @@ async def delete_substack_note(note_id: int, request: Request = None):
 
 @router.delete("/api/substack-notes/batches/{batch_id}")
 async def delete_substack_batch(batch_id: int, request: Request = None):
-    import auth
-    import storage
-
     if request is not None:
         auth.require_superadmin(request)
     storage.delete_substack_batch(batch_id)
@@ -273,10 +258,6 @@ async def delete_substack_batch(batch_id: int, request: Request = None):
 
 @router.post("/api/substack-notes/{note_id}/repurpose")
 async def repurpose_substack_note(note_id: int, request: Request = None):
-    from ai_clients import get_claude_client
-    import auth
-    import storage
-
     if request is not None:
         auth.require_admin(request)
     note = storage.get_substack_note(note_id)
@@ -335,9 +316,6 @@ INSTAGRAM:
 
 @router.post("/api/substack-notes/{note_id}/promote")
 async def promote_substack_note_to_idea(note_id: int, request: Request = None):
-    import auth
-    import storage
-
     if request is not None:
         auth.require_admin(request)
     note = storage.get_substack_note(note_id)
@@ -356,8 +334,6 @@ async def promote_substack_note_to_idea(note_id: int, request: Request = None):
 
 @router.post("/api/social/compose/repurpose")
 async def compose_repurpose(body: ComposeRepurposeRequest):
-    from ai_clients import get_claude_client
-
     plat_labels = {
         "substack_note": "Substack Note",
         "linkedin": "LinkedIn",
@@ -415,9 +391,6 @@ Use the same voice as the original. Each format must stand alone. Output only th
 
 @router.post("/api/substack/test")
 async def test_substack_connection(request: Request = None):
-    import auth
-    import substack_client
-
     if request is not None:
         auth.require_admin(request)
     try:
@@ -428,9 +401,6 @@ async def test_substack_connection(request: Request = None):
 
 @router.get("/api/substack/insights")
 async def get_audience_insights():
-    from ai_clients import get_claude_client
-    import storage
-
     try:
         stats = await run_in_threadpool(storage.get_insights_data)
     except Exception as exc:
@@ -492,8 +462,6 @@ Fields: type (attract|retain), title (short label), action (1-2 sentence concret
 
 @router.get("/api/substack/audience")
 async def get_substack_audience():
-    import storage
-
     try:
         return await run_in_threadpool(storage.get_audience_stats)
     except Exception as exc:
@@ -502,10 +470,6 @@ async def get_substack_audience():
 
 @router.post("/api/substack/subscribers/sync")
 async def sync_subscribers(request: Request = None):
-    import auth
-    import storage
-    import substack_client
-
     if request is not None:
         auth.require_admin(request)
     try:
@@ -523,17 +487,16 @@ async def sync_subscribers(request: Request = None):
                 if not batch or offset >= (total or 0):
                     break
             saved = storage.upsert_subscribers(all_subscribers)
-            return saved, total
-        saved, total = await run_in_threadpool(run_sync)
-        return {"ok": True, "synced": saved, "total": total}
+            backfilled = storage.backfill_subscriber_countries()
+            return saved, total, backfilled
+        saved, total, backfilled = await run_in_threadpool(run_sync)
+        return {"ok": True, "synced": saved, "total": total, "countries_backfilled": backfilled}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
 @router.get("/api/substack/subscribers")
 async def list_subscribers(q: str = "", activity: Optional[int] = None, interval: str = "", offset: int = 0, limit: int = 50):
-    import storage
-
     try:
         return await run_in_threadpool(storage.get_subscribers, q, activity, interval, offset, limit)
     except Exception as exc:
@@ -545,10 +508,6 @@ async def subscriber_detail(email: str, request: Request = None):
     import datetime as _dt
     import json as _json
     import urllib.parse as _up
-
-    import auth
-    import storage
-    import substack_client
 
     if request is not None:
         auth.require_admin(request)
@@ -571,23 +530,16 @@ async def subscriber_detail(email: str, request: Request = None):
 
 @router.get("/api/quotes")
 async def list_quote_runs():
-    import storage
-
     return {"runs": storage.list_quote_runs()}
 
 
 @router.get("/api/quotes/{run_id}")
 async def get_quotes_for_run(run_id: int):
-    import storage
-
     return {"quotes": storage.get_quotes_for_run(run_id)}
 
 
 @router.patch("/api/quotes/{quote_id}")
 async def update_quote(quote_id: int, body: QuoteUpdate, request: Request = None):
-    import auth
-    import storage
-
     if request is not None:
         auth.require_admin(request)
     updates = {}
@@ -602,11 +554,6 @@ async def update_quote(quote_id: int, body: QuoteUpdate, request: Request = None
 
 @router.post("/api/quotes/{quote_id}/repurpose")
 async def repurpose_quote(quote_id: int, body: QuoteRepurposeRequest, request: Request = None):
-    from ai_clients import get_claude_client
-    import auth
-    import generator
-    import storage
-
     if request is not None:
         auth.require_admin(request)
     try:
@@ -657,9 +604,6 @@ async def repurpose_quote(quote_id: int, body: QuoteRepurposeRequest, request: R
 
 @router.post("/api/quotes/{quote_id}/promote")
 async def promote_quote_to_idea(quote_id: int, request: Request = None):
-    import auth
-    import storage
-
     if request is not None:
         auth.require_admin(request)
     quote = storage.get_quote(quote_id)

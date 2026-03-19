@@ -3,8 +3,12 @@ from __future__ import annotations
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
+from starlette.concurrency import iterate_in_threadpool
 
+from app.core import auth, prompt_state
 from app.core.logging import get_logger
+from app.persistence import storage
+from app.services import generator
 
 
 router = APIRouter()
@@ -13,8 +17,6 @@ _logger = get_logger("editorial.routes.pipeline")
 
 @router.get("/api/pipeline/checkpoint")
 async def get_checkpoint():
-    import storage
-
     checkpoint = await run_in_threadpool(storage.load_checkpoint)
     if not checkpoint:
         return {"exists": False}
@@ -32,9 +34,6 @@ async def get_checkpoint():
 
 @router.delete("/api/pipeline/checkpoint")
 async def clear_checkpoint(request: Request = None):
-    import auth
-    import storage
-
     if request is not None:
         auth.require_superadmin(request)
     await run_in_threadpool(storage.clear_checkpoint)
@@ -44,7 +43,6 @@ async def clear_checkpoint(request: Request = None):
 
 @router.post("/api/pipeline/cancel")
 async def cancel_pipeline(request: Request = None):
-    import auth
     from app.services import pipeline as pipeline_service
 
     if request is not None:
@@ -54,10 +52,27 @@ async def cancel_pipeline(request: Request = None):
     return {"message": "Cancel signal sent"}
 
 
+@router.get("/api/pipeline/queue")
+async def get_queue():
+    items = await run_in_threadpool(storage.load_pipeline_queue)
+    return {"items": items}
+
+
+@router.post("/api/pipeline/queue")
+async def save_queue(body: dict):
+    items = body.get("items", [])
+    await run_in_threadpool(storage.save_pipeline_queue, items)
+    return {"ok": True}
+
+
+@router.delete("/api/pipeline/queue")
+async def delete_queue():
+    await run_in_threadpool(storage.clear_pipeline_queue)
+    return {"ok": True}
+
+
 @router.post("/api/pipeline/regenerate")
 async def regenerate_platform(body: dict):
-    import generator
-
     platform = body.get("platform", "")
     source_text = body.get("source_text", "")
     title = body.get("title", "")
@@ -89,9 +104,6 @@ async def regenerate_platform(body: dict):
 
 @router.post("/api/pipeline/repurpose")
 async def repurpose_from_archive(body: dict):
-    import generator
-    import storage
-
     text = body.get("text", "").strip()
     title = body.get("title", "").strip()
     article_url = body.get("article_url", "")
@@ -130,9 +142,6 @@ async def repurpose_from_archive(body: dict):
 
 @router.post("/api/pipeline/companion")
 async def generate_companion_only(body: dict):
-    import generator
-    import prompt_state
-
     text = body.get("text", "").strip()
     title = body.get("title", "").strip()
     article_url = body.get("article_url", "")
@@ -167,6 +176,7 @@ async def generate_companion_only(body: dict):
 
 @router.post("/api/pipeline/run")
 async def run_pipeline(
+    request: Request,
     reflection: UploadFile = File(...),
     title: str = Form(...),
     article_url: str = Form(default=""),
@@ -190,13 +200,30 @@ async def run_pipeline(
             do_queue_social,
             tone_level=tone,
     )
-    return StreamingResponse(stream, media_type="text/event-stream")
+
+    async def monitored_stream():
+        try:
+            async for chunk in iterate_in_threadpool(stream):
+                if await request.is_disconnected():
+                    pipeline_service.cancel_current_run()
+                    break
+                yield chunk
+        finally:
+            pipeline_service.cancel_current_run()
+
+    return StreamingResponse(
+        monitored_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.post("/api/pipeline/resume")
 async def resume_pipeline():
     from app.services import pipeline as pipeline_service
-    import storage
 
     checkpoint = await run_in_threadpool(storage.load_checkpoint)
     if not checkpoint:

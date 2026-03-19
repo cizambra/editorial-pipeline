@@ -7,6 +7,7 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from tests import clear_test_modules
 
 
 class PipelineQueueTests(unittest.TestCase):
@@ -24,8 +25,7 @@ class PipelineQueueTests(unittest.TestCase):
         os.environ["STATIC_GENERATED_DIR"] = str(base / "generated")
         os.environ["COMPANION_TEMPLATE_PATH"] = str(base / "template.md")
 
-        for name in ["main", "storage", "settings", "auth", "db"]:
-            sys.modules.pop(name, None)
+        clear_test_modules()
 
         fake_sessions = types.ModuleType("starlette.middleware.sessions")
 

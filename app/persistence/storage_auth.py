@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-import db
-from settings import get_settings
+from app.core.settings import get_settings
+from app.persistence import db
 
 
 _settings = get_settings()
@@ -12,6 +12,10 @@ _settings = get_settings()
 
 def init_db() -> None:
     db.init_core_tables()
+
+
+def close_db() -> None:
+    db.dispose_engine()
 
 
 def database_ready() -> bool:
@@ -26,12 +30,32 @@ def save_config(config: Dict[str, Any]) -> None:
     db.save_config(config)
 
 
+def load_app_config_value(key: str) -> Optional[Dict[str, Any]]:
+    return db.load_app_config_value(key)
+
+
+def save_app_config_value(key: str, data: Dict[str, Any]) -> None:
+    db.save_app_config_value(key, data)
+
+
 def load_checkpoint() -> Optional[Dict[str, Any]]:
     return db.load_checkpoint()
 
 
 def save_checkpoint(data: Dict[str, Any]) -> None:
     db.save_checkpoint(data)
+
+
+def load_pipeline_queue() -> List[Dict[str, Any]]:
+    return db.load_pipeline_queue()
+
+
+def save_pipeline_queue(items: List[Dict[str, Any]]) -> None:
+    db.save_pipeline_queue(items)
+
+
+def clear_pipeline_queue() -> None:
+    db.clear_pipeline_queue()
 
 
 def create_user(
@@ -108,12 +132,30 @@ def get_invite_by_token_hash(token_hash: str) -> Optional[Dict[str, Any]]:
     return db.get_invite_by_token_hash(token_hash)
 
 
+def get_invite_by_id(invite_id: int) -> Optional[Dict[str, Any]]:
+    return db.get_invite_by_id(invite_id)
+
+
 def list_pending_invites() -> List[Dict[str, Any]]:
     return db.list_pending_invites()
 
 
+def update_invite(
+    invite_id: int,
+    *,
+    token_hash: Optional[str] = None,
+    expires_at: datetime = None,
+    status: Optional[str] = None,
+) -> bool:
+    return db.update_invite(invite_id, token_hash=token_hash, expires_at=expires_at, status=status)
+
+
 def mark_invite_accepted(invite_id: int) -> None:
     db.mark_invite_accepted(invite_id)
+
+
+def mark_invite_revoked(invite_id: int) -> None:
+    db.mark_invite_revoked(invite_id)
 
 
 def ensure_bootstrap_user(password_hash: str) -> Optional[int]:

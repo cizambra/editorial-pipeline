@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 
 from fastapi import HTTPException
+from tests import clear_test_modules
 
 
 class _FakeRequest:
@@ -34,8 +35,7 @@ class RouteRoleTests(unittest.TestCase):
         os.environ["STATIC_GENERATED_DIR"] = str(base / "generated")
         os.environ["COMPANION_TEMPLATE_PATH"] = str(base / "template.md")
 
-        for name in ["main", "storage", "settings", "auth", "db"]:
-            sys.modules.pop(name, None)
+        clear_test_modules()
 
         fake_sessions = types.ModuleType("starlette.middleware.sessions")
 

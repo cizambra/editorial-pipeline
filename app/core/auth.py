@@ -14,8 +14,8 @@ from typing import Any, Optional
 import httpx
 from fastapi import HTTPException, Request
 
-import storage
-from settings import get_settings
+from app.core.settings import get_settings
+from app.persistence import storage
 
 
 PBKDF2_ITERATIONS = 200_000
@@ -271,6 +271,40 @@ def issue_invite(*, email: str, display_name: str, role: str, invited_by_user_id
         "role": role,
         "expires_at": invite.get("expires_at"),
     }
+
+
+def resend_invite(invite_id: int) -> dict[str, Any]:
+    settings = get_settings()
+    invite = storage.get_invite_by_id(invite_id)
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found")
+    if invite.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Only pending invites can be resent")
+    token = generate_invite_token()
+    expires_at = datetime.utcnow() + timedelta(hours=settings.invite_expiry_hours)
+    storage.update_invite(
+        invite_id,
+        token_hash=hash_token(token),
+        expires_at=expires_at,
+    )
+    refreshed = storage.get_invite_by_id(invite_id) or invite
+    return {
+        "id": int(refreshed["id"]),
+        "token": token,
+        "email": refreshed["email"],
+        "display_name": refreshed.get("display_name", ""),
+        "role": refreshed.get("role", "operator"),
+        "expires_at": refreshed.get("expires_at"),
+    }
+
+
+def revoke_invite(invite_id: int) -> None:
+    invite = storage.get_invite_by_id(invite_id)
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found")
+    if invite.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Only pending invites can be revoked")
+    storage.mark_invite_revoked(invite_id)
 
 
 def accept_local_invite(request: Request, token: str, password: str, display_name: str = "") -> AuthUser:

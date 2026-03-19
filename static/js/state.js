@@ -57,7 +57,10 @@
         ready: false,
         user: null,
         authMode: "local",
-        users: []
+        users: [],
+        invites: [],
+        audit: [],
+        auditFilter: "all"
       }
     };
 
@@ -69,6 +72,8 @@
       { selector: "#articles-refresh", minRole: "superadmin" },
       { selector: "#articles-new", minRole: "superadmin" },
       { selector: "#cfg-save", minRole: "superadmin" },
+      { selector: "#create-invite-btn", minRole: "superadmin" },
+      { selector: "#audit-refresh-btn", minRole: "superadmin" },
       { selector: "#dismiss-cp", minRole: "superadmin" },
       { selector: "#sub-test-conn", minRole: "admin" },
       { selector: "#sn-gen-btn", minRole: "admin" },
@@ -261,10 +266,12 @@
       document.body.dataset.theme = S.theme;
       localStorage.setItem("ep_theme", S.theme);
       const isDark = S.theme === "dark";
+      const sunSvg = '<circle cx="12" cy="12" r="5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      const moonSvg = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
+      const themeText = isDark ? "Light mode" : "Dark mode";
+      const themeIco = isDark ? sunSvg : moonSvg;
       const lbl = $("theme-label");
       const ico = $("theme-icon");
-      if (lbl) lbl.textContent = isDark ? "Light mode" : "Dark mode";
-      if (ico) ico.innerHTML = isDark
-        ? '<circle cx="12" cy="12" r="5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>'
-        : '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
+      if (lbl) lbl.textContent = themeText;
+      if (ico) ico.innerHTML = themeIco;
     }

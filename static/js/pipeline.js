@@ -5,6 +5,13 @@
       localStorage.setItem("ep_page", m);
       document.querySelectorAll(".page").forEach(node => node.classList.remove("active"));
       document.querySelectorAll(".nav").forEach(node => node.classList.toggle("active", node.dataset.mode === m));
+      const _sidebar = document.querySelector(".sidebar");
+      const _drawerOverlay = document.getElementById("mobile-drawer-overlay");
+      const _hamburger = document.getElementById("mobile-hamburger");
+      if (_sidebar) _sidebar.classList.remove("open");
+      if (_drawerOverlay) _drawerOverlay.classList.remove("show");
+      if (_hamburger) _hamburger.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
       $("page-" + m).classList.add("active");
       if (m === "marketing") loadMk();
       if (m === "history") loadHist();
@@ -469,13 +476,71 @@
         renderPipeQuotes();
       } else if (type === "queue_results") {
         renderQueueResults(data);
+      } else if (type === "run_pending") {
+        S.runData.runId = data.run_id || null;
+        updateRunMeta();
+        upsertHistoryRun({
+          id: data.run_id,
+          timestamp: new Date().toISOString(),
+          title: S.runData.title || $("article-title").value.trim() || "Untitled",
+          article_url: S.runData.url || $("article-url").value.trim() || "",
+          tokens_in: 0,
+          tokens_out: 0,
+          cost_usd: 0,
+          tags: Array.isArray(S.runData.tags) ? S.runData.tags.slice() : [],
+          status: "running"
+        });
+        loadDash();
+      } else if (type === "run_saved") {
+        if (data.run_id) S.runData.runId = data.run_id;
+        updateRunMeta();
+        upsertHistoryRun({
+          id: data.run_id || S.runData.runId,
+          timestamp: S.runData.timestamp || S.runData.runStartTs || new Date().toISOString(),
+          title: S.runData.title || $("article-title").value.trim() || "Untitled",
+          article_url: S.runData.url || $("article-url").value.trim() || "",
+          tokens_in: 0,
+          tokens_out: 0,
+          cost_usd: Number(S.runData.costUsd || 0),
+          tags: Array.isArray(S.runData.tags) ? S.runData.tags.slice() : [],
+          status: "done"
+        });
+        loadDash();
+      } else if (type === "save_error") {
+        upsertHistoryRun({
+          id: S.runData.runId,
+          status: "error",
+          cost_usd: Number(S.runData.costUsd || 0),
+          tags: Array.isArray(S.runData.tags) ? S.runData.tags.slice() : []
+        });
       } else if (type === "tokens") {
         cost(data);
+        upsertHistoryRun({
+          id: S.runData.runId,
+          cost_usd: Number(data.estimated_cost_usd || 0),
+          tokens_in: Number(data.input_tokens || 0),
+          tokens_out: Number(data.output_tokens || 0),
+          status: "running"
+        });
       } else if (type === "result") {
         consume(data);
       } else if (type === "error") {
         step(data.message || "Pipeline error", "error");
         setTask("companion", "error", "Error", "Pipeline", data.message || "Pipeline error");
+        upsertHistoryRun({
+          id: S.runData.runId,
+          status: "error",
+          cost_usd: Number(S.runData.costUsd || 0),
+          tags: Array.isArray(S.runData.tags) ? S.runData.tags.slice() : []
+        });
+      } else if (type === "cancelled") {
+        upsertHistoryRun({
+          id: S.runData.runId,
+          status: "error",
+          cost_usd: Number(S.runData.costUsd || 0),
+          tags: Array.isArray(S.runData.tags) ? S.runData.tags.slice() : []
+        });
+        loadDash();
       } else if (type === "done") {
         runChip(false);
       }

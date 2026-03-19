@@ -41,37 +41,109 @@
     <div class="card-head">
       <div>
         <div class="eyebrow">Access control</div>
-        <div class="section-title">Create and review internal accounts</div>
+        <div class="section-title">Create accounts, issue invites, and inspect access history</div>
       </div>
     </div>
     <div class="setting-note" id="users-status">Only superadmins can manage accounts.</div>
-    <div class="meta-grid three" style="margin-top:12px">
-      <div class="field">
-        <label for="new-user-email">Email</label>
-        <input type="text" id="new-user-email" placeholder="operator@epicureanmedia.com">
+    <div class="access-grid" style="margin-top:12px">
+      <div class="access-panel">
+        <div class="eyebrow">Direct account</div>
+        <div class="access-title">Create a local account immediately</div>
+        <div class="meta-grid three" style="margin-top:12px">
+          <div class="field">
+            <label for="new-user-email">Email</label>
+            <input type="text" id="new-user-email" placeholder="operator@epicureanmedia.com">
+          </div>
+          <div class="field">
+            <label for="new-user-name">Display name</label>
+            <input type="text" id="new-user-name" placeholder="Operator">
+          </div>
+          <div class="field">
+            <label for="new-user-role">Role</label>
+            <select id="new-user-role">
+              <option value="operator">Operator</option>
+              <option value="admin">Admin</option>
+              <option value="superadmin">Superadmin</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px">
+          <label for="new-user-password">Temporary password</label>
+          <input type="password" id="new-user-password" placeholder="Set an initial password">
+        </div>
+        <div class="access-actions">
+          <div class="muted">Use this when you need the account active now.</div>
+          <button class="pri" id="create-user-btn" style="width:auto">Create account</button>
+        </div>
       </div>
-      <div class="field">
-        <label for="new-user-name">Display name</label>
-        <input type="text" id="new-user-name" placeholder="Operator">
-      </div>
-      <div class="field">
-        <label for="new-user-role">Role</label>
-        <select id="new-user-role">
-          <option value="operator">Operator</option>
-          <option value="admin">Admin</option>
-          <option value="superadmin">Superadmin</option>
-        </select>
+
+      <div class="access-panel access-panel-accent">
+        <div class="eyebrow">Invite lane</div>
+        <div class="access-title">Send an invite link instead of setting a password yourself</div>
+        <div class="meta-grid three" style="margin-top:12px">
+          <div class="field">
+            <label for="invite-user-email">Email</label>
+            <input type="text" id="invite-user-email" placeholder="newhire@epicureanmedia.com">
+          </div>
+          <div class="field">
+            <label for="invite-user-name">Display name</label>
+            <input type="text" id="invite-user-name" placeholder="New hire">
+          </div>
+          <div class="field">
+            <label for="invite-user-role">Role</label>
+            <select id="invite-user-role">
+              <option value="operator">Operator</option>
+              <option value="admin">Admin</option>
+              <option value="superadmin">Superadmin</option>
+            </select>
+          </div>
+        </div>
+        <div class="access-actions">
+          <div class="muted">The accept link is copied to your clipboard after creation or resend.</div>
+          <button class="btn" id="create-invite-btn" style="width:auto">Create invite</button>
+        </div>
       </div>
     </div>
-    <div class="field" style="margin-top:12px">
-      <label for="new-user-password">Temporary password</label>
-      <input type="password" id="new-user-password" placeholder="Set an initial password">
+
+    <div class="access-grid" style="margin-top:16px">
+      <div class="access-panel">
+        <div class="between" style="margin-bottom:10px">
+          <div>
+            <div class="eyebrow">Accounts</div>
+            <div class="access-title">Active internal users</div>
+          </div>
+        </div>
+        <div class="users-list" id="users-list"><div class="empty">Sign in as superadmin to manage users.</div></div>
+      </div>
+
+      <div class="access-panel">
+        <div class="between" style="margin-bottom:10px">
+          <div>
+            <div class="eyebrow">Pending invites</div>
+            <div class="access-title">Reusable onboarding lane</div>
+          </div>
+        </div>
+        <div class="users-list" id="invites-list"><div class="empty">Sign in as superadmin to manage invites.</div></div>
+      </div>
     </div>
-    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px">
-      <div class="muted">Create accounts directly now. Invite flows can sit on top of the same user model later.</div>
-      <button class="pri" id="create-user-btn" style="width:auto">Create account</button>
+
+    <div class="access-panel access-panel-log" style="margin-top:16px">
+      <div class="between" style="margin-bottom:10px">
+        <div>
+          <div class="eyebrow">Audit log</div>
+          <div class="access-title">Auth, queue, and config changes</div>
+        </div>
+        <button class="btn" id="audit-refresh-btn" style="width:auto">Refresh audit</button>
+      </div>
+      <div class="audit-filters">
+        <button class="btn btn-mini active" data-audit-filter="all">All</button>
+        <button class="btn btn-mini" data-audit-filter="auth">Auth</button>
+        <button class="btn btn-mini" data-audit-filter="queue">Queue</button>
+        <button class="btn btn-mini" data-audit-filter="config">Config</button>
+      </div>
+      <div class="setting-note" id="audit-status">Latest auth, queue, and config mutations.</div>
+      <div class="audit-list" id="audit-list"><div class="empty">Sign in as superadmin to review audit history.</div></div>
     </div>
-    <div class="users-list" id="users-list"><div class="empty">Sign in as superadmin to manage users.</div></div>
   </div>
 
   <div class="card">
@@ -156,6 +228,73 @@
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px">
       <div class="muted" id="cfg-status">Ready.</div>
       <button class="pri" id="cfg-save" style="width:auto">Save overrides</button>
+    </div>
+  </div>
+
+  <div class="card section">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow">Marketing prompts</div>
+        <div class="section-title">Platform-specific generation instructions for the marketing lane</div>
+      </div>
+    </div>
+    <div class="md-stack">
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">LinkedIn prompt</div>
+            <div style="font-size:12px;color:var(--muted)">Controls how the marketing generator frames LinkedIn posts.</div>
+          </div>
+          <div class="seg md-mode" data-md="mk-li">
+            <button class="active" data-md-view="edit" data-md-target="mk-li">Edit</button>
+            <button data-md-view="read" data-md-target="mk-li">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-mk-li" data-md-editor="mk-li"></textarea>
+        <div class="md-preview hide" id="cfg-mk-li-preview" data-md-preview="mk-li"></div>
+      </div>
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Instagram prompt</div>
+            <div style="font-size:12px;color:var(--muted)">Controls caption generation for the Instagram lane.</div>
+          </div>
+          <div class="seg md-mode" data-md="mk-ig">
+            <button class="active" data-md-view="edit" data-md-target="mk-ig">Edit</button>
+            <button data-md-view="read" data-md-target="mk-ig">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-mk-ig" data-md-editor="mk-ig"></textarea>
+        <div class="md-preview hide" id="cfg-mk-ig-preview" data-md-preview="mk-ig"></div>
+      </div>
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Threads prompt</div>
+            <div style="font-size:12px;color:var(--muted)">Controls short-form generation for Threads.</div>
+          </div>
+          <div class="seg md-mode" data-md="mk-thr">
+            <button class="active" data-md-view="edit" data-md-target="mk-thr">Edit</button>
+            <button data-md-view="read" data-md-target="mk-thr">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-mk-thr" data-md-editor="mk-thr"></textarea>
+        <div class="md-preview hide" id="cfg-mk-thr-preview" data-md-preview="mk-thr"></div>
+      </div>
+      <div class="md-setting">
+        <div class="between" style="margin-bottom:0">
+          <div>
+            <div class="eyebrow" style="margin-bottom:2px">Substack Note prompt</div>
+            <div style="font-size:12px;color:var(--muted)">Controls the note-generation lane for Substack.</div>
+          </div>
+          <div class="seg md-mode" data-md="mk-sub">
+            <button class="active" data-md-view="edit" data-md-target="mk-sub">Edit</button>
+            <button data-md-view="read" data-md-target="mk-sub">Read</button>
+          </div>
+        </div>
+        <textarea id="cfg-mk-sub" data-md-editor="mk-sub"></textarea>
+        <div class="md-preview hide" id="cfg-mk-sub-preview" data-md-preview="mk-sub"></div>
+      </div>
     </div>
   </div>
 </section>

@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import delete, func, insert, select, update
+from sqlalchemy.exc import IntegrityError
 
 from .db_schema import (
     app_config,
@@ -12,6 +13,7 @@ from .db_schema import (
     get_engine,
     image_costs,
     pipeline_state,
+    reset_identity_sequence,
     runs,
     scheduled_posts,
     _row_to_dict,
@@ -152,6 +154,36 @@ def save_config(data: Dict[str, Any]) -> None:
             )
 
 
+def load_app_config_value(key: str) -> Optional[Dict[str, Any]]:
+    ensure_schema()
+    stmt = select(app_config.c.value_json).where(app_config.c.key == key)
+    with get_engine().begin() as conn:
+        raw = conn.execute(stmt).scalar_one_or_none()
+    if not raw:
+        return None
+    return json.loads(raw)
+
+
+def save_app_config_value(key: str, data: Dict[str, Any]) -> None:
+    ensure_schema()
+    payload = json.dumps(data, ensure_ascii=False)
+    now = datetime.utcnow()
+    with get_engine().begin() as conn:
+        existing = conn.execute(
+            select(app_config.c.key).where(app_config.c.key == key)
+        ).scalar_one_or_none()
+        if existing:
+            conn.execute(
+                update(app_config)
+                .where(app_config.c.key == key)
+                .values(value_json=payload, updated_at=now)
+            )
+        else:
+            conn.execute(
+                insert(app_config).values(key=key, value_json=payload, updated_at=now)
+            )
+
+
 def load_checkpoint() -> Optional[Dict[str, Any]]:
     ensure_schema()
     stmt = select(pipeline_state.c.value_json).where(pipeline_state.c.key == "checkpoint")
@@ -191,6 +223,112 @@ def clear_checkpoint() -> None:
         conn.execute(stmt)
 
 
+# ── Pipeline run queue ────────────────────────────────────────────────────────
+
+def load_pipeline_queue() -> List[Dict[str, Any]]:
+    ensure_schema()
+    stmt = select(pipeline_state.c.value_json).where(pipeline_state.c.key == "pipeline_queue")
+    with get_engine().begin() as conn:
+        raw = conn.execute(stmt).scalar_one_or_none()
+    if not raw:
+        return []
+    return json.loads(raw)
+
+
+def save_pipeline_queue(items: List[Dict[str, Any]]) -> None:
+    ensure_schema()
+    payload = json.dumps(items, ensure_ascii=False)
+    now = datetime.utcnow()
+    with get_engine().begin() as conn:
+        existing = conn.execute(
+            select(pipeline_state.c.key).where(pipeline_state.c.key == "pipeline_queue")
+        ).scalar_one_or_none()
+        if existing:
+            conn.execute(
+                update(pipeline_state)
+                .where(pipeline_state.c.key == "pipeline_queue")
+                .values(value_json=payload, updated_at=now)
+            )
+        else:
+            conn.execute(
+                insert(pipeline_state).values(
+                    key="pipeline_queue", value_json=payload, updated_at=now
+                )
+            )
+
+
+def clear_pipeline_queue() -> None:
+    ensure_schema()
+    with get_engine().begin() as conn:
+        conn.execute(delete(pipeline_state).where(pipeline_state.c.key == "pipeline_queue"))
+
+
+def create_pending_run(title: str, article_url: str) -> int:
+    """Insert a run with status='running' at pipeline start; returns the new run id."""
+    ensure_schema()
+    stmt = insert(runs).values(
+        timestamp=datetime.utcnow(),
+        title=title,
+        article_url=article_url,
+        data_json="{}",
+        tokens_in=0,
+        tokens_out=0,
+        cost_usd=0,
+        tags="",
+        status="running",
+    )
+    with get_engine().begin() as conn:
+        result = conn.execute(stmt)
+        return int(result.inserted_primary_key[0])
+
+
+def complete_run(
+    run_id: int,
+    data_json: str,
+    *,
+    tokens_in: int,
+    tokens_out: int,
+    cost_usd: float,
+    tags: str,
+) -> None:
+    """Update a pending run with final data and mark it done."""
+    ensure_schema()
+    with get_engine().begin() as conn:
+        conn.execute(
+            update(runs).where(runs.c.id == run_id).values(
+                data_json=data_json,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                cost_usd=cost_usd,
+                tags=tags,
+                status="done",
+            )
+        )
+
+
+def fail_run(run_id: int) -> None:
+    ensure_schema()
+    with get_engine().begin() as conn:
+        conn.execute(update(runs).where(runs.c.id == run_id).values(status="error"))
+
+
+def cancel_run(run_id: int) -> None:
+    ensure_schema()
+    with get_engine().begin() as conn:
+        conn.execute(update(runs).where(runs.c.id == run_id).values(status="cancelled"))
+
+
+def fail_all_running_runs() -> int:
+    ensure_schema()
+    with get_engine().begin() as conn:
+        result = conn.execute(
+            update(runs)
+            .where(runs.c.status == "running")
+            .values(status="error")
+        )
+        return int(result.rowcount or 0)
+
+
 def create_run(
     title: str,
     article_url: str,
@@ -211,6 +349,7 @@ def create_run(
         tokens_out=tokens_out,
         cost_usd=cost_usd,
         tags=tags,
+        status="done",
     )
     with get_engine().begin() as conn:
         result = conn.execute(stmt)
@@ -228,6 +367,7 @@ def list_runs(limit: int = 50, include_data: bool = False) -> List[Dict[str, Any
         runs.c.tokens_out,
         runs.c.cost_usd,
         runs.c.tags,
+        runs.c.status,
     ]
     if include_data:
         columns.append(runs.c.data_json)
@@ -243,6 +383,21 @@ def get_run(run_id: int) -> Optional[Dict[str, Any]]:
         return _row_to_dict(conn.execute(stmt).mappings().first())
 
 
+def patch_run_data(run_id: int, patch: dict) -> None:
+    """Merge `patch` keys into the stored data_json for a run."""
+    ensure_schema()
+    with get_engine().begin() as conn:
+        row = conn.execute(select(runs.c.data_json).where(runs.c.id == run_id)).scalar()
+        if row is None:
+            return
+        try:
+            data = json.loads(row)
+        except Exception:
+            data = {}
+        data.update(patch)
+        conn.execute(update(runs).where(runs.c.id == run_id).values(data_json=json.dumps(data, ensure_ascii=False)))
+
+
 def delete_run(run_id: int) -> None:
     ensure_schema()
     stmt = delete(runs).where(runs.c.id == run_id)
@@ -250,16 +405,43 @@ def delete_run(run_id: int) -> None:
         conn.execute(stmt)
 
 
+def _is_postgres_duplicate_primary_key(exc: IntegrityError, table_name: str) -> bool:
+    engine = get_engine()
+    if engine.dialect.name != "postgresql":
+        return False
+    message = str(getattr(exc, "orig", exc)).lower()
+    return (
+        "duplicate key value violates unique constraint" in message
+        and f'"{table_name}_pkey"' in message
+    )
+
+
 def record_image_cost(source: str, count: int, cost_usd: float) -> None:
     ensure_schema()
-    stmt = insert(image_costs).values(
+    values = dict(
         timestamp=datetime.utcnow(),
         source=source,
         count=count,
         cost_usd=cost_usd,
     )
+    stmt = insert(image_costs).values(**values)
+    engine = get_engine()
+    try:
+        with engine.begin() as conn:
+            conn.execute(stmt)
+    except IntegrityError as exc:
+        if not _is_postgres_duplicate_primary_key(exc, image_costs.name):
+            raise
+        reset_identity_sequence(image_costs)
+        with engine.begin() as conn:
+            conn.execute(insert(image_costs).values(**values))
+
+
+def get_all_image_costs() -> List[Dict[str, Any]]:
+    ensure_schema()
+    stmt = select(image_costs.c.timestamp, image_costs.c.count, image_costs.c.cost_usd)
     with get_engine().begin() as conn:
-        conn.execute(stmt)
+        return [_row_to_dict(row) for row in conn.execute(stmt).mappings().all()]
 
 
 def get_image_cost_summary() -> List[Dict[str, Any]]:

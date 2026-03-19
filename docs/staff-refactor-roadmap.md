@@ -32,6 +32,7 @@ Completed:
   - prompt-building and editable prompt state are separated from pipeline orchestration via `app/services/generator_prompts.py`
   - pure content/pipeline helper functions are being pulled out of `generator.py` into `app/services/generator_helpers.py`
   - the full pipeline stream orchestration in `generator.py` is now split across smaller internal stage helpers instead of one monolithic event loop body
+  - the pipeline stream runtime is now extracted into `app/services/pipeline_runtime.py`, with `generator.py` delegating to it
   - structured logging now carries request context automatically via middleware:
     - `request_id`
     - `method`
@@ -54,6 +55,43 @@ Completed:
     - notes
     - quotes
     - publishing
+  - those frontend action handlers now live in separate loaded files:
+    - `static/js/actions-core.js`
+    - `static/js/actions-marketing.js`
+    - `static/js/actions-dispatch.js`
+  - remaining non-action UI helpers are now split out of `static/js/bootstrap.js` into:
+    - `static/js/ui-core.js`
+    - `static/js/ui-marketing.js`
+  - `static/js/bootstrap.js` is now reduced to startup wiring and boot-time page initialization
+  - the real browser entrypoint is template-based:
+    - `templates/index.html`
+    - `templates/partials/scripts.html`
+  - a root template smoke test now verifies `/` renders the template shell and includes the split script files:
+    - `tests/test_root_template.py`
+  - an authenticated shell smoke test now verifies shell boot plus `/api/auth/me` session state:
+    - `tests/test_shell_boot.py`
+  - auth-flow coverage now includes:
+    - invite creation
+    - invite resend / revoke
+    - Supabase password reset link generation contract
+    - `tests/test_auth_flows.py`
+  - a DB-backed audit trail now records auth, queue, and config mutations:
+    - `app/persistence/db_audit.py`
+    - `app/persistence/storage_audit.py`
+    - `alembic/versions/0006_audit_log.py`
+  - audit events are exposed via a superadmin-only endpoint:
+    - `/api/audit`
+    - covered by `tests/test_audit_log.py`
+  - the `Settings` page now surfaces:
+    - direct local account creation
+    - pending invite management with resend / revoke
+    - audit history for auth, queue, and config mutations
+    - audit filters for `all`, `auth`, `queue`, and `config`
+  - invite acceptance now has a dedicated entrypoint instead of relying on raw links alone:
+    - `GET /invite`
+    - `templates/invite.html`
+    - `static/js/invite.js`
+    - covered by `tests/test_invite_page.py`
 - `workers/scheduler.py` extracted from `main.py`
 - `routes/auth.py` extracted
 - `routes/settings.py` extracted
@@ -74,9 +112,9 @@ Still intentionally in `main.py`:
 
 Next refactor target:
 
-- add route/request context to structured logs consistently
-- simplify `generator.py` further by separating content assembly helpers from streaming orchestration
-- keep shrinking the remaining cross-page frontend handlers where module-local bindings are clearly better
+- continue shrinking the remaining shared UI helpers in `static/js/bootstrap.js`
+- add broader route/template integration coverage where the UI shell or script load order matters
+- keep pushing domain logic down out of service facades where orchestration is still too deep
 
 ## Scope
 
@@ -86,6 +124,140 @@ This roadmap assumes:
 - deployment remains single-instance for now
 - Postgres remains the live runtime store
 - the goal is maintainability and operational clarity, not feature expansion
+
+## Manual Test Checklist
+
+Use separate browser sessions so cookies do not overlap:
+
+- normal window: `superadmin`
+- incognito window 1: `admin`
+- incognito window 2: `operator`
+
+Recommended local test accounts:
+
+- `superadmin`: your bootstrap admin account
+- `admin`: `admin-test@epicurean.local` / `AdminTest123!`
+- `operator`: `operator-test@epicurean.local` / `OperatorTest123!`
+
+### Health and Runtime
+
+1. Open `/healthz`
+2. Confirm:
+   - `status` is `ok`
+   - `service` is `editorial-pipeline`
+3. Open `/readyz`
+4. Confirm:
+   - `status` is `ready`
+   - `database` is `ok`
+
+### Role Checks
+
+#### Operator
+
+1. Sign in as `operator`
+2. Open `Audience`
+3. Confirm `Sync` is greyed out and shows the admin-required tooltip on hover
+4. Open `Settings`
+5. Confirm:
+   - `Access control` is hidden
+   - prompt/rules editors are read-only
+   - `Save overrides`, template upload, and article indexing actions are disabled
+6. Open `Marketing`
+7. Confirm publish/schedule actions are disabled
+
+#### Admin
+
+1. Sign in as `admin`
+2. Open `Marketing`
+3. Confirm:
+   - publish works
+   - schedule works
+   - cancel on queued posts works
+4. Open `Audience`
+5. Confirm subscriber sync works
+6. Open `Settings`
+7. Confirm:
+   - `Access control` is still hidden
+   - superadmin-only settings actions remain disabled
+
+#### Superadmin
+
+1. Sign in as `superadmin`
+2. Open `Settings`
+3. Confirm:
+   - `Access control` is visible
+   - direct account creation works
+   - invite creation works
+   - audit panel is visible
+4. Open `History`
+5. Confirm delete run works
+6. Open `Thumbnail`
+7. Confirm delete thumbnail works
+
+### Invite Flow
+
+1. Sign in as `superadmin`
+2. Open `Settings`
+3. In `Access control`, create an invite
+4. Confirm the accept link is copied to your clipboard
+5. Open the copied `/invite?token=...` link
+6. On the invite page:
+   - enter a display name
+   - in local auth mode, set a password
+   - in Supabase mode, paste the authenticated access token
+7. Submit `Accept invite`
+8. Confirm you are redirected back to `/`
+9. Return to `Settings`
+10. Confirm the invite is no longer pending
+11. Confirm an `auth.invite_accepted` event appears in the audit log
+
+### Invite Resend and Revoke
+
+1. Create another invite from `Settings`
+2. Click `Resend`
+3. Confirm a fresh accept link is copied to your clipboard
+4. Click `Revoke`
+5. Confirm the invite disappears from the pending list
+6. Confirm audit entries appear for:
+   - `auth.invite_created`
+   - `auth.invite_resent`
+   - `auth.invite_revoked`
+
+### Queue and Pipeline
+
+1. Open `Pipeline`
+2. Enable `Queue social posts`
+3. Run the pipeline on a test article
+4. Confirm the result card reports queued posts
+5. Use the link into `Marketing -> Publishing`
+6. Confirm the queued posts appear in the shared publishing queue
+7. From `Marketing`, cancel one queued post
+8. Confirm the queue count updates
+9. Confirm the audit log shows:
+   - `queue.scheduled`
+   - `queue.cancelled`
+
+### Audit Filters
+
+1. Open `Settings`
+2. In the audit panel, click `Auth`
+3. Confirm only `auth.*` events remain
+4. Click `Queue`
+5. Confirm only `queue.*` events remain
+6. Click `Config`
+7. Confirm only `config.*` events remain
+8. Click `All`
+9. Confirm all recent event types return
+
+### Config and Template Mutations
+
+1. Sign in as `superadmin`
+2. Open `Settings`
+3. Change one prompt field and save overrides
+4. Upload a template file
+5. Confirm the audit log shows:
+   - `config.updated`
+   - `config.template_uploaded`
 
 ## Priorities
 

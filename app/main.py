@@ -3,7 +3,7 @@ from __future__ import annotations
 
 """
 main.py - FastAPI backend for the Editorial Pipeline.
-Run with: python -m uvicorn main:app --reload
+Run with: python -m uvicorn app.main:app --reload
 """
 
 import os
@@ -46,8 +46,11 @@ from app.api.routes.auth import (
     auth_create_user,
     auth_update_user,
     auth_create_invite,
+    auth_resend_invite,
+    auth_revoke_invite,
     auth_accept_invite,
     auth_password_reset,
+    auth_list_audit_events,
 )
 from app.api.routes.settings import (
     router as settings_router,
@@ -147,18 +150,26 @@ _scheduler = create_scheduler()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     storage.init_db()
+    storage.fail_all_running_runs()
     if _settings.auth_mode == "local" and _settings.bootstrap_admin_email and _settings.bootstrap_admin_password:
         storage.ensure_bootstrap_user(auth.hash_password(_settings.bootstrap_admin_password))
     _settings.static_generated_dir.mkdir(parents=True, exist_ok=True)
     prompt_state.initialize_runtime()
     _scheduler.start()
-    yield
-    _scheduler.shutdown(wait=False)
+    try:
+        yield
+    finally:
+        _scheduler.shutdown(wait=False)
+        storage.close_db()
 
 
 app = FastAPI(title="Editorial Pipeline", lifespan=lifespan)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+_STATIC_DIR = Path(__file__).parent.parent / "static"
+app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+
+# Serve React build — absolute path so it works regardless of CWD
+_REACT_INDEX = Path(__file__).parent.parent / "static" / "dist" / "index.html"
 
 # --- Image pricing (gpt-image-1, 1536x1024) ----------------------------------
 # https://openai.com/api/pricing  (portrait/landscape sizes)
@@ -216,14 +227,28 @@ app.include_router(media_router)
 app.include_router(content_router)
 app.include_router(pipeline_router)
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
 
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
+    import logging
+    if _REACT_INDEX.exists():
+        logging.info(f"Serving React app from {_REACT_INDEX}")
+        return HTMLResponse(_REACT_INDEX.read_text())
+    logging.warning(f"React build not found at {_REACT_INDEX}, falling back to Jinja2 template")
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/invite", response_class=HTMLResponse)
+async def invite_page(request: Request):
     return templates.TemplateResponse(
-        "index.html",
-        {"request": request},
+        "invite.html",
+        {
+            "request": request,
+            "invite_token": request.query_params.get("token", ""),
+            "auth_mode": _settings.auth_mode,
+        },
     )
 
 
@@ -256,6 +281,16 @@ async def readyz():
         "auth_mode": _settings.auth_mode,
         "scheduler_running": bool(getattr(_scheduler, "running", False)),
     }
+
+
+@app.get("/{full_path:path}", response_class=HTMLResponse)
+async def spa_fallback(request: Request, full_path: str):
+    # Don't intercept API, static, or health routes
+    if full_path.startswith(("api/", "static/", "healthz", "readyz", "invite")):
+        raise HTTPException(status_code=404)
+    if _REACT_INDEX.exists():
+        return HTMLResponse(_REACT_INDEX.read_text())
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 # --- Imagen ------------------------------------------------------------------

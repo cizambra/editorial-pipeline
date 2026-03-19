@@ -13,6 +13,9 @@ VOICE, TONE & STYLE — read before writing:
 This is a paid companion for a self-discipline newsletter. It is practical, dense, and research-backed.
 It is NOT motivational. It does not cheer the reader on. It gives them tools and explains why they work.
 
+When using markdown, avoid using `_` for italics and `*` for horizontal lines.
+Use `*` for italics and `-` for horizontal lines instead.
+
 Voice characteristics:
 - Speaks directly to the reader as "you" — from their experience, not the author's perspective
 - Clinical but warm. Like a sharp coach who explains the mechanism, not the feeling.
@@ -262,7 +265,7 @@ def parse_quote_response(raw: str) -> list[dict[str, Any]]:
 
 
 def apply_config_overrides(config: Dict[str, Any]) -> None:
-    global VOICE_BRIEF, COMPANION_VOICE_BRIEF, SPANISH_STYLE_GUIDE, PLATFORM_PERSONAS
+    global VOICE_BRIEF, COMPANION_VOICE_BRIEF, SPANISH_STYLE_GUIDE, PLATFORM_PERSONAS, PLATFORM_PROMPTS
     if "voice_brief" in config:
         VOICE_BRIEF = config["voice_brief"]
     if "companion_voice_brief" in config:
@@ -275,10 +278,24 @@ def apply_config_overrides(config: Dict[str, Any]) -> None:
         for platform, persona in config["platform_personas"].items():
             if platform in PLATFORM_PERSONAS and isinstance(persona, dict):
                 PLATFORM_PERSONAS[platform].update(persona)
+    if "platform_prompts" in config and isinstance(config["platform_prompts"], dict):
+        for platform, prompt_values in config["platform_prompts"].items():
+            if platform in PLATFORM_PROMPTS and isinstance(prompt_values, dict):
+                if "system" in prompt_values and isinstance(prompt_values["system"], str):
+                    PLATFORM_PROMPTS[platform]["system"] = prompt_values["system"]
+                if "instructions" in prompt_values and isinstance(prompt_values["instructions"], str):
+                    PLATFORM_PROMPTS[platform]["instructions"] = prompt_values["instructions"]
 
 
 def get_current_prompts() -> Dict[str, Any]:
-    return {"voice_brief": VOICE_BRIEF, "companion_voice_brief": COMPANION_VOICE_BRIEF, "spanish_style_guide": SPANISH_STYLE_GUIDE, "tone_level": get_tone_level(), "platform_personas": PLATFORM_PERSONAS}
+    return {
+        "voice_brief": VOICE_BRIEF,
+        "companion_voice_brief": COMPANION_VOICE_BRIEF,
+        "spanish_style_guide": SPANISH_STYLE_GUIDE,
+        "tone_level": get_tone_level(),
+        "platform_personas": PLATFORM_PERSONAS,
+        "platform_prompts": PLATFORM_PROMPTS,
+    }
 
 
 def get_voice_brief() -> str:

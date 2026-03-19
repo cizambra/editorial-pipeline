@@ -1,3 +1,3 @@
 from _compat import alias_module
 
-alias_module(__name__, "app.core.settings")
+module = alias_module(__name__, "app.core.settings")

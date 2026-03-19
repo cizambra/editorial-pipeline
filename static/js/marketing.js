@@ -318,18 +318,41 @@
       updateRunMeta();
     }
 
+    function upsertHistoryRun(run) {
+      if (!run || !run.id) return;
+      const index = S.hist.findIndex(item => String(item.id) === String(run.id));
+      if (index >= 0) S.hist[index] = Object.assign({}, S.hist[index], run);
+      else S.hist.unshift(run);
+      S.hist = S.hist
+        .slice()
+        .sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")))
+        .slice(0, 50);
+      if (S.mode === "history") histRender();
+    }
+
+    function historyStatusBadge(status) {
+      const key = String(status || "done").toLowerCase();
+      if (key === "running") return '<span class="tag" style="background:color-mix(in srgb, var(--accent) 16%, white);color:var(--accent)">Running</span>';
+      if (key === "error") return '<span class="tag" style="background:color-mix(in srgb, #b42318 14%, white);color:#b42318">Error</span>';
+      return '<span class="tag">Done</span>';
+    }
+
     function histRender() {
       $("hist-list").innerHTML = S.hist.length
         ? S.hist.map(run => {
           const runTags = (run.tags && typeof run.tags === "string") ? run.tags.split(",").map(t => t.trim()).filter(Boolean) : (Array.isArray(run.tags) ? run.tags : []);
           const tagsHtml = runTags.map(t => '<span class="tag">' + H(t) + '</span>').join("");
+          const runStatus = historyStatusBadge(run.status);
+          const runCost = Number(run.cost_usd || 0).toFixed(4);
+          const tokenCount = (((run.tokens_in || 0) + (run.tokens_out || 0)) / 1000).toFixed(1) + "k tokens";
           return '<div class="entry-item">' +
             '<div class="between" style="margin-bottom:6px">' +
               '<div><div style="font-weight:700;font-size:13px">' + H(run.title || "Untitled") + '</div>' +
               '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center">' +
                 '<span style="font-size:11px;color:var(--muted)">' + timeAgo(run.timestamp) + '</span>' +
-                '<span class="tag">$' + H((run.cost_usd || 0).toFixed(4)) + '</span>' +
-                '<span class="tag">' + H((((run.tokens_in || 0) + (run.tokens_out || 0)) / 1000).toFixed(1) + "k tokens") + '</span>' +
+                runStatus +
+                '<span class="tag">$' + H(runCost) + '</span>' +
+                '<span class="tag">' + H(tokenCount) + '</span>' +
                 tagsHtml +
               '</div></div>' +
               '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
@@ -354,6 +377,32 @@
       }
     }
 
+    function parseIdeaSampleUrls(rawValue) {
+      if (!rawValue) return [];
+      if (Array.isArray(rawValue)) return rawValue.filter(Boolean);
+      if (typeof rawValue !== "string") return [];
+      try {
+        const parsed = JSON.parse(rawValue);
+        return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+      } catch (_err) {
+        return rawValue ? [rawValue] : [];
+      }
+    }
+
+    function renderIdeaSampleLinks(idea) {
+      const sampleUrls = parseIdeaSampleUrls(idea.sample_urls).slice(0, 3);
+      if (!sampleUrls.length) return "";
+      return '<div class="muted" style="margin-top:10px;font-size:12px">' +
+        '<span style="margin-right:8px">Sample posts:</span>' +
+        sampleUrls.map((url, index) =>
+          '<a href="' + H(url) + '" target="_blank" rel="noopener noreferrer" ' +
+          'style="color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb, var(--accent) 35%, transparent);margin-right:10px">' +
+          'Post ' + (index + 1) +
+          "</a>"
+        ).join("") +
+      "</div>";
+    }
+
     function ideasRender() {
       const statusBorderColor = { new: "var(--line-strong)", writing: "var(--accent)", done: "var(--ok)" };
       $("ideas-list").innerHTML = S.ideas.length
@@ -368,6 +417,7 @@
               '</div>' +
               '<span class="tag" style="text-transform:capitalize">' + H(status) + '</span>' +
             '</div>' +
+            renderIdeaSampleLinks(idea) +
             '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">' +
               '<button class="btn" data-a="idea-status" data-id="' + idea.id + '" data-status="new">New</button>' +
               '<button class="btn" data-a="idea-status" data-id="' + idea.id + '" data-status="writing">Writing</button>' +

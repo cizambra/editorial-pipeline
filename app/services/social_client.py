@@ -19,10 +19,7 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-import linkedin_client
-import meta_client
-import threads_client
-import substack_client
+from app.services import linkedin_client, meta_client, substack_client, threads_client
 
 
 def is_configured(platform: str) -> bool:

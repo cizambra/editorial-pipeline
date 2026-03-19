@@ -49,7 +49,10 @@ def bind_log_context(**fields: Any):
 
 
 def reset_log_context(token) -> None:
-    _log_context.reset(token)
+    try:
+        _log_context.reset(token)
+    except ValueError:
+        pass  # Token was set in a different thread context — safe to ignore
 
 
 @contextmanager

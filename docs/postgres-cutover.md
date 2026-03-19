@@ -85,7 +85,7 @@ The script prints per-table import counts as JSON.
 Start the app with `DATABASE_URL` set:
 
 ```bash
-python3 main.py
+python3 -m uvicorn app.main:app --reload
 ```
 
 Then verify:

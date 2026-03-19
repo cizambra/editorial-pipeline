@@ -36,7 +36,13 @@
       $("dash-runs").innerHTML = (data.recent_runs || []).slice(0, 5).map(run => {
         const runTags = (run.tags && typeof run.tags === "string") ? run.tags.split(",").map(t => t.trim()).filter(Boolean) : (Array.isArray(run.tags) ? run.tags : []);
         const tagsHtml = runTags.map(t => '<span class="tag" style="font-size:10px;padding:2px 7px">' + H(t) + '</span>').join("");
-        return '<div class="entry-item"><div class="between"><div><div style="font-weight:700;font-size:13px">' + H(run.title || "Untitled") + '</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;align-items:center"><span class="muted" style="font-size:11px">' + timeAgo(run.timestamp) + '</span>' + tagsHtml + '</div></div><div style="display:flex;gap:8px;align-items:center"><span class="tag">$' + H((run.cost_usd || 0).toFixed(4)) + '</span><button class="ghost" data-a="open-run" data-id="' + run.id + '" data-mode="pipeline">Open</button></div></div></div>';
+        const status = String(run.status || "done").toLowerCase();
+        const statusHtml = status === "running"
+          ? '<span class="tag" style="font-size:10px;padding:2px 7px;background:color-mix(in srgb, var(--accent) 16%, white);color:var(--accent)">Running</span>'
+          : status === "error"
+            ? '<span class="tag" style="font-size:10px;padding:2px 7px;background:color-mix(in srgb, #b42318 14%, white);color:#b42318">Error</span>'
+            : "";
+        return '<div class="entry-item"><div class="between"><div><div style="font-weight:700;font-size:13px">' + H(run.title || "Untitled") + '</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;align-items:center"><span class="muted" style="font-size:11px">' + timeAgo(run.timestamp) + '</span>' + statusHtml + tagsHtml + '</div></div><div style="display:flex;gap:8px;align-items:center"><span class="tag">$' + H((run.cost_usd || 0).toFixed(4)) + '</span><button class="ghost" data-a="open-run" data-id="' + run.id + '" data-mode="pipeline">Open</button></div></div></div>';
       }).join("") || '<div class="empty">No recent runs.</div>';
 
       const tagCounts = data.tag_primary_counts || {};
@@ -51,6 +57,28 @@
           '</div>'
         )).join("") + '</div>'
         : '<div class="empty">No tagged articles yet.</div>';
+
+      const dailySpend = Object.entries(data.daily_spend || {}).sort((a, b) => a[0].localeCompare(b[0])).slice(-10).reverse();
+      const dailyMax = Math.max(1, ...dailySpend.map(([, value]) => Number(value.total_cost_usd || 0)));
+      $("dash-cost-days").innerHTML = dailySpend.length
+        ? '<div class="list">' + dailySpend.map(([day, value]) => {
+          const runCost = Number(value.run_cost_usd || 0);
+          const imageCost = Number(value.image_cost_usd || 0);
+          const totalCost = Number(value.total_cost_usd || 0);
+          const pct = Math.round((totalCost / dailyMax) * 100);
+          return '<div class="entry" style="display:flex;align-items:center;gap:12px">' +
+            '<div style="min-width:104px;font-weight:700;font-size:13px">' + H(day) + '</div>' +
+            '<div style="flex:1;min-width:0">' +
+              '<div class="meter"><span style="width:' + H(pct) + '%"></span></div>' +
+              '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--muted)">' +
+                '<span>Runs $' + H(runCost.toFixed(2)) + '</span>' +
+                '<span>Images $' + H(imageCost.toFixed(2)) + '</span>' +
+              '</div>' +
+            '</div>' +
+            '<div style="min-width:72px;text-align:right;font-weight:800;font-size:13px">$' + H(totalCost.toFixed(2)) + '</div>' +
+          '</div>';
+        }).join("") + '</div>'
+        : '<div class="empty">No spend recorded yet.</div>';
     }
 
     function countryFlag(code) {

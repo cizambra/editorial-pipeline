@@ -138,6 +138,13 @@ def get_invite_by_token_hash(token_hash: str) -> Optional[Dict[str, Any]]:
         return _row_to_dict(conn.execute(stmt).mappings().first())
 
 
+def get_invite_by_id(invite_id: int) -> Optional[Dict[str, Any]]:
+    ensure_schema()
+    stmt = select(user_invites).where(user_invites.c.id == invite_id)
+    with get_engine().begin() as conn:
+        return _row_to_dict(conn.execute(stmt).mappings().first())
+
+
 def list_pending_invites() -> List[Dict[str, Any]]:
     ensure_schema()
     stmt = (
@@ -149,6 +156,29 @@ def list_pending_invites() -> List[Dict[str, Any]]:
         return [_row_to_dict(row) for row in conn.execute(stmt).mappings().all()]
 
 
+def update_invite(
+    invite_id: int,
+    *,
+    token_hash: Optional[str] = None,
+    expires_at: Optional[datetime] = None,
+    status: Optional[str] = None,
+) -> bool:
+    ensure_schema()
+    values: Dict[str, Any] = {}
+    if token_hash is not None:
+        values["token_hash"] = token_hash
+    if expires_at is not None:
+        values["expires_at"] = expires_at
+    if status is not None:
+        values["status"] = status
+    if not values:
+        return False
+    stmt = update(user_invites).where(user_invites.c.id == invite_id).values(**values)
+    with get_engine().begin() as conn:
+        result = conn.execute(stmt)
+        return result.rowcount > 0
+
+
 def mark_invite_accepted(invite_id: int) -> None:
     ensure_schema()
     with get_engine().begin() as conn:
@@ -156,4 +186,14 @@ def mark_invite_accepted(invite_id: int) -> None:
             update(user_invites)
             .where(user_invites.c.id == invite_id)
             .values(status="accepted", accepted_at=datetime.utcnow())
+        )
+
+
+def mark_invite_revoked(invite_id: int) -> None:
+    ensure_schema()
+    with get_engine().begin() as conn:
+        conn.execute(
+            update(user_invites)
+            .where(user_invites.c.id == invite_id)
+            .values(status="revoked")
         )

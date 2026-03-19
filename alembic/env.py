@@ -9,8 +9,8 @@ from app.core.env import load_environment
 
 load_environment()
 
-import db
-from settings import get_settings
+from app.core.settings import get_settings
+from app.persistence import db
 
 
 config = context.config

@@ -43,6 +43,10 @@
     body[data-theme="dark"] .nav.active {
       box-shadow: inset 3px 0 0 var(--accent), 0 0 16px rgba(240, 112, 48, 0.08);
     }
+    /* Bottom nav items in sidebar use .nav class — reset the inset shadow for them */
+    body[data-theme="dark"] .mbn-item.nav.active {
+      box-shadow: none;
+    }
 
     body[data-theme="dark"] .card::before {
       background: linear-gradient(90deg, transparent, rgba(240, 112, 48, 0.12), transparent);
@@ -247,6 +251,43 @@
       gap: 10px;
       margin-top: 14px;
     }
+    .access-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .access-panel {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.14), transparent),
+        var(--panel-strong);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
+    }
+    .access-panel-accent {
+      background:
+        radial-gradient(circle at top right, rgba(196, 82, 42, 0.1), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,0.14), transparent),
+        var(--panel-strong);
+    }
+    .access-panel-log {
+      background:
+        linear-gradient(135deg, rgba(196, 82, 42, 0.06), transparent 40%),
+        var(--panel-strong);
+    }
+    .access-title {
+      font: 700 16px/1.2 "Montserrat", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: -0.02em;
+    }
+    .access-actions {
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
     .user-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto auto;
@@ -258,6 +299,145 @@
       background: var(--panel-strong);
     }
     .user-row-meta { font-size: 12px; color: var(--muted); }
+    .invite-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+    }
+    .invite-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .btn-mini {
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+    .audit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .audit-row {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.12), transparent),
+        var(--panel);
+    }
+    .audit-kicker {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent-strong);
+      margin-bottom: 6px;
+    }
+    .audit-head {
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .audit-time {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    .audit-meta {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .audit-filters {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .audit-filters .btn.active {
+      background: var(--accent-soft);
+      border-color: rgba(196, 82, 42, 0.22);
+      color: var(--accent-strong);
+    }
+    .invite-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background:
+        radial-gradient(circle at top left, rgba(196, 82, 42, 0.14), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(36, 50, 65, 0.14), transparent 26%),
+        linear-gradient(180deg, var(--bg-alt), var(--bg));
+    }
+    .invite-layout {
+      width: min(1080px, 100%);
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, 460px);
+      gap: 22px;
+      align-items: stretch;
+    }
+    .invite-hero,
+    .invite-card {
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow);
+    }
+    .invite-hero {
+      padding: 34px;
+      color: var(--nav-text);
+      background:
+        radial-gradient(circle at top right, rgba(240, 112, 48, 0.26), transparent 34%),
+        linear-gradient(180deg, var(--nav-bg), var(--nav-bg-2));
+    }
+    .invite-hero h1 {
+      margin: 14px 0 10px;
+      font: 800 clamp(34px, 4.6vw, 58px)/0.95 "Montserrat", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: -0.06em;
+      max-width: 10ch;
+    }
+    .invite-hero p {
+      max-width: 44ch;
+      color: rgba(214, 223, 235, 0.82);
+      font-size: 15px;
+    }
+    .invite-meta-strip {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:18px;
+    }
+    .invite-card {
+      padding: 28px;
+      background:
+        radial-gradient(circle at top right, rgba(196, 82, 42, 0.1), transparent 28%),
+        linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+    .invite-copy {
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+    .invite-status {
+      min-height: 20px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+    .invite-status.error { color: var(--danger); }
+    .invite-actions-row {
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top: 16px;
+    }
     .auth-inline {
       display: flex;
       gap: 8px;
@@ -265,6 +445,28 @@
       align-items: center;
     }
     .hide { display: none !important; }
+
+    @media (max-width: 980px) {
+      .access-grid {
+        grid-template-columns: 1fr;
+      }
+      .invite-row,
+      .user-row {
+        grid-template-columns: 1fr;
+      }
+      .invite-actions {
+        justify-content: flex-start;
+      }
+      .audit-time {
+        margin-left: 0;
+      }
+      .invite-layout {
+        grid-template-columns: 1fr;
+      }
+      .invite-hero h1 {
+        max-width: none;
+      }
+    }
 
     * { box-sizing: border-box; }
     html, body { margin: 0; min-height: 100%; }
@@ -410,6 +612,12 @@
       border-color: rgba(238, 127, 69, 0.3);
       box-shadow: inset 3px 0 0 rgba(238, 127, 69, 0.8);
     }
+    /* Bottom nav: override sidebar's inset left shadow */
+    .mbn-item.nav.active {
+      background: none;
+      border-color: transparent;
+      box-shadow: none;
+    }
 
     .nav-icon {
       width: 22px;
@@ -466,6 +674,17 @@
       gap: 16px;
       margin-bottom: 16px;
     }
+
+    /* Mobile brand — hidden on desktop, visible in mobile toolbar */
+    .mobile-toolbar-brand {
+      display: none;
+      font: 800 17px/1 "Montserrat", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: -0.05em;
+      text-transform: lowercase;
+      color: var(--ink);
+      flex: 1;
+    }
+    .mobile-toolbar-brand span { color: var(--accent); }
 
     .toolbar-right {
       display: flex;
@@ -2882,7 +3101,7 @@
     /* Results right column */
     .results-content { display: flex; flex-direction: column; gap: 14px; }
 
-    @media (max-width: 1220px) {
+    @media (min-width: 1024px) and (max-width: 1220px) {
       .app { grid-template-columns: 100px minmax(0, 1fr); }
       .brand-copy, .nav-text span, .nav-text strong, .nav-text small, .nav-label { display: none; }
       .brand { padding: 12px; text-align: center; }
@@ -2897,17 +3116,307 @@
       .results-stages-card { position: static; }
     }
 
-    @media (max-width: 760px) {
-      .app { grid-template-columns: 1fr; }
+    /* ═══ MOBILE TOPBAR ═════════════════════════════════════════════ */
+
+    /* Topbar — hidden on desktop, shown on mobile via media query */
+    .mobile-topbar {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 150;
+      height: 52px;
+      padding: 0 16px;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      border-bottom: 1px solid rgba(78, 57, 32, 0.14);
+      box-shadow: 0 1px 4px rgba(54, 32, 12, 0.04);
+    }
+
+    /* ═══ MOBILE BOTTOM NAV ══════════════════════════════════════════ */
+    .mobile-bottom-nav {
+      display: none; /* shown via media query */
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 150;
+      background: var(--panel-strong);
+      border-top: 1px solid rgba(78, 57, 32, 0.12);
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      flex-direction: row;
+    }
+    .mbn-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 3px;
+      flex: 1;
+      min-height: 64px;
+      padding: 4px 0 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9e8f7f;
+      font-family: inherit;
+      position: relative;
+      transition: color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mbn-item:active { opacity: 0.7; }
+    .mbn-pip {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 2px;
+      background: transparent;
+      border-radius: 0 0 2px 2px;
+      transition: background 0.2s;
+    }
+    .mbn-item.active { color: var(--accent); }
+    .mbn-item.active .mbn-pip { background: var(--accent); }
+    .mbn-label { font-size: 11px; font-weight: 600; line-height: 1; }
+
+    .mobile-topbar-brand {
+      font: 800 18px/1 "Montserrat", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: -0.05em;
+      text-transform: lowercase;
+      color: var(--ink);
+    }
+    .mobile-topbar-brand span { color: var(--accent); }
+    .mobile-toolbar-brand { display: none !important; }
+
+    /* Sidebar close button — only visible on mobile */
+    .sidebar-close {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border: none;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--nav-muted);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .brand-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    /* Drawer backdrop */
+    .mobile-drawer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 199;
+      background: rgba(0, 0, 0, 0.52);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+    .mobile-drawer-overlay.show { display: block; }
+
+    /* Mobile toolbar brand — removed (topbar handles it now) */
+    .mobile-toolbar-brand { display: none !important; }
+
+    /* ═══ RESPONSIVE BREAKPOINTS ════════════════════════════════════ */
+
+    @media (max-width: 1023px) {
+      /* ── Fixed viewport — no body scroll ── */
+      html, body { height: 100dvh; overflow: hidden; }
+
+      /* ── Topbar + bottom nav visible ── */
+      .mobile-topbar { display: flex; }
+      .mobile-bottom-nav { display: flex; }
+      .sidebar-close { display: flex; }
+
+      /* ── Sidebar: full-screen slide-in overlay from left ── */
       .sidebar {
-        position: static;
-        height: auto;
-        padding-bottom: 12px;
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        transform: translateX(-100%);
+        transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+        overflow-y: auto;
+        box-shadow: none;
+        border-right: none;
       }
-      .main { padding: 18px; }
-      .toolbar { flex-direction: column; align-items: stretch; }
-      .toolbar-right { justify-content: space-between; }
+      .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 4px 0 40px rgba(0, 0, 0, 0.4);
+      }
+
+      /* ── App layout ── */
+      .app { display: block; height: 100dvh; overflow: hidden; }
+      .main {
+        height: 100dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+        padding: 68px 16px calc(env(safe-area-inset-bottom, 0px) + 64px + 16px);
+      }
+
+      /* ── Cards: flat MobileSection style matching proto-UI ── */
+      .card {
+        background: var(--panel-strong);
+        border: 1px solid rgba(78, 57, 32, 0.08);
+        box-shadow: 0 1px 3px rgba(54, 32, 12, 0.06);
+        border-radius: var(--r);
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .card::before { display: none; }
+      .card-head { padding-bottom: 10px; margin-bottom: 12px; }
+      .stat-card { min-height: auto; }
+
+      /* ── Section tabs: sticky at top (proto-UI MobileTabBar style) ── */
+      .marketing-tabs,
+      .thumb-tabs {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        margin: 0 -16px;
+        padding: 0 8px;
+        background: var(--bg);
+        border-bottom: 1px solid rgba(78, 57, 32, 0.14);
+        border-top: none;
+        box-shadow: 0 1px 3px rgba(54, 32, 12, 0.04);
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .marketing-tabs::-webkit-scrollbar,
+      .thumb-tabs::-webkit-scrollbar { display: none; }
+      .marketing-tabs .tab,
+      .thumb-tabs .tab {
+        white-space: nowrap;
+        min-height: 44px;
+        font-size: 13px;
+        border-bottom: 3px solid transparent;
+      }
+      .marketing-tabs .tab.active,
+      .thumb-tabs .tab.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+      .marketing-tabs .tab .tag { vertical-align: middle; }
+
+      /* ── Toolbar ── */
+      .toolbar { flex-direction: row; align-items: center; gap: 10px; margin-bottom: 14px; }
+      .toolbar-right { justify-content: flex-end; }
+
+      /* ── Tabs inside cards: keep at top, scrollable ── */
+      .tab { min-height: 44px; padding: 10px 14px; white-space: nowrap; }
+      .tabs {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .tabs::-webkit-scrollbar { display: none; }
+      .card > .tabs:first-child {
+        margin: -20px -20px 14px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      /* ── Touch targets ── */
+      .btn, .ghost { min-height: 44px; }
+      .pri { min-height: 48px; }
+      .seg button { min-height: 40px; padding: 10px 14px; }
+      .btn-mini { min-height: 40px; padding: 9px 12px; }
+      input[type="text"], select { min-height: 44px; }
+
+      /* ── Grids: collapse to single column ── */
+      .grid.two, .grid.three, .grid.four,
+      .task-grid, .hero-grid,
+      .layout-primary, .thumb-library, .studio-board, .setup-grid,
+      .status-strip, .library-search,
+      .pipeline-meta, .pipeline-shell, .companion-shell,
+      .marketing-studio-grid, .marketing-library-search,
+      .marketing-library-workspace,
+      .aud-browser-shell, .sn-shell, .sn-workspace, .quotes-shell {
+        grid-template-columns: 1fr;
+      }
       .meta-grid, .meta-grid.three { grid-template-columns: 1fr; }
+      .access-grid { grid-template-columns: 1fr; }
+      .invite-row, .user-row { grid-template-columns: 1fr; }
+      .invite-actions { justify-content: flex-start; }
+      .audit-time { margin-left: 0; }
+
+      /* ── Stats and concept grids: 2-col ── */
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .platform-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .concepts, .concept-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ins-rec-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+      /* ── Results stages: horizontal scrollable strip ── */
+      .results-shell { grid-template-columns: 1fr; }
+      .results-stages-card { position: static; overflow: hidden; }
+      .results-stages-head { display: none; }
+      .results-stage-list {
+        display: flex;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .results-stage-list::-webkit-scrollbar { display: none; }
+      .result-stage {
+        border-bottom: none;
+        border-right: 1px solid var(--line);
+        min-width: 88px;
+        flex-shrink: 0;
+        padding: 8px 10px;
+      }
+      .result-stage:last-child { border-right: 0; }
+
+      /* ── Remove sticky / absolute positions ── */
+      .pipeline-meta { position: static; top: auto; }
+      .panel > .langs {
+        position: static;
+        top: auto; right: auto;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+        justify-content: flex-end;
+      }
+
+      /* ── Typography ── */
+      .page-title { font-size: 22px; }
+      .hero-title { font-size: 20px; }
+      .run-meta-title { word-break: break-word; }
+
+      /* ── Spacing ── */
+      .dropzone { padding: 18px 14px; }
+      .campaign-banner { padding: 14px; }
+
+      /* ── Social / soc tabs: scrollable ── */
+      .soc-tab-bar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+      .soc-tab-bar::-webkit-scrollbar { display: none; }
+      .soc-tab { white-space: nowrap; min-height: 36px; }
+
+      /* ── Misc ── */
+      .marketing-library-meta { flex-wrap: wrap; }
+      .aud-detail-grid { grid-template-columns: 1fr !important; }
+      .sched-platform-sel, .sched-tz-sel { min-width: unset; width: 100%; }
+    }
+
+    /* Extra narrow phones */
+    @media (max-width: 480px) {
+      .main { padding: 64px 12px calc(env(safe-area-inset-bottom, 0px) + 64px + 16px); }
+      .card { padding: 16px; }
+      .card > .tabs:first-child { margin: -16px -16px 12px; padding: 0 12px; }
+      .page-title { font-size: 20px; }
+      .concepts, .concept-board-grid { grid-template-columns: 1fr; }
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -3237,6 +3746,6 @@
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
-    @media (max-width: 760px) {
+    @media (max-width: 1023px) {
       .sub-field-row { grid-template-columns: 1fr; }
     }
