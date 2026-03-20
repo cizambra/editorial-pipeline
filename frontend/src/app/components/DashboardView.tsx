@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { format, startOfDay, endOfDay, startOfMonth } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { PageHeader } from "./PageHeader";
 import { Card, Eyebrow, SectionTitle } from "./Card";
@@ -112,7 +112,7 @@ function ProgressBar({ label, value, total }: ProgressBarProps) {
 export function DashboardView() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
-    from: startOfMonth(new Date()),
+    from: startOfDay(new Date()),
     to: endOfDay(new Date()),
   }));
 

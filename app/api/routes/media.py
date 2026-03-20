@@ -4,6 +4,7 @@ import json
 import os
 import re
 from datetime import datetime, timedelta
+from xml.etree import ElementTree
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -227,6 +228,14 @@ def _reddit_url_candidates(sub_name: str) -> List[str]:
     ]
 
 
+def _reddit_rss_candidates(sub_name: str) -> List[str]:
+    query = f"t=week"
+    return [
+        f"https://www.reddit.com/r/{sub_name}/top/.rss?{query}",
+        f"https://old.reddit.com/r/{sub_name}/top/.rss?{query}",
+    ]
+
+
 def _extract_reddit_posts(payload: Dict[str, Any]) -> List[Dict[str, str]]:
     """Return list of {title, url} dicts from a Reddit JSON payload."""
     posts = payload.get("data", {}).get("children", [])
@@ -245,6 +254,35 @@ def _extract_reddit_posts(payload: Dict[str, Any]) -> List[Dict[str, str]]:
         permalink = data.get("permalink", "")
         url = f"https://www.reddit.com{permalink}" if permalink else ""
         result.append({"title": title, "url": url})
+    return result
+
+
+def _extract_reddit_rss_posts(xml_text: str) -> List[Dict[str, str]]:
+    result: List[Dict[str, str]] = []
+    seen: set[str] = set()
+    try:
+      root = ElementTree.fromstring(xml_text)
+    except ElementTree.ParseError:
+      return result
+    ns = {
+        "atom": "http://www.w3.org/2005/Atom",
+    }
+    for entry in root.findall("atom:entry", ns):
+        title = (entry.findtext("atom:title", default="", namespaces=ns) or "").strip()
+        if not title or title in seen:
+            continue
+        link = ""
+        for link_node in entry.findall("atom:link", ns):
+            href = (link_node.get("href") or "").strip()
+            rel = (link_node.get("rel") or "").strip()
+            if href and rel in {"alternate", "self", ""}:
+                link = href
+                if rel == "alternate":
+                    break
+        seen.add(title)
+        result.append({"title": title, "url": link})
+        if len(result) >= _REDDIT_POSTS_PER_SUB:
+            break
     return result
 
 
@@ -270,6 +308,27 @@ async def _fetch_subreddit_posts(http_client, sub_name: str) -> List[Dict[str, s
             continue
         if resp.is_success:
             return _extract_reddit_posts(resp.json())
+        last_error = f"{resp.status_code} from {url}"
+        if resp.status_code not in {403, 429}:
+            break
+    for url in _reddit_rss_candidates(sub_name):
+        try:
+            resp = await http_client.get(
+                url,
+                headers={
+                    "Referer": f"https://www.reddit.com/r/{sub_name}/",
+                    "Accept": "application/atom+xml,application/xml,text/xml;q=0.9,*/*;q=0.8",
+                },
+            )
+        except Exception as exc:
+            last_error = str(exc)
+            continue
+        if resp.is_success:
+            posts = _extract_reddit_rss_posts(resp.text)
+            if posts:
+                return posts
+            last_error = f"RSS returned no posts from {url}"
+            continue
         last_error = f"{resp.status_code} from {url}"
         if resp.status_code not in {403, 429}:
             break

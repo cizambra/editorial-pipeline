@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { format, startOfDay, endOfDay, startOfMonth, parseISO } from "date-fns";
+import { format, startOfDay, endOfDay, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { audience } from "../../lib/api";
 import { SubscriberMap } from "./SubscriberMap";
@@ -759,7 +759,7 @@ function InsightsTab({
   mobile?: boolean;
 }) {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
-    from: startOfMonth(new Date()),
+    from: startOfDay(new Date()),
     to: endOfDay(new Date()),
   }));
 
