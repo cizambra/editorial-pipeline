@@ -24,6 +24,7 @@ interface DateRangePickerProps {
 
 export function DateRangePicker({ dateRange, onSelect, align = "right", numberOfMonths = 2 }: DateRangePickerProps) {
   const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const hasRange = !!dateRange?.from;
@@ -34,13 +35,31 @@ export function DateRangePicker({ dateRange, onSelect, align = "right", numberOf
     : "All time";
 
   useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
+    if (isMobile) return;
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+  }, [open, isMobile]);
+
+  useEffect(() => {
+    if (!open || !isMobile) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open, isMobile]);
 
   const handleSelect = (range: DateRange | undefined) => {
     onSelect(range);
@@ -71,8 +90,8 @@ export function DateRangePicker({ dateRange, onSelect, align = "right", numberOf
         )}
       </button>
 
-      {/* Popover */}
-      {open && (
+      {/* Desktop popover */}
+      {open && !isMobile && (
         <div
           className="absolute z-50 mt-2 rounded-2xl shadow-xl overflow-hidden flex"
           style={{
@@ -131,6 +150,105 @@ export function DateRangePicker({ dateRange, onSelect, align = "right", numberOf
               numberOfMonths={numberOfMonths}
               defaultMonth={new Date()}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile sheet */}
+      {open && isMobile && (
+        <div className="lg:hidden fixed inset-0 z-[1030]">
+          <div
+            className="absolute inset-0"
+            style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
+            onClick={() => setOpen(false)}
+          />
+          <div
+            className="absolute inset-x-0 bottom-0 rounded-t-[24px] overflow-hidden"
+            style={{
+              background: "var(--card)",
+              boxShadow: "0 -6px 24px rgba(0,0,0,0.16)",
+              maxHeight: "88vh",
+            }}
+          >
+            <div className="flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 rounded-full" style={{ background: "rgba(var(--border-rgb),0.3)" }} />
+            </div>
+            <div
+              className="flex items-center justify-between px-4 pt-2 pb-3"
+              style={{ borderBottom: "1px solid rgba(var(--border-rgb),0.1)" }}
+            >
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "var(--text-subtle)" }}>
+                  Date range
+                </div>
+                <div className="text-sm font-semibold mt-1" style={{ color: "var(--foreground)" }}>
+                  {label}
+                </div>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="p-2 rounded-xl"
+                style={{ color: "var(--muted-foreground)", background: "rgba(var(--border-rgb),0.06)" }}
+                aria-label="Close date picker"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="overflow-y-auto" style={{ maxHeight: "calc(88vh - 72px)" }}>
+              <div
+                className="flex flex-col gap-1 p-4"
+                style={{ borderBottom: "1px solid rgba(var(--border-rgb),0.08)" }}
+              >
+                <span
+                  className="text-[10px] font-bold uppercase tracking-[0.1em] px-1 pb-1"
+                  style={{ color: "var(--text-subtle)" }}
+                >
+                  Quick select
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {PRESETS.map((preset) => (
+                    <button
+                      key={preset.label}
+                      onClick={() => { onSelect(preset.range()); setOpen(false); }}
+                      className="text-left text-xs font-semibold px-3 py-2.5 rounded-xl transition-all"
+                      style={{
+                        color: "var(--foreground)",
+                        background: "rgba(var(--border-rgb),0.05)",
+                        border: "1px solid rgba(var(--border-rgb),0.08)",
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => { onSelect(undefined); setOpen(false); }}
+                    className="text-left text-xs font-semibold px-3 py-2.5 rounded-xl transition-all"
+                    style={{
+                      color: "var(--text-subtle)",
+                      background: "rgba(var(--border-rgb),0.05)",
+                      border: "1px solid rgba(var(--border-rgb),0.08)",
+                    }}
+                  >
+                    All time
+                  </button>
+                </div>
+              </div>
+              <div className="p-4">
+                <style>{`
+                  .rdp { --rdp-accent-color: var(--primary); --rdp-background-color: rgba(var(--primary-rgb),0.08); }
+                  .rdp-button:hover:not([disabled]):not(.rdp-day_selected) { background: rgba(var(--primary-rgb),0.06); }
+                `}</style>
+                <div className="flex justify-center">
+                  <DayPicker
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={handleSelect}
+                    numberOfMonths={1}
+                    defaultMonth={dateRange?.from ?? new Date()}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
