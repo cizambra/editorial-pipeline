@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { history } from "../../lib/api";
 import { usePipeline } from "../../lib/pipeline-context";
 import { PageHeader } from "./PageHeader";
 import { Card, Eyebrow } from "./Card";
 import { Clock, Trash2, ChevronDown, Search, RefreshCw, Loader2, CheckCircle2, MoreVertical } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 function timeAgo(ts: string): string {
   const diff = Date.now() - new Date(ts).getTime();
@@ -176,19 +175,76 @@ function LiveRunRowDesktop({ runData, stages, hasRun }: { runData: any; stages: 
 
 function RunCard({ run, onDelete, onOpen }: { run: any; onDelete: () => void; onOpen: () => void }) {
   const status = String(run.status ?? "done").toLowerCase();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartX.current == null || touchStartY.current == null) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX.current;
+    const deltaY = touch.clientY - touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    if (Math.abs(deltaX) <= Math.abs(deltaY) || Math.abs(deltaX) < 36) return;
+    if (deltaX > 0) setMenuOpen(true);
+    else setMenuOpen(false);
+  };
+
   return (
     <div
-      className="rounded-2xl mb-3 overflow-hidden"
+      className="rounded-2xl mb-3 overflow-hidden relative"
       style={{
         background: "white",
         border: "1px solid rgba(var(--border-rgb),0.12)",
         boxShadow: "0 1px 3px rgba(var(--border-rgb),0.05)",
       }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
-      <div className="flex items-center gap-2 p-2.5 pr-3">
+      <div
+        className="absolute inset-y-0 left-0 flex items-center pl-3 pr-2"
+        style={{
+          width: 92,
+          background: "rgba(185,64,64,0.08)",
+          borderRight: "1px solid rgba(185,64,64,0.16)",
+        }}
+      >
+        <button
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-[0.08em]"
+          style={{ color: "#b94040", background: "rgba(185,64,64,0.12)" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+        >
+          <Trash2 size={13} />
+          Delete
+        </button>
+      </div>
+      <div
+        className="relative flex items-center gap-2 p-2.5 pr-3 transition-transform duration-200"
+        style={{
+          transform: menuOpen ? "translateX(76px)" : "translateX(0)",
+          background: "white",
+        }}
+      >
         <button
           className="flex-1 min-w-0 flex items-center gap-3 p-1.5 text-left active:bg-[rgba(var(--primary-rgb),0.04)] rounded-xl transition-colors"
-          onClick={onOpen}
+          onClick={() => {
+            if (menuOpen) {
+              setMenuOpen(false);
+              return;
+            }
+            onOpen();
+          }}
         >
           <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: "var(--primary)" }} />
           <div className="flex-1 min-w-0">
@@ -209,30 +265,17 @@ function RunCard({ run, onDelete, onOpen }: { run: any; onDelete: () => void; on
           </div>
           <ChevronDown size={16} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
         </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="p-2 rounded-xl active:scale-95 transition-all"
-              style={{ color: "var(--text-subtle)" }}
-              onClick={(e) => e.stopPropagation()}
-              aria-label="Open run actions"
-            >
-              <MoreVertical size={16} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[10rem]">
-            <DropdownMenuItem
-              variant="destructive"
-              onSelect={(e) => {
-                e.preventDefault();
-                onDelete();
-              }}
-            >
-              <Trash2 size={14} />
-              Delete run
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <button
+          className="p-2 rounded-xl active:scale-95 transition-all"
+          style={{ color: menuOpen ? "var(--primary)" : "var(--text-subtle)" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((prev) => !prev);
+          }}
+          aria-label={menuOpen ? "Close run actions" : "Open run actions"}
+        >
+          <MoreVertical size={16} />
+        </button>
       </div>
     </div>
   );
