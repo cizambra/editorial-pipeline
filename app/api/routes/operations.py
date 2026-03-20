@@ -93,7 +93,7 @@ async def patch_run_content(run_id: int, body: RunContentPatch, request: Request
 @router.delete("/api/history/{run_id}")
 async def delete_history_run(run_id: int, request: Request = None):
     if request is not None:
-        auth.require_superadmin(request)
+        auth.require_admin(request)
     await run_in_threadpool(storage.delete_history_run, run_id)
     _logger.info("History run deleted", extra={"fields": {"run_id": run_id}})
     return {"message": "Run deleted"}

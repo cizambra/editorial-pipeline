@@ -392,8 +392,14 @@ export function HistoryView() {
 
   const handleDelete = async (runId: string) => {
     if (!confirm("Delete this run?")) return;
-    await history.delete(runId).catch(() => {});
-    setRuns((r) => r.filter((x) => x.id !== runId));
+    try {
+      await history.delete(runId);
+      setRuns((r) => r.filter((x) => String(x.id) !== String(runId)));
+    } catch (err: any) {
+      const message = err?.message ?? "Failed to delete run";
+      setError(message);
+      window.alert(message);
+    }
   };
 
   // The live entry is now DB-backed — show in-memory overlay only before first DB refresh
