@@ -4,7 +4,8 @@ import { history } from "../../lib/api";
 import { usePipeline } from "../../lib/pipeline-context";
 import { PageHeader } from "./PageHeader";
 import { Card, Eyebrow } from "./Card";
-import { Clock, Trash2, ChevronDown, Search, RefreshCw, Loader2, CheckCircle2 } from "lucide-react";
+import { Clock, Trash2, ChevronDown, Search, RefreshCw, Loader2, CheckCircle2, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 function timeAgo(ts: string): string {
   const diff = Date.now() - new Date(ts).getTime();
@@ -184,29 +185,55 @@ function RunCard({ run, onDelete, onOpen }: { run: any; onDelete: () => void; on
         boxShadow: "0 1px 3px rgba(var(--border-rgb),0.05)",
       }}
     >
-      <button
-        className="w-full flex items-center gap-3 p-4 text-left active:bg-[rgba(var(--primary-rgb),0.04)] transition-colors"
-        onClick={onOpen}
-      >
-        <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: "var(--primary)" }} />
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm leading-tight truncate" style={{ color: "var(--foreground)" }}>
-            {run.title || "Untitled run"}
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] font-bold tracking-[0.08em] uppercase" style={{ color: "var(--muted-foreground)" }}>
-              {timeAgo(run.created_at ?? run.timestamp ?? "")}
-            </span>
-            <StatusBadge status={status} />
-            {run.cost > 0 && (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(var(--primary-rgb),0.1)", color: "var(--primary)" }}>
-                ${run.cost.toFixed(4)}
+      <div className="flex items-center gap-2 p-2.5 pr-3">
+        <button
+          className="flex-1 min-w-0 flex items-center gap-3 p-1.5 text-left active:bg-[rgba(var(--primary-rgb),0.04)] rounded-xl transition-colors"
+          onClick={onOpen}
+        >
+          <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: "var(--primary)" }} />
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-sm leading-tight truncate" style={{ color: "var(--foreground)" }}>
+              {run.title || "Untitled run"}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[10px] font-bold tracking-[0.08em] uppercase" style={{ color: "var(--muted-foreground)" }}>
+                {timeAgo(run.created_at ?? run.timestamp ?? "")}
               </span>
-            )}
+              <StatusBadge status={status} />
+              {run.cost > 0 && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(var(--primary-rgb),0.1)", color: "var(--primary)" }}>
+                  ${run.cost.toFixed(4)}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-        <ChevronDown size={16} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
-      </button>
+          <ChevronDown size={16} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="p-2 rounded-xl active:scale-95 transition-all"
+              style={{ color: "var(--text-subtle)" }}
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Open run actions"
+            >
+              <MoreVertical size={16} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[10rem]">
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={(e) => {
+                e.preventDefault();
+                onDelete();
+              }}
+            >
+              <Trash2 size={14} />
+              Delete run
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }

@@ -139,9 +139,10 @@ export function PipelineView() {
   // Load checkpoint on mount
   useEffect(() => {
     pipeline.checkpoint().then(cp => {
-      if (cp && cp.reflection_title) {
-        setArticleTitle(cp.reflection_title);
+      if (cp?.exists && (cp.reflection_title || cp.title)) {
+        setArticleTitle(cp.reflection_title ?? cp.title);
         setArticleUrl(cp.article_url ?? "");
+        if (cp.reflection) setArticleText(cp.reflection);
       }
     }).catch(() => {});
   }, []);

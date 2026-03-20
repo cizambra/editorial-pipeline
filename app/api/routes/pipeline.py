@@ -24,9 +24,12 @@ async def get_checkpoint():
     return {
         "exists": True,
         "title": checkpoint.get("reflection_title", "Unknown"),
+        "reflection_title": checkpoint.get("reflection_title", "Unknown"),
         "timestamp": checkpoint.get("timestamp", ""),
         "article_url": checkpoint.get("article_url", ""),
         "include_spanish": checkpoint.get("include_spanish", True),
+        "reflection": checkpoint.get("reflection", ""),
+        "data": checkpoint.get("data", {}),
         "completed_steps": completed_steps,
         "total_steps": 8,
     }

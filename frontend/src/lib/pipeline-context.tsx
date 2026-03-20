@@ -47,6 +47,60 @@ interface PipelineContextType {
 const PipelineContext = createContext<PipelineContextType | null>(null);
 const ACTIVE_RUN_STORAGE_KEY = "ep_active_run";
 
+function getPersistentStorage(): Storage | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function stageStatusFromCheckpoint(
+  stageName: string,
+  checkpoint: { completed_steps?: unknown; include_spanish?: boolean },
+): PipelineStage["status"] {
+  const completedSteps = Array.isArray(checkpoint.completed_steps) ? checkpoint.completed_steps : [];
+  const completed = new Set(completedSteps.filter((step): step is string => typeof step === "string"));
+  if (stageName === "Reflection") return "done";
+  if (stageName === "Translation") {
+    if (checkpoint.include_spanish === false) return "skipped";
+    return completed.has("reflection_es") || completed.has("companion_es") ? "done" : "waiting";
+  }
+  if (stageName === "Related Articles") return completed.has("related_articles") ? "done" : "waiting";
+  if (stageName === "Companion") return completed.has("companion_en") ? "done" : "waiting";
+  if (stageName === "Social Posts") {
+    return completed.has("reflection_social_en") || completed.has("companion_social_en") ? "done" : "waiting";
+  }
+  if (stageName === "Pillar Tags") return completed.has("tags") ? "done" : "waiting";
+  if (stageName === "Quotes") return completed.has("quotes") ? "done" : "waiting";
+  return "waiting";
+}
+
+function buildRunDataFromCheckpoint(checkpoint: any) {
+  const data = checkpoint?.data ?? {};
+  return {
+    reflection_title: checkpoint?.reflection_title ?? checkpoint?.title ?? "",
+    article_url: checkpoint?.article_url ?? "",
+    _articleText: checkpoint?.reflection ?? "",
+    reflection: {
+      en: checkpoint?.reflection ?? "",
+      ...(data.reflection_es ? { es: data.reflection_es.content ?? data.reflection_es } : {}),
+      ...(data.reflection_social_en ? { repurposed_en: data.reflection_social_en } : {}),
+      ...(data.reflection_social_es ? { repurposed_es: data.reflection_social_es } : {}),
+    },
+    companion: {
+      ...(data.companion_en ? { en: data.companion_en.content ?? data.companion_en, title: data.companion_en.title } : {}),
+      ...(data.companion_es ? { es: data.companion_es.content ?? data.companion_es } : {}),
+      ...(data.companion_social_en ? { repurposed_en: data.companion_social_en } : {}),
+      ...(data.companion_social_es ? { repurposed_es: data.companion_social_es } : {}),
+    },
+    related_articles: Array.isArray(data.related_articles) ? data.related_articles : [],
+    tags: Array.isArray(data.tags) ? data.tags : [],
+    quotes: Array.isArray(data.quotes) ? data.quotes : [],
+  };
+}
+
 export function PipelineProvider({ children }: { children: ReactNode }) {
   const [running, setRunning] = useState(false);
   const [hasRun, setHasRun] = useState(false);
@@ -60,10 +114,19 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
   const queueInitialized = useRef(false);
 
   useEffect(() => {
+    const storage = getPersistentStorage();
+    if (!storage) return;
+    let saved: any = null;
     try {
-      const raw = sessionStorage.getItem(ACTIVE_RUN_STORAGE_KEY);
-      if (!raw) return;
-      const saved = JSON.parse(raw);
+      const raw = storage.getItem(ACTIVE_RUN_STORAGE_KEY);
+      if (raw) saved = JSON.parse(raw);
+    } catch {
+      storage.removeItem(ACTIVE_RUN_STORAGE_KEY);
+      return;
+    }
+
+    const restoreFromStorage = () => {
+      if (!saved) return;
       const wasRunning = saved.running === true;
       if (Array.isArray(saved.pipelineStages)) setPipelineStages(saved.pipelineStages);
       if (saved.runData) setRunData(saved.runData);
@@ -72,18 +135,38 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
       if (saved.runError) setRunError(saved.runError);
       else if (wasRunning) setRunError("Pipeline was interrupted. Resume if a checkpoint is available.");
       if (saved.tokenSummary) setTokenSummary(saved.tokenSummary);
-    } catch {
-      sessionStorage.removeItem(ACTIVE_RUN_STORAGE_KEY);
-    }
+    };
+
+    restoreFromStorage();
+
+    if (saved?.running !== true) return;
+
+    pipeline.checkpoint().then((checkpoint) => {
+      if (!checkpoint?.exists) return;
+      const checkpointStages: PipelineStage[] = PIPELINE_STAGE_NAMES.map((name) => ({
+        stage: name,
+        label: name,
+        status: stageStatusFromCheckpoint(name, checkpoint),
+      }));
+      setPipelineStages(checkpointStages);
+      setRunData((prev: any) => ({
+        ...(prev ?? {}),
+        ...buildRunDataFromCheckpoint(checkpoint),
+      }));
+      setHasRun(false);
+      setRunError("Pipeline was interrupted. Resume if a checkpoint is available.");
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
+    const storage = getPersistentStorage();
+    if (!storage) return;
     const shouldPersist = !!runData && (running || hasRun || pipelineStages.length > 0 || !!runError);
     if (!shouldPersist) {
-      sessionStorage.removeItem(ACTIVE_RUN_STORAGE_KEY);
+      storage.removeItem(ACTIVE_RUN_STORAGE_KEY);
       return;
     }
-    sessionStorage.setItem(ACTIVE_RUN_STORAGE_KEY, JSON.stringify({
+    storage.setItem(ACTIVE_RUN_STORAGE_KEY, JSON.stringify({
       running,
       hasRun,
       pipelineStages,
@@ -125,7 +208,7 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
     setRunData(null);
     setRunError(null);
     setTokenSummary(null);
-    sessionStorage.removeItem(ACTIVE_RUN_STORAGE_KEY);
+    getPersistentStorage()?.removeItem(ACTIVE_RUN_STORAGE_KEY);
   };
 
   const cancelPipeline = async () => {

@@ -28,6 +28,54 @@ const A2_TO_NUMERIC: Record<string, string> = {
   HK:"344",TW:"158",
 };
 
+const NUMERIC_TO_A2 = Object.fromEntries(
+  Object.entries(A2_TO_NUMERIC).map(([alpha2, numeric]) => [numeric, alpha2]),
+);
+
+const COUNTRY_ALIASES: Record<string, string> = {
+  "united states": "US",
+  "united states of america": "US",
+  usa: "US",
+  uk: "GB",
+  "united kingdom": "GB",
+  england: "GB",
+  scotland: "GB",
+  wales: "GB",
+  uae: "AE",
+  "united arab emirates": "AE",
+  russia: "RU",
+  "south korea": "KR",
+  korea: "KR",
+  "north korea": "KP",
+  vietnam: "VN",
+  czechia: "CZ",
+  "czech republic": "CZ",
+  "ivory coast": "CI",
+  "cote d'ivoire": "CI",
+  "côte d’ivoire": "CI",
+};
+
+const COUNTRY_NAME_TO_A2: Record<string, string> = (() => {
+  const map: Record<string, string> = { ...COUNTRY_ALIASES };
+  if (typeof Intl !== "undefined" && typeof Intl.DisplayNames !== "undefined") {
+    const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
+    for (const alpha2 of Object.keys(A2_TO_NUMERIC)) {
+      const name = displayNames.of(alpha2);
+      if (name) map[name.toLowerCase()] = alpha2;
+    }
+  }
+  return map;
+})();
+
+function normalizeCountryCode(raw: string): string | null {
+  const value = raw.trim();
+  if (!value) return null;
+  const upper = value.toUpperCase();
+  if (A2_TO_NUMERIC[upper]) return upper;
+  if (NUMERIC_TO_A2[upper]) return NUMERIC_TO_A2[upper];
+  return COUNTRY_NAME_TO_A2[value.toLowerCase()] ?? null;
+}
+
 function accent(intensity: number) {
   const r = 196;
   const g = Math.round(186 - (186 - 82) * intensity);
@@ -96,11 +144,23 @@ export function SubscriberMap({ allCountries, mobile }: SubscriberMapProps) {
     );
   }
 
-  const topSet = new Set(allCountries.slice(0, TOP_N).map(([c]) => c));
+  const normalizedCountries = allCountries.reduce<[string, number][]>((acc, [rawCode, count]) => {
+    const code = normalizeCountryCode(rawCode);
+    if (!code) return acc;
+    const existing = acc.findIndex(([existingCode]) => existingCode === code);
+    if (existing >= 0) {
+      acc[existing] = [code, acc[existing][1] + count];
+    } else {
+      acc.push([code, count]);
+    }
+    return acc;
+  }, []);
+
+  const topSet = new Set(normalizedCountries.slice(0, TOP_N).map(([c]) => c));
 
   // Build numeric → count lookup (only for the active view)
   const countByNumeric: Record<string, number> = {};
-  for (const [code, count] of allCountries) {
+  for (const [code, count] of normalizedCountries) {
     const num = A2_TO_NUMERIC[code];
     if (!num) continue;
     if (view === "top" && !topSet.has(code)) continue;
