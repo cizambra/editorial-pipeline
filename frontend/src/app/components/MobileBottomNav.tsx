@@ -16,7 +16,7 @@ interface MobileBottomNavProps {
 export function MobileBottomNav({ items, activeItem, onItemChange }: MobileBottomNavProps) {
   return (
     <div 
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-inset-bottom"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-30 safe-area-inset-bottom"
       style={{
         background: 'var(--card)',
         borderTop: '1px solid rgba(var(--border-rgb), 0.12)',
