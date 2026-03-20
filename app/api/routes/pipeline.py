@@ -205,14 +205,17 @@ async def run_pipeline(
     )
 
     async def monitored_stream():
+        disconnected = False
         try:
             async for chunk in iterate_in_threadpool(stream):
-                if await request.is_disconnected():
-                    pipeline_service.cancel_current_run()
-                    break
+                if not disconnected and await request.is_disconnected():
+                    disconnected = True
+                if disconnected:
+                    continue
                 yield chunk
-        finally:
-            pipeline_service.cancel_current_run()
+        except Exception:
+            if not disconnected:
+                raise
 
     return StreamingResponse(
         monitored_stream(),

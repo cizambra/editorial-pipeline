@@ -101,6 +101,40 @@ function buildRunDataFromCheckpoint(checkpoint: any) {
   };
 }
 
+function buildRunDataFromHistoryRun(run: any) {
+  const data = run?.data ?? {};
+  return {
+    ...data,
+    run_id: run?.id,
+    reflection_title: run?.title ?? "",
+    article_url: run?.article_url ?? "",
+    _articleText: data?.reflection?.en ?? "",
+    thumbnailConcepts: Array.isArray(data?.thumbnail_concepts) ? data.thumbnail_concepts : (Array.isArray(data?.thumbnailConcepts) ? data.thumbnailConcepts : []),
+    cost: run?.cost_usd ?? 0,
+    status: run?.status ?? "done",
+  };
+}
+
+function buildCompletedStagesFromRun(run: any): PipelineStage[] {
+  const data = run?.data ?? {};
+  const hasSpanish = !!(data?.reflection?.es || data?.companion?.es);
+  const hasThumbnail = Array.isArray(data?.thumbnail_concepts) ? data.thumbnail_concepts.length > 0 : Array.isArray(data?.thumbnailConcepts) && data.thumbnailConcepts.length > 0;
+  return PIPELINE_STAGE_NAMES.map((name) => ({
+    stage: name,
+    label: name,
+    status:
+      name === "Reflection" ? "done"
+      : name === "Related Articles" ? (Array.isArray(data?.related_articles) && data.related_articles.length > 0 ? "done" : "skipped")
+      : name === "Translation" ? (hasSpanish ? "done" : "skipped")
+      : name === "Companion" ? (data?.companion?.en ? "done" : "skipped")
+      : name === "Social Posts" ? ((data?.reflection?.repurposed_en || data?.companion?.repurposed_en) ? "done" : "skipped")
+      : name === "Pillar Tags" ? (Array.isArray(data?.tags) && data.tags.length > 0 ? "done" : "skipped")
+      : name === "Quotes" ? (Array.isArray(data?.quotes) && data.quotes.length > 0 ? "done" : "skipped")
+      : name === "Thumbnail" ? (hasThumbnail ? "done" : "skipped")
+      : "done",
+  }));
+}
+
 export function PipelineProvider({ children }: { children: ReactNode }) {
   const [running, setRunning] = useState(false);
   const [hasRun, setHasRun] = useState(false);
@@ -140,6 +174,35 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
     restoreFromStorage();
 
     if (saved?.running !== true) return;
+
+    const savedRunId = saved?.runData?.run_id;
+
+    if (savedRunId != null) {
+      history.get(String(savedRunId)).then((run) => {
+        if (String(run?.status ?? "").toLowerCase() === "running") return;
+        setPipelineStages(buildCompletedStagesFromRun(run));
+        setRunData(buildRunDataFromHistoryRun(run));
+        setHasRun(true);
+        setRunError(null);
+      }).catch(() => {
+        pipeline.checkpoint().then((checkpoint) => {
+          if (!checkpoint?.exists) return;
+          const checkpointStages: PipelineStage[] = PIPELINE_STAGE_NAMES.map((name) => ({
+            stage: name,
+            label: name,
+            status: stageStatusFromCheckpoint(name, checkpoint),
+          }));
+          setPipelineStages(checkpointStages);
+          setRunData((prev: any) => ({
+            ...(prev ?? {}),
+            ...buildRunDataFromCheckpoint(checkpoint),
+          }));
+          setHasRun(false);
+          setRunError("Pipeline was interrupted. Resume if a checkpoint is available.");
+        }).catch(() => {});
+      });
+      return;
+    }
 
     pipeline.checkpoint().then((checkpoint) => {
       if (!checkpoint?.exists) return;
@@ -435,9 +498,51 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
       );
     } catch (err: any) {
       if (err.name !== "AbortError") {
-        setRunError(err.message ?? "Pipeline failed");
-        setHasRun(false);
-        setRunData((prev: any) => prev ? { ...prev, status: "error" } : prev);
+        let recovered = false;
+
+        if (runIdRef.current) {
+          try {
+            const savedRun = await history.get(runIdRef.current);
+            if (String(savedRun?.status ?? "").toLowerCase() !== "running") {
+              setPipelineStages(buildCompletedStagesFromRun(savedRun));
+              setRunData(buildRunDataFromHistoryRun(savedRun));
+              setHasRun(true);
+              setRunError(null);
+              recovered = true;
+            }
+          } catch {
+            // Fall through to checkpoint recovery.
+          }
+        }
+
+        if (!recovered) {
+          try {
+            const checkpoint = await pipeline.checkpoint();
+            if (checkpoint?.exists) {
+              const checkpointStages: PipelineStage[] = PIPELINE_STAGE_NAMES.map((name) => ({
+                stage: name,
+                label: name,
+                status: stageStatusFromCheckpoint(name, checkpoint),
+              }));
+              setPipelineStages(checkpointStages);
+              setRunData((prev: any) => ({
+                ...(prev ?? {}),
+                ...buildRunDataFromCheckpoint(checkpoint),
+              }));
+              setRunError("Pipeline connection was interrupted. Resume if you want to continue from the saved checkpoint.");
+              setHasRun(false);
+              recovered = true;
+            }
+          } catch {
+            // Fall through to the generic error message.
+          }
+        }
+
+        if (!recovered) {
+          setRunError(err.message ?? "Pipeline failed");
+          setHasRun(false);
+          setRunData((prev: any) => prev ? { ...prev, status: "error" } : prev);
+        }
       }
     } finally {
       // Clear running state as soon as the main pipeline stream ends.
