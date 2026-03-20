@@ -19,7 +19,11 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
+from app.core.logging import get_logger
 from app.services import linkedin_client, meta_client, substack_client, threads_client
+
+
+_logger = get_logger("editorial.social")
 
 
 def is_configured(platform: str) -> bool:
@@ -59,15 +63,32 @@ def get_status() -> Dict[str, Any]:
 
 def publish_post(platform: str, text: str, image_url: str = "") -> Dict[str, Any]:
     """Publish a post to the given platform immediately."""
+    _logger.info(
+        "Publishing social post",
+        extra={
+            "fields": {
+                "platform": platform,
+                "text_length": len(text or ""),
+                "has_image_url": bool(image_url),
+                "configured": is_configured(platform),
+            }
+        },
+    )
     if platform == "linkedin":
-        return linkedin_client.publish_post(text)
-    if platform == "threads":
-        return threads_client.publish_threads(text)
-    if platform == "instagram":
-        return meta_client.publish_instagram(text, image_url)
-    if platform == "substack_note":
-        return substack_client.post_note(text)
-    raise ValueError("Unknown platform: {!r}. Valid: linkedin, threads, instagram, substack_note".format(platform))
+        result = linkedin_client.publish_post(text)
+    elif platform == "threads":
+        result = threads_client.publish_threads(text)
+    elif platform == "instagram":
+        result = meta_client.publish_instagram(text, image_url)
+    elif platform == "substack_note":
+        result = substack_client.post_note(text)
+    else:
+        raise ValueError("Unknown platform: {!r}. Valid: linkedin, threads, instagram, substack_note".format(platform))
+    _logger.info(
+        "Social post publish returned",
+        extra={"fields": {"platform": platform, "result_post_id": result.get("post_id", ""), "published": result.get("published")}},
+    )
+    return result
 
 
 def publish_all_repurposed(
