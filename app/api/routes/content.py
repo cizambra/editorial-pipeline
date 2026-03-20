@@ -119,7 +119,10 @@ def _parse_substack_notes(raw: str) -> List[Dict[str, Any]]:
             elif in_note and stripped:
                 note_lines.append(stripped)
         if issue and intent and note_lines:
-            notes.append({"issue": issue, "intent": intent, "note_text": "\n".join(note_lines)})
+            normalized_lines = list(note_lines)
+            if normalized_lines[0].strip() != issue.strip():
+                normalized_lines.insert(0, issue.strip())
+            notes.append({"issue": issue, "intent": intent, "note_text": "\n".join(normalized_lines)})
     return notes
 
 
