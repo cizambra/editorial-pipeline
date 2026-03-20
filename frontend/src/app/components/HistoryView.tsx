@@ -178,6 +178,9 @@ function RunCard({ run, onDelete, onOpen }: { run: any; onDelete: () => void; on
   const [menuOpen, setMenuOpen] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const revealWidth = 60;
+  const revealThreshold = 36;
+  const deleteThreshold = 132;
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
@@ -193,7 +196,11 @@ function RunCard({ run, onDelete, onOpen }: { run: any; onDelete: () => void; on
     touchStartX.current = null;
     touchStartY.current = null;
 
-    if (Math.abs(deltaX) <= Math.abs(deltaY) || Math.abs(deltaX) < 36) return;
+    if (Math.abs(deltaX) <= Math.abs(deltaY) || Math.abs(deltaX) < revealThreshold) return;
+    if (deltaX > deleteThreshold) {
+      onDelete();
+      return;
+    }
     if (deltaX > 0) setMenuOpen(true);
     else setMenuOpen(false);
   };
@@ -212,27 +219,27 @@ function RunCard({ run, onDelete, onOpen }: { run: any; onDelete: () => void; on
       <div
         className="absolute inset-y-0 left-0 flex items-center pl-3 pr-2"
         style={{
-          width: 92,
+          width: revealWidth + 16,
           background: "rgba(185,64,64,0.08)",
           borderRight: "1px solid rgba(185,64,64,0.16)",
         }}
       >
         <button
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-[0.08em]"
+          className="w-11 h-11 flex items-center justify-center rounded-xl"
           style={{ color: "#b94040", background: "rgba(185,64,64,0.12)" }}
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
+          aria-label="Delete run"
         >
-          <Trash2 size={13} />
-          Delete
+          <Trash2 size={15} />
         </button>
       </div>
       <div
         className="relative flex items-center gap-2 p-2.5 pr-3 transition-transform duration-200"
         style={{
-          transform: menuOpen ? "translateX(76px)" : "translateX(0)",
+          transform: menuOpen ? `translateX(${revealWidth}px)` : "translateX(0)",
           background: "white",
         }}
       >
