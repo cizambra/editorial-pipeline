@@ -340,11 +340,13 @@ export function HistoryView() {
   const { runData: liveRunData, running, hasRun, pipelineStages, runError } = usePipeline();
   const [runs, setRuns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
 
-  const load = async () => {
-    setLoading(true);
+  const load = async ({ silent = false }: { silent?: boolean } = {}) => {
+    if (silent) setRefreshing(true);
+    else setLoading(true);
     setError(null);
     try {
       const res = await history.list() as any;
@@ -352,13 +354,14 @@ export function HistoryView() {
     } catch (err: any) {
       setError(err.message ?? "Failed to load history");
     } finally {
-      setLoading(false);
+      if (silent) setRefreshing(false);
+      else setLoading(false);
     }
   };
 
   useEffect(() => {
     load();
-    const onFocus = () => load();
+    const onFocus = () => load({ silent: true });
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
@@ -371,7 +374,7 @@ export function HistoryView() {
   useEffect(() => {
     if (!running && !hasRun && !liveRowIsRunning) return;
     const timer = window.setInterval(() => {
-      load();
+      load({ silent: true });
     }, 2500);
     return () => window.clearInterval(timer);
   }, [running, hasRun, liveRowIsRunning]);
@@ -379,12 +382,12 @@ export function HistoryView() {
   // Reload whenever run_id changes — fires both on run_pending (start) and run_saved (end)
   useEffect(() => {
     if (!liveRunData?.run_id) return;
-    load();
+    load({ silent: true });
   }, [liveRunData?.run_id]);
 
   useEffect(() => {
     if (!runError || !liveId) return;
-    load();
+    load({ silent: true });
   }, [runError, liveId]);
 
   const handleDelete = async (runId: string) => {
@@ -418,8 +421,8 @@ export function HistoryView() {
               History
             </div>
           </div>
-          <button onClick={load} className="p-2.5 rounded-xl active:scale-95 transition-all" style={{ background: "white", border: "1px solid rgba(var(--border-rgb),0.12)", color: "var(--muted-foreground)" }}>
-            <RefreshCw size={16} />
+          <button onClick={() => load({ silent: runs.length > 0 })} className="p-2.5 rounded-xl active:scale-95 transition-all" style={{ background: "white", border: "1px solid rgba(var(--border-rgb),0.12)", color: "var(--muted-foreground)" }}>
+            <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
           </button>
         </div>
 
@@ -462,8 +465,8 @@ export function HistoryView() {
           title="History"
           description="All past pipeline runs with costs and article sources."
           action={
-            <button onClick={load} className="flex items-center gap-1.5 text-sm font-bold px-3.5 py-2 rounded-xl hover:opacity-80 transition-all" style={{ background: "rgba(var(--border-rgb),0.07)", color: "var(--muted-foreground)", border: "none" }}>
-              <RefreshCw size={14} />
+            <button onClick={() => load({ silent: runs.length > 0 })} className="flex items-center gap-1.5 text-sm font-bold px-3.5 py-2 rounded-xl hover:opacity-80 transition-all" style={{ background: "rgba(var(--border-rgb),0.07)", color: "var(--muted-foreground)", border: "none" }}>
+              <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
               Refresh
             </button>
           }

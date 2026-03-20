@@ -260,15 +260,47 @@ export function PipelineView() {
   function TabContent({ mobile = false }: { mobile?: boolean }) {
     const editorHeight = mobile ? "400px" : "600px";
     const editorContent = activeContentTab === "companion" ? companionContent : reflectionContent;
+    const currentStageStatus =
+      activeContentTab === "companion"
+        ? pipelineStages.find((stage) => stage.stage === "Companion")?.status
+        : activeContentTab === "reflection" && language === "es"
+          ? pipelineStages.find((stage) => stage.stage === "Translation")?.status
+          : pipelineStages.find((stage) => stage.stage === "Reflection")?.status;
+    const waitingForSelectedContent =
+      (activeContentTab === "reflection" || activeContentTab === "companion") &&
+      !editorContent.trim() &&
+      (running || currentStageStatus === "waiting" || currentStageStatus === "running");
+
     return (
       <>
         {(activeContentTab === "reflection" || activeContentTab === "companion") && (
           <div style={{ height: editorHeight, borderRadius: "12px", overflow: "hidden", border: "1px solid rgba(var(--border-rgb),0.12)" }}>
-            <WYSIWYGEditor
-              value={editorContent}
-              onChange={() => {}}
-              placeholder={activeContentTab === "companion" ? "Companion article will appear here once the pipeline completes." : "Reflection will appear here once the pipeline completes."}
-            />
+            {waitingForSelectedContent ? (
+              <div
+                className="h-full flex flex-col items-center justify-center text-center px-6"
+                style={{ background: "#fff" }}
+              >
+                {running && (
+                  <Loader2 className="w-5 h-5 animate-spin mb-3" style={{ color: "var(--primary)" }} />
+                )}
+                <div className="text-sm font-semibold mb-1" style={{ color: "var(--foreground)" }}>
+                  {activeContentTab === "companion"
+                    ? (language === "es" ? "Spanish companion is still generating." : "Companion article is still generating.")
+                    : (language === "es" ? "Spanish reflection is still generating." : "Reflection is still generating.")}
+                </div>
+                <div className="text-xs max-w-sm" style={{ color: "var(--text-subtle)" }}>
+                  {language === "es"
+                    ? "Switch back to EN or wait for the translation stage to finish."
+                    : "This section will appear automatically as soon as the current stage completes."}
+                </div>
+              </div>
+            ) : (
+              <WYSIWYGEditor
+                value={editorContent}
+                onChange={() => {}}
+                placeholder={activeContentTab === "companion" ? "Companion article will appear here once the pipeline completes." : "Reflection will appear here once the pipeline completes."}
+              />
+            )}
           </div>
         )}
         {activeContentTab === "quotes" && (
