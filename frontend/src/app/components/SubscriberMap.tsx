@@ -1,7 +1,7 @@
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from "react-simple-maps";
 import { useEffect, useState } from "react";
 
-const GEO_URL = "/countries-110m.json";
+const GEO_URL = `${import.meta.env.BASE_URL}countries-110m.json`;
 const TOP_N = 10;
 
 // ISO 3166-1 alpha-2 → numeric (world-atlas uses numeric codes as string IDs)
