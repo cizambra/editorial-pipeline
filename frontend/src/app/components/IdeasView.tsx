@@ -12,10 +12,10 @@ import {
   Telescope,
   Loader2,
   ExternalLink,
-  ChevronDown,
-  ChevronUp,
   X,
+  Filter,
 } from "lucide-react";
+import { CustomSelect } from "./CustomSelect";
 
 type Status = "new" | "writing" | "done";
 
@@ -125,108 +125,151 @@ function SampleLinks({ urls, compact = false }: { urls: string[]; compact?: bool
   );
 }
 
-// ── Desktop row (expandable) ────────────────────────────────────────────────
+// ── Desktop row (selectable, no inline expansion) ───────────────────────────
 function IdeaRow({
   item,
-  onDelete,
-  onStatus,
+  selected,
+  onSelect,
   borderBottom,
 }: {
   item: any;
-  onDelete: () => void;
-  onStatus: (s: Status) => void;
+  selected: boolean;
+  onSelect: () => void;
   borderBottom?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const status: Status = item.status ?? "new";
-  const sampleUrls = parseSampleUrls(item.sample_urls);
-  const previewUrls = sampleUrls.slice(0, 3);
-
-  const hasDetail = item.article_angle || item.main_struggle || item.example || sampleUrls.length > 0;
 
   return (
     <div
+      className="cursor-pointer transition-all"
       style={{
         borderLeft: `3px solid ${STATUS_BORDER[status]}`,
         borderBottom: borderBottom ? "1px solid rgba(var(--border-rgb),0.08)" : "none",
+        background: selected ? "rgba(var(--primary-rgb),0.05)" : "transparent",
       }}
+      onClick={onSelect}
     >
-      {/* Main row */}
-      <div
-        className={`flex items-start gap-3 py-3.5 -mx-5 px-5 ${hasDetail ? "cursor-pointer" : ""}`}
-        onClick={() => hasDetail && setExpanded((x) => !x)}
-      >
-        <div className="flex-1 min-w-0 pt-0.5">
-          <div className="flex items-center gap-2 flex-wrap mb-0.5">
-            <span className="text-sm font-semibold leading-snug" style={{ color: "var(--foreground)" }}>
-              {item.emoji && <span className="mr-1">{item.emoji}</span>}
-              {item.theme ?? item.title}
-            </span>
-            <FrequencyBadge frequency={item.frequency} />
+      <div className="flex items-center gap-3 py-3 -mx-5 px-5">
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold leading-snug truncate" style={{ color: "var(--foreground)" }}>
+            {item.emoji && <span className="mr-1">{item.emoji}</span>}
+            {item.theme ?? item.title}
           </div>
           {item.category && (
-            <span className="text-[10px] font-bold tracking-[0.08em] uppercase" style={{ color: "var(--text-subtle)" }}>
+            <div className="text-[10px] font-bold tracking-[0.08em] uppercase mt-0.5" style={{ color: "var(--text-subtle)" }}>
               {item.category}
-            </span>
-          )}
-          {previewUrls.length > 0 && (
-            <div className="mt-1">
-              <div className="text-[10px] font-bold tracking-[0.08em] uppercase mb-1" style={{ color: "#b06a43" }}>
-                Sample posts
-              </div>
-              <SampleLinks urls={previewUrls} compact />
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
-          <StatusPill status={status} onChange={onStatus} />
-          {hasDetail && (
-            <span style={{ color: "#c4b89a" }}>
-              {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-            </span>
-          )}
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1.5 rounded-lg hover:bg-[rgba(185,64,64,0.1)] transition-colors"
-            style={{ color: "#c4b89a" }}
-          >
-            <Trash2 size={13} />
-          </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <FrequencyBadge frequency={item.frequency} />
+          <StatusPill status={status} />
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Expanded detail */}
-      {expanded && hasDetail && (
-        <div
-          className="-mx-5 px-5 pb-4 space-y-2.5"
-          style={{ background: "rgba(var(--border-rgb),0.025)" }}
-        >
-          {item.main_struggle && (
-            <div>
-              <div className="text-[10px] font-bold tracking-[0.08em] uppercase mb-1" style={{ color: "var(--text-subtle)" }}>Core struggle</div>
-              <div className="text-xs leading-relaxed" style={{ color: "#3d2b18" }}>{item.main_struggle}</div>
-            </div>
-          )}
-          {item.article_angle && (
-            <div>
-              <div className="text-[10px] font-bold tracking-[0.08em] uppercase mb-1" style={{ color: "var(--text-subtle)" }}>Article angle</div>
-              <div className="text-xs font-semibold leading-relaxed" style={{ color: "var(--primary)" }}>{item.article_angle}</div>
-            </div>
-          )}
-          {item.example && (
-            <div>
-              <div className="text-[10px] font-bold tracking-[0.08em] uppercase mb-1" style={{ color: "var(--text-subtle)" }}>Sample post</div>
-              <div className="text-xs italic leading-relaxed" style={{ color: "var(--muted-foreground)" }}>"{item.example}"</div>
-            </div>
-          )}
-          {sampleUrls.length > 0 && (
-            <div>
-              <div className="text-[10px] font-bold tracking-[0.08em] uppercase mb-1" style={{ color: "var(--text-subtle)" }}>Source posts</div>
-              <SampleLinks urls={sampleUrls} />
-            </div>
-          )}
+// ── Desktop detail panel ─────────────────────────────────────────────────────
+function IdeaDetailPanel({
+  item,
+  onClose,
+  onDelete,
+  onStatus,
+}: {
+  item: any;
+  onClose: () => void;
+  onDelete: () => void;
+  onStatus: (s: Status) => void;
+}) {
+  const status: Status = item.status ?? "new";
+  const sampleUrls = parseSampleUrls(item.sample_urls);
+
+  return (
+    <div
+      className="rounded-2xl p-5"
+      style={{ background: "white", border: "1px solid rgba(var(--border-rgb),0.12)", boxShadow: "0 1px 3px rgba(var(--border-rgb),0.04)" }}
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2 mb-4">
+        <div className="flex-1 min-w-0">
+          <Eyebrow>Idea detail</Eyebrow>
+          <div className="text-sm font-bold leading-snug mt-1" style={{ color: "var(--foreground)" }}>
+            {item.emoji && <span className="mr-1.5">{item.emoji}</span>}
+            {item.theme ?? item.title}
+          </div>
         </div>
-      )}
+        <button
+          onClick={onClose}
+          className="p-1.5 rounded-lg transition-colors flex-shrink-0"
+          style={{ background: "rgba(var(--border-rgb),0.08)", color: "var(--muted-foreground)" }}
+        >
+          <X size={13} />
+        </button>
+      </div>
+
+      {/* Status + frequency */}
+      <div className="flex items-center gap-2 flex-wrap mb-4">
+        <StatusPill status={status} onChange={onStatus} />
+        <FrequencyBadge frequency={item.frequency} />
+        {item.category && (
+          <span className="text-[10px] font-bold tracking-[0.08em] uppercase" style={{ color: "var(--text-subtle)" }}>
+            {item.category}
+          </span>
+        )}
+      </div>
+
+      {/* Detail sections */}
+      <div className="space-y-3">
+        {item.main_struggle && (
+          <div className="rounded-xl p-3" style={{ background: "rgba(var(--border-rgb),0.04)", border: "1px solid rgba(var(--border-rgb),0.08)" }}>
+            <div className="text-[10px] font-bold tracking-[0.08em] uppercase mb-1.5" style={{ color: "var(--text-subtle)" }}>Core struggle</div>
+            <div className="text-xs leading-relaxed" style={{ color: "#3d2b18" }}>{item.main_struggle}</div>
+          </div>
+        )}
+        {item.article_angle && (
+          <div className="rounded-xl p-3" style={{ background: "rgba(var(--primary-rgb),0.05)", border: "1px solid rgba(var(--primary-rgb),0.12)" }}>
+            <div className="text-[10px] font-bold tracking-[0.08em] uppercase mb-1.5" style={{ color: "var(--text-subtle)" }}>Article angle</div>
+            <div className="text-xs font-semibold leading-relaxed" style={{ color: "var(--primary)" }}>{item.article_angle}</div>
+          </div>
+        )}
+        {item.example && (
+          <div className="rounded-xl p-3" style={{ background: "rgba(var(--border-rgb),0.04)", border: "1px solid rgba(var(--border-rgb),0.08)" }}>
+            <div className="text-[10px] font-bold tracking-[0.08em] uppercase mb-1.5" style={{ color: "var(--text-subtle)" }}>Representative post</div>
+            <div className="text-xs italic leading-relaxed" style={{ color: "var(--muted-foreground)" }}>"{item.example}"</div>
+          </div>
+        )}
+        {sampleUrls.length > 0 && (
+          <div>
+            <div className="text-[10px] font-bold tracking-[0.08em] uppercase mb-1.5" style={{ color: "var(--text-subtle)" }}>Source posts</div>
+            <div className="space-y-1.5">
+              {sampleUrls.map((url, i) => (
+                <a
+                  key={i}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-colors"
+                  style={{ background: "rgba(var(--border-rgb),0.06)", color: "#3d2b18", border: "1px solid rgba(var(--border-rgb),0.1)" }}
+                >
+                  <ExternalLink size={11} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+                  <span className="truncate">View post {i + 1} on Reddit</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete */}
+      <button
+        onClick={onDelete}
+        className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all hover:opacity-90"
+        style={{ background: "rgba(185,64,64,0.08)", color: "#b94040", border: "1px solid rgba(185,64,64,0.15)" }}
+      >
+        <Trash2 size={12} />
+        Delete idea
+      </button>
     </div>
   );
 }
@@ -569,6 +612,15 @@ export function IdeasView() {
     done: items.filter((x) => x.status === "done").length,
   };
 
+  const [desktopSelected, setDesktopSelected] = useState<any | null>(null);
+
+  const FILTER_OPTIONS = [
+    { value: "all", label: `All (${counts.all})` },
+    { value: "new", label: `New (${counts.new})` },
+    { value: "writing", label: `Writing (${counts.writing})` },
+    { value: "done", label: `Done (${counts.done})` },
+  ];
+
   const FilterPills = () => (
     <div className="flex items-center gap-1.5 flex-wrap">
       {(["all", ...ALL_STATUSES] as const).map((s) => {
@@ -694,7 +746,7 @@ export function IdeasView() {
           description="Capture article ideas and track them through the writing process."
         />
 
-        <div className="grid grid-cols-[320px_1fr] gap-4 mt-4">
+        <div className="grid grid-cols-[300px_1fr] gap-4 mt-4">
           {/* Left column */}
           <div className="space-y-4">
             <Card>
@@ -725,44 +777,47 @@ export function IdeasView() {
               </div>
             </Card>
 
-            <RedditScanCard
-              scanning={scanning}
-              log={scanLog}
-              result={scanResult}
-              error={scanError}
-              onScan={handleRedditScan}
-            />
+            {desktopSelected ? (
+              <IdeaDetailPanel
+                item={desktopSelected}
+                onClose={() => setDesktopSelected(null)}
+                onDelete={() => { handleDelete(desktopSelected.id); setDesktopSelected(null); }}
+                onStatus={(s) => { handleStatus(desktopSelected.id, s); setDesktopSelected((prev: any) => prev ? { ...prev, status: s } : prev); }}
+              />
+            ) : (
+              <>
+                <RedditScanCard
+                  scanning={scanning}
+                  log={scanLog}
+                  result={scanResult}
+                  error={scanError}
+                  onScan={handleRedditScan}
+                />
 
-            {/* Pipeline stats */}
-            {!loading && items.length > 0 && (
-              <Card>
-                <Eyebrow>Pipeline status</Eyebrow>
-                <div className="mt-3 space-y-3">
-                  {ALL_STATUSES.map((s) => {
-                    const cfg = STATUS_CONFIG[s];
-                    const count = counts[s];
-                    const pct = items.length > 0 ? (count / items.length) * 100 : 0;
-                    return (
-                      <div key={s}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold" style={{ color: "var(--foreground)" }}>
-                            {cfg.label}
-                          </span>
-                          <span className="text-xs font-bold" style={{ color: cfg.color }}>
-                            {count}
-                          </span>
-                        </div>
-                        <div className="h-1.5 rounded-full" style={{ background: "rgba(var(--border-rgb),0.08)" }}>
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{ width: `${pct}%`, background: cfg.color }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
+                {!loading && items.length > 0 && (
+                  <Card>
+                    <Eyebrow>Pipeline status</Eyebrow>
+                    <div className="mt-3 space-y-3">
+                      {ALL_STATUSES.map((s) => {
+                        const cfg = STATUS_CONFIG[s];
+                        const count = counts[s];
+                        const pct = items.length > 0 ? (count / items.length) * 100 : 0;
+                        return (
+                          <div key={s}>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-semibold" style={{ color: "var(--foreground)" }}>{cfg.label}</span>
+                              <span className="text-xs font-bold" style={{ color: cfg.color }}>{count}</span>
+                            </div>
+                            <div className="h-1.5 rounded-full" style={{ background: "rgba(var(--border-rgb),0.08)" }}>
+                              <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: cfg.color }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
+                )}
+              </>
             )}
           </div>
 
@@ -775,7 +830,14 @@ export function IdeasView() {
                   {items.length} idea{items.length !== 1 ? "s" : ""}
                 </div>
               </div>
-              <FilterPills />
+              <div style={{ minWidth: 160 }}>
+                <CustomSelect
+                  options={FILTER_OPTIONS}
+                  value={filter}
+                  onChange={(v) => setFilter(v as Status | "all")}
+                  icon={Filter}
+                />
+              </div>
             </div>
 
             {loading ? (
@@ -800,9 +862,9 @@ export function IdeasView() {
                 <IdeaRow
                   key={item.id}
                   item={item}
+                  selected={desktopSelected?.id === item.id}
+                  onSelect={() => setDesktopSelected(desktopSelected?.id === item.id ? null : item)}
                   borderBottom={i < filtered.length - 1}
-                  onDelete={() => handleDelete(item.id)}
-                  onStatus={(s) => handleStatus(item.id, s)}
                 />
               ))
             )}
