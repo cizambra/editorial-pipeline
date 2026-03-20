@@ -96,6 +96,18 @@ class QuoteRepurposeRequest(BaseModel):
     article_url: str = ""
 
 
+def _ensure_leading_context(text: str, context: str) -> str:
+    normalized_text = (text or "").strip()
+    normalized_context = (context or "").strip()
+    if not normalized_text or not normalized_context:
+        return normalized_text
+
+    lines = [line.strip() for line in normalized_text.splitlines() if line.strip()]
+    if lines and lines[0] == normalized_context:
+        return normalized_text
+    return f"{normalized_context}\n{normalized_text}"
+
+
 def _parse_substack_notes(raw: str) -> List[Dict[str, Any]]:
     notes = []
     blocks = [b.strip() for b in raw.split("---") if b.strip()]
@@ -119,10 +131,13 @@ def _parse_substack_notes(raw: str) -> List[Dict[str, Any]]:
             elif in_note and stripped:
                 note_lines.append(stripped)
         if issue and intent and note_lines:
-            normalized_lines = list(note_lines)
-            if normalized_lines[0].strip() != issue.strip():
-                normalized_lines.insert(0, issue.strip())
-            notes.append({"issue": issue, "intent": intent, "note_text": "\n".join(normalized_lines)})
+            notes.append(
+                {
+                    "issue": issue,
+                    "intent": intent,
+                    "note_text": _ensure_leading_context("\n".join(note_lines), issue),
+                }
+            )
     return notes
 
 
