@@ -281,3 +281,22 @@ async def post_triage_create(body: dict, request: Request = None):
     await run_in_threadpool(storage.save_run, title, article_url, {"triage": triage}, None)
     _logger.info("Created triage run", extra={"fields": {"title": title}})
     return {"ok": True}
+
+
+@router.post("/api/pipeline/{run_id}/triage/ack")
+async def ack_triage(run_id: int, request: Request = None):
+    """Acknowledge a triage item on a run (marks triage.ack = {user,ts}). Requires admin or internal token."""
+    shared = os.environ.get("TRIAGE_SHARED_SECRET")
+    header = request.headers.get("X-INTERNAL-TOKEN") if request is not None else None
+    if shared:
+        if header != shared:
+            auth.require_admin(request)
+    else:
+        auth.require_admin(request)
+    # Basic ack metadata
+    import time, json
+    user = "agent" if header == shared else (request.headers.get('X-User-Id') or 'unknown')
+    ack = {"ack_by": user, "ack_at": int(time.time())}
+    await run_in_threadpool(storage.patch_run_data, run_id, {"triage_ack": ack})
+    _logger.info("Triage acked", extra={"fields": {"run_id": run_id, "user": user}})
+    return {"ok": True}
