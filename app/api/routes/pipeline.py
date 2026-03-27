@@ -245,3 +245,26 @@ async def resume_pipeline():
             checkpoint_data=checkpoint.get("data", {}),
     )
     return StreamingResponse(stream, media_type="text/event-stream")
+
+
+@router.post("/api/pipeline/{run_id}/triage")
+async def post_triage(run_id: int, body: dict, request: Request = None):
+    """Accept a triage summary for a pipeline run and record it on the run record.
+    Authentication: prefer an internal shared secret via X-INTERNAL-TOKEN header (TRIAGE_SHARED_SECRET).
+    Falls back to admin-auth if no shared secret is configured.
+    """
+    # internal token check (optional)
+    shared = os.environ.get("TRIAGE_SHARED_SECRET")
+    header = request.headers.get("X-INTERNAL-TOKEN") if request is not None else None
+    if shared:
+        if header != shared:
+            # not allowed
+            auth.require_admin(request)
+    else:
+        # fall back to requiring admin if no shared secret configured
+        auth.require_admin(request)
+
+    # persist triage into run data under key 'triage'
+    await run_in_threadpool(storage.patch_run_data, run_id, {"triage": body})
+    _logger.info("Triage recorded for run", extra={"fields": {"run_id": run_id}})
+    return {"ok": True}
