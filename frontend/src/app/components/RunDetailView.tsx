@@ -253,6 +253,9 @@ export function RunDetailView() {
     ? [...BASE_TAB_OPTIONS, { value: "thumbnail", label: "Thumbnail concepts" }]
     : BASE_TAB_OPTIONS;
 
+  // Triage info (if present on run.data.triage)
+  const triage = run?.data?.triage ?? null;
+
   // ── shared tab content renderer ───────────────────────────────
   function TabContent({ mobile = false }: { mobile?: boolean }) {
     const editorHeight = mobile ? "400px" : "600px";
