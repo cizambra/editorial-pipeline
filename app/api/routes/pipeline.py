@@ -268,3 +268,16 @@ async def post_triage(run_id: int, body: dict, request: Request = None):
     await run_in_threadpool(storage.patch_run_data, run_id, {"triage": body})
     _logger.info("Triage recorded for run", extra={"fields": {"run_id": run_id}})
     return {"ok": True}
+
+
+@router.post("/api/pipeline/triage")
+async def post_triage_create(body: dict, request: Request = None):
+    """Create a persistent triage entry when no run_id is available.
+    This creates a new run record with the triage payload stored in `data.triage`.
+    """
+    title = body.get("title", "Triage")
+    article_url = body.get("article_url", "")
+    triage = body.get("triage", body)
+    await run_in_threadpool(storage.save_run, title, article_url, {"triage": triage}, None)
+    _logger.info("Created triage run", extra={"fields": {"title": title}})
+    return {"ok": True}
