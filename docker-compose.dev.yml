@@ -1,0 +1,48 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: editorial
+      POSTGRES_PASSWORD: editorial
+      POSTGRES_DB: editorial_pipeline
+    volumes:
+      - editorial_pgdata:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  editorial-app:
+    build: .
+    dockerfile: Dockerfile
+    volumes:
+      - ./:/usr/src/app
+    environment:
+      - DATABASE_URL=postgresql://editorial:editorial@postgres:5432/editorial_pipeline
+      - APP_ENV=development
+      - AUTH_MODE=local
+      - SESSION_SECRET=dev-secret
+      - TRIAGE_SHARED_SECRET=replace-me-locally
+    depends_on:
+      - postgres
+    ports:
+      - '8000:8000'
+
+  ops-watcher:
+    build:
+      context: .
+      dockerfile: ops-watcher.Dockerfile
+    volumes:
+      - ../ops-dashboard/:/usr/src/ops:ro
+      - ./:/usr/src/app:ro
+      - ./sessions/:/data/sessions:ro
+    environment:
+      - PIPELINE_BASE_URL=http://editorial-app:8000
+      - TRIAGE_SHARED_SECRET=replace-me-locally
+      - NODE_ENV=development
+    depends_on:
+      - editorial-app
+
+volumes:
+  editorial_pgdata:
+
+# Usage: docker compose -f docker-compose.dev.yml up --build
