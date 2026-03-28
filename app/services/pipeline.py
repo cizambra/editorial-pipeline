@@ -45,6 +45,89 @@ def _utc_iso_string(value: datetime) -> str:
     return value.astimezone(timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds")
 
 
+# ---- Helpers for dry-run vs persist behavior --------------------------------
+def _is_dry_run() -> bool:
+    return _DRY_RUN
+
+
+def _save_checkpoint(checkpoint_meta: Dict[str, Any]) -> None:
+    """Persist a checkpoint unless we're in dry-run, in which case log intent."""
+    if _is_dry_run():
+        _logger.info("DRY_RUN: would save checkpoint (keys=%s)", list(checkpoint_meta.get("data", {}).keys()))
+    else:
+        storage.save_checkpoint(checkpoint_meta)
+
+
+def _reserve_pending_run(title: str, article_url: str) -> Optional[int]:
+    """Create a pending run in the DB unless dry-run; returns pending_run_id or None."""
+    if _is_dry_run():
+        _logger.info("DRY_RUN: would reserve pending run for title=%s", title)
+        return None
+    return storage.create_pending_run(title, article_url)
+
+
+def _persist_completed_run(reflection_title: str, article_url: str, final_result: Dict[str, Any], token_summary: Dict[str, Any], pending_run_id: Optional[int]):
+    """Persist the completed run and related artifacts. In dry-run, returns None and logs intent."""
+    if _is_dry_run():
+        _logger.info("DRY_RUN: would persist run for title=%s", reflection_title)
+        return None
+    run_id = storage.save_run(reflection_title, article_url, final_result, token_summary, pending_run_id=pending_run_id)
+    quotes = final_result.get("quotes") or []
+    if quotes:
+        storage.save_quotes(run_id, reflection_title, article_url, quotes)
+    _logger.info(
+        "Persisted completed pipeline run",
+        extra={"fields": {"run_id": run_id, "quote_count": len(quotes)}},
+    )
+    return run_id
+
+
+def _build_queue_results(final_result: Dict[str, Any], reflection_date: datetime, companion_date: datetime) -> Dict[str, Any]:
+    """Return the queue results while avoiding side effects during dry-run."""
+    if _is_dry_run():
+        # Build results using _queue_repurposed_bundle, which itself is dry-run aware
+        results = {
+            "reflection": _queue_repurposed_bundle(
+                repurposed_en=final_result["reflection"]["repurposed_en"],
+                repurposed_es=final_result["reflection"]["repurposed_es"],
+                base_date=reflection_date,
+                source_label="Pipeline / Reflection",
+            ),
+            "companion": _queue_repurposed_bundle(
+                repurposed_en=final_result["companion"]["repurposed_en"],
+                repurposed_es=final_result["companion"]["repurposed_es"],
+                base_date=companion_date,
+                source_label="Pipeline / Companion",
+            ),
+        }
+        # Ensure all returned entries are clearly marked as dry-run/skipped
+        for section in results.values():
+            for k, v in section.items():
+                if isinstance(v, dict):
+                    v.setdefault("dry_run", True)
+                    v.setdefault("queued", False)
+                    v.setdefault("skipped", v.get("skipped", False))
+        return results
+
+    # Normal (non-dry) behavior — delegate to _queue_repurposed_bundle which will create DB entries
+    return {
+        "reflection": _queue_repurposed_bundle(
+            repurposed_en=final_result["reflection"]["repurposed_en"],
+            repurposed_es=final_result["reflection"]["repurposed_es"],
+            base_date=reflection_date,
+            source_label="Pipeline / Reflection",
+        ),
+        "companion": _queue_repurposed_bundle(
+            repurposed_en=final_result["companion"]["repurposed_en"],
+            repurposed_es=final_result["companion"]["repurposed_es"],
+            base_date=companion_date,
+            source_label="Pipeline / Companion",
+        ),
+    }
+
+# -----------------------------------------------------------------------------
+
+
 def _queue_repurposed_bundle(
     repurposed_en: Dict[str, Any],
     repurposed_es: Dict[str, Any],
@@ -132,10 +215,7 @@ def build_pipeline_stream(
     def on_step_complete(key: str, data):
         checkpoint_meta["data"][key] = data
         if key in _CHECKPOINT_PERSIST_KEYS:
-            if _DRY_RUN:
-                _logger.info("DRY_RUN: would save checkpoint key %s", key)
-            else:
-                storage.save_checkpoint(checkpoint_meta)
+            _save_checkpoint(checkpoint_meta)
 
     def stream():
         pending_run_id: Optional[int] = None
@@ -143,12 +223,8 @@ def build_pipeline_stream(
             final_result = None
             # Reserve a DB row immediately so history shows the run from the moment it starts
             try:
-                if _DRY_RUN:
-                    pending_run_id = None
-                    yield f"event: run_pending\ndata: {json.dumps({'run_id': None, 'dry_run': True})}\n\n"
-                else:
-                    pending_run_id = storage.create_pending_run(reflection_title, article_url)
-                    yield f"event: run_pending\ndata: {json.dumps({'run_id': pending_run_id})}\n\n"
+                pending_run_id = _reserve_pending_run(reflection_title, article_url)
+                yield f"event: run_pending\ndata: {json.dumps({'run_id': pending_run_id, 'dry_run': _is_dry_run()})}\n\n"
             except Exception:
                 pass  # non-fatal — run will still be saved at the end
 
@@ -170,7 +246,7 @@ def build_pipeline_stream(
                         final_result = json.loads(data_line)
 
             if cancel_ev.is_set():
-                if pending_run_id and not _DRY_RUN:
+                if pending_run_id and not _is_dry_run():
                     try:
                         storage.cancel_run(pending_run_id)
                     except Exception:
@@ -178,32 +254,20 @@ def build_pipeline_stream(
                 yield "event: cancelled\ndata: {}\n\n"
                 return
 
-            if not _DRY_RUN:
+            if not _is_dry_run():
                 storage.clear_checkpoint()
             token_summary = generator.get_token_summary()
 
             if final_result:
                 try:
-                    if _DRY_RUN:
-                        # In dry-run mode, do not persist — just log and emit a placeholder
-                        _logger.info("DRY_RUN: would persist run for title=%s", reflection_title)
-                        quotes = final_result.get("quotes") or []
+                    run_id = _persist_completed_run(reflection_title, article_url, final_result, token_summary, pending_run_id)
+                    if run_id is None:
+                        # dry-run case: emit placeholder
                         yield f"event: run_saved\ndata: {json.dumps({'run_id': None, 'dry_run': True})}\n\n"
                     else:
-                        run_id = storage.save_run(
-                            reflection_title, article_url, final_result, token_summary,
-                            pending_run_id=pending_run_id,
-                        )
-                        quotes = final_result.get("quotes") or []
-                        if quotes:
-                            storage.save_quotes(run_id, reflection_title, article_url, quotes)
-                        _logger.info(
-                            "Persisted completed pipeline run",
-                            extra={"fields": {"run_id": run_id, "quote_count": len(quotes)}},
-                        )
                         yield f"event: run_saved\ndata: {json.dumps({'run_id': run_id})}\n\n"
                 except Exception as exc:
-                    if pending_run_id and not _DRY_RUN:
+                    if pending_run_id and not _is_dry_run():
                         try:
                             storage.fail_run(pending_run_id)
                         except Exception:
@@ -226,45 +290,13 @@ def build_pipeline_stream(
                     companion_date = social_client.get_next_weekday(
                         settings.companion_day, *map(int, settings.companion_time.split(":"))
                     )
-                    if _DRY_RUN:
-                        queue_results = {
-                            "reflection": _queue_repurposed_bundle(
-                                repurposed_en=final_result["reflection"]["repurposed_en"],
-                                repurposed_es=final_result["reflection"]["repurposed_es"],
-                                base_date=reflection_date,
-                                source_label="Pipeline / Reflection",
-                            ),
-                            "companion": _queue_repurposed_bundle(
-                                repurposed_en=final_result["companion"]["repurposed_en"],
-                                repurposed_es=final_result["companion"]["repurposed_es"],
-                                base_date=companion_date,
-                                source_label="Pipeline / Companion",
-                            ),
-                        }
-                        # Mark queued items as skipped in dry-run (they won't actually be scheduled)
-                        for k, v in queue_results.items():
-                            for subk, subv in v.items():
-                                if isinstance(subv, dict):
-                                    subv.update({"dry_run": True, "queued": False, "skipped": True})
+
+                    queue_results = _build_queue_results(final_result, reflection_date, companion_date)
+                    if _is_dry_run():
                         yield f"event: progress\ndata: {json.dumps({'message': 'Dry-run: would queue social posts', 'done': True})}\n\n"
-                        yield f"event: queue_results\ndata: {json.dumps(queue_results)}\n\n"
                     else:
-                        queue_results = {
-                            "reflection": _queue_repurposed_bundle(
-                                repurposed_en=final_result["reflection"]["repurposed_en"],
-                                repurposed_es=final_result["reflection"]["repurposed_es"],
-                                base_date=reflection_date,
-                                source_label="Pipeline / Reflection",
-                            ),
-                            "companion": _queue_repurposed_bundle(
-                                repurposed_en=final_result["companion"]["repurposed_en"],
-                                repurposed_es=final_result["companion"]["repurposed_es"],
-                                base_date=companion_date,
-                                source_label="Pipeline / Companion",
-                            ),
-                        }
                         yield f"event: progress\ndata: {json.dumps({'message': 'Queued social posts for publishing', 'done': True})}\n\n"
-                        yield f"event: queue_results\ndata: {json.dumps(queue_results)}\n\n"
+                    yield f"event: queue_results\ndata: {json.dumps(queue_results)}\n\n"
                 except Exception as exc:
                     yield f"event: progress\ndata: {json.dumps({'message': f'Queue error: {str(exc)}', 'done': True})}\n\n"
 
