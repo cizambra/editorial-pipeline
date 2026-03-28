@@ -47,26 +47,80 @@ for c in comments:
     if body:
         texts.append({'type':'comment','user': c.get('user',{}).get('login'), 'body': body})
 
-# Simple heuristic summarizer: collect lines with 'nit'/'typo'/'please'/'todo'/'consider' and top sentences
-bullets = []
-for t in texts:
-    lines = t['body'].splitlines()
-    picked = []
-    for ln in lines:
-        l = ln.strip().lower()
-        if not l: continue
-        if any(k in l for k in ('nit', 'typo', 'please', 'consider', 'todo', 'suggest', 'nitpick')):
-            picked.append(ln.strip())
-    if not picked:
-        # fallback: first sentence
-        sent = t['body'].split('\n')[0].split('. ')[0].strip()
-        if sent:
-            picked.append(sent)
-    for p in picked[:2]:
-        bullets.append(f"- ({t['type']}/{t['user']}) {p}")
+# If DeepSeek key present, call DeepSeek to summarize, else fallback to heuristic
+DEEPSEEK_KEY = os.environ.get('DEEPSEEK_API_KEY')
+summary_bullets = []
+if DEEPSEEK_KEY and texts:
+    # build prompt
+    joined = "\n\n".join([f"[{t['type']}/{t['user']}]: {t['body']}" for t in texts])
+    prompt = (
+        "You are a concise reviewer-synthesis assistant. Given a list of reviewer comments, produce:\n"
+        "1) Three concise bullet learnings (each 1 sentence).\n"
+        "2) Up to two short action items.\n\n"
+        "Comments:\n" + joined
+    )
+    try:
+        ds_headers = {'Authorization': f'Bearer {DEEPSEEK_KEY}', 'Content-Type':'application/json'}
+        payload = {
+            'model': 'deepseek-chat',
+            'input':[{'role':'user','content': prompt}],
+            'max_tokens': 400
+        }
+        r = requests.post('https://api.deepseek.com/v1/responses', headers=ds_headers, json=payload, timeout=20)
+        if r.status_code==200:
+            resp = r.json()
+            # deepseek response shape may vary — try to extract text
+            text = ''
+            if isinstance(resp, dict):
+                # look for items -> output_text or similar
+                if 'output' in resp and isinstance(resp['output'], str):
+                    text = resp['output']
+                elif 'result' in resp and isinstance(resp['result'], dict):
+                    text = resp['result'].get('output_text','') or resp['result'].get('content','')
+                else:
+                    # generic search
+                    for v in resp.values():
+                        if isinstance(v,str):
+                            text = v; break
+            if not text and isinstance(resp, dict):
+                # attempt to find nested output
+                for k in ('output_text','content','text'):
+                    try:
+                        text = resp.get(k,'')
+                        if text: break
+                    except:
+                        pass
+            if text:
+                # split into lines and use as bullets
+                for line in text.splitlines():
+                    ln=line.strip()
+                    if ln:
+                        summary_bullets.append('- ' + ln)
+    except Exception as e:
+        print('DeepSeek summarize failed, falling back to heuristic', e)
 
-if not bullets:
-    bullets = ['- No actionable reviewer notes captured.']
+if not summary_bullets:
+    # Simple heuristic summarizer: collect lines with 'nit'/'typo'/'please'/'todo'/'consider' and top sentences
+    bullets = []
+    for t in texts:
+        lines = t['body'].splitlines()
+        picked = []
+        for ln in lines:
+            l = ln.strip().lower()
+            if not l: continue
+            if any(k in l for k in ('nit', 'typo', 'please', 'consider', 'todo', 'suggest', 'nitpick')):
+                picked.append(ln.strip())
+        if not picked:
+            # fallback: first sentence
+            sent = t['body'].split('\n')[0].split('. ')[0].strip()
+            if sent:
+                picked.append(sent)
+        for p in picked[:2]:
+            bullets.append(f"- ({t['type']}/{t['user']}) {p}")
+
+    if not bullets:
+        bullets = ['- No actionable reviewer notes captured.']
+    summary_bullets = bullets
 
 # Build doc
 out_dir = os.path.join(os.getcwd(),'docs','pr-learnings')
@@ -76,7 +130,7 @@ with open(fn, 'w') as f:
     f.write(f"# PR {pr_number}: {pr.get('title','')}\n\n")
     f.write(f"**URL:** {pr.get('html_url')}\n\n")
     f.write('## Distilled reviewer learnings\n\n')
-    for b in bullets:
+    for b in summary_bullets[:10]:
         f.write(b + '\n')
     f.write('\n---\n')
     f.write(f"_Captured: {datetime.utcnow().isoformat()}Z_\n")
