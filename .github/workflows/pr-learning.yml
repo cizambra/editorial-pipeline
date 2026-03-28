@@ -1,0 +1,49 @@
+name: PR Learning Captures
+
+on:
+  pull_request_review:
+    types: [submitted]
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  capture-pr-learning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run PR learning script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: |
+          python3 .github/scripts/pr_learning.py
+
+      - name: Commit learning notes
+        run: |
+          git config user.name "OpenClaw Bot"
+          git config user.email "openclaw-bot@local"
+          git add docs/pr-learnings || true
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(learnings): add PR learning note [skip ci]" || true
+            git push origin HEAD:${{ github.ref_name }} || true
+          else
+            echo "No changes to commit"
+          fi

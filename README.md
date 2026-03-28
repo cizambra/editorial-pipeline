@@ -457,3 +457,50 @@ On mobile (`< 1024px`):
 - Added `.env.example` with explained variables
 - Moved canonical persistence from SQLite/JSON to Postgres
 - Added local Postgres dev compose file and `scripts/setup_db.sh` for native installs
+
+
+---
+
+## Local development: Docker dev stack (editorial-app + ops-watcher)
+
+This repository includes a `docker-compose.dev.yml` and helper Dockerfiles to run the editorial app and the local ops watcher together for development.
+
+Quick steps
+1. Create a local sessions folder used by the watcher:
+
+```bash
+mkdir -p ./sessions
+```
+
+2. Copy or create a local env file (or export env vars) with the minimal values:
+
+```
+APP_ENV=development
+AUTH_MODE=local
+SESSION_SECRET=replace-me-with-long-random
+DATABASE_URL=postgresql://editorial:editorial@postgres:5432/editorial_pipeline
+TRIAGE_SHARED_SECRET=replace-me-locally
+PIPELINE_BASE_URL=http://editorial-app:8000
+TELEGRAM_BOT_TOKEN=optional-for-local-tests
+```
+
+3. Start the stack (builds images):
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+4. Open the app at `http://localhost:8000`. Tail the watcher logs:
+
+```bash
+docker compose -f docker-compose.dev.yml logs -f ops-watcher
+```
+
+Notes
+- The ops-watcher runs `redact-and-curate.js` and posts triage summaries to the pipeline triage endpoint. Keep `TRIAGE_SHARED_SECRET` in your local `.env` for dev.
+- For production, set `TRIAGE_SHARED_SECRET` and `TELEGRAM_BOT_TOKEN` in Railway (or any secrets manager) — do not commit secrets to git.
+
+Security & operations
+- The watcher (ops-dashboard) is intended as a local worker and should not be exposed publicly.
+- All write-able pipeline actions require explicit human confirmation before merges or production deploys.
+

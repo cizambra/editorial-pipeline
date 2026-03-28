@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import json
 import threading
 from datetime import datetime, timedelta, timezone
@@ -21,6 +22,9 @@ _CHECKPOINT_PERSIST_KEYS = {
     "tags",
 }
 
+# Dry-run flag: set DRY_RUN=1 in env to enable
+_DRY_RUN = os.getenv("DRY_RUN", "").strip().lower() in {"1", "true", "yes", "on"}
+
 _cancel_event: Optional[threading.Event] = None
 _cancel_lock = threading.Lock()
 _logger = get_logger("editorial.pipeline")
@@ -39,6 +43,89 @@ def _utc_iso_string(value: datetime) -> str:
     if value.tzinfo is None:
         value = value.astimezone()
     return value.astimezone(timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds")
+
+
+# ---- Helpers for dry-run vs persist behavior --------------------------------
+def _is_dry_run() -> bool:
+    return _DRY_RUN
+
+
+def _save_checkpoint(checkpoint_meta: Dict[str, Any]) -> None:
+    """Persist a checkpoint unless we're in dry-run, in which case log intent."""
+    if _is_dry_run():
+        _logger.info("DRY_RUN: would save checkpoint (keys=%s)", list(checkpoint_meta.get("data", {}).keys()))
+    else:
+        storage.save_checkpoint(checkpoint_meta)
+
+
+def _reserve_pending_run(title: str, article_url: str) -> Optional[int]:
+    """Create a pending run in the DB unless dry-run; returns pending_run_id or None."""
+    if _is_dry_run():
+        _logger.info("DRY_RUN: would reserve pending run for title=%s", title)
+        return None
+    return storage.create_pending_run(title, article_url)
+
+
+def _persist_completed_run(reflection_title: str, article_url: str, final_result: Dict[str, Any], token_summary: Dict[str, Any], pending_run_id: Optional[int]):
+    """Persist the completed run and related artifacts. In dry-run, returns None and logs intent."""
+    if _is_dry_run():
+        _logger.info("DRY_RUN: would persist run for title=%s", reflection_title)
+        return None
+    run_id = storage.save_run(reflection_title, article_url, final_result, token_summary, pending_run_id=pending_run_id)
+    quotes = final_result.get("quotes") or []
+    if quotes:
+        storage.save_quotes(run_id, reflection_title, article_url, quotes)
+    _logger.info(
+        "Persisted completed pipeline run",
+        extra={"fields": {"run_id": run_id, "quote_count": len(quotes)}},
+    )
+    return run_id
+
+
+def _build_queue_results(final_result: Dict[str, Any], reflection_date: datetime, companion_date: datetime) -> Dict[str, Any]:
+    """Return the queue results while avoiding side effects during dry-run."""
+    if _is_dry_run():
+        # Build results using _queue_repurposed_bundle, which itself is dry-run aware
+        results = {
+            "reflection": _queue_repurposed_bundle(
+                repurposed_en=final_result["reflection"]["repurposed_en"],
+                repurposed_es=final_result["reflection"]["repurposed_es"],
+                base_date=reflection_date,
+                source_label="Pipeline / Reflection",
+            ),
+            "companion": _queue_repurposed_bundle(
+                repurposed_en=final_result["companion"]["repurposed_en"],
+                repurposed_es=final_result["companion"]["repurposed_es"],
+                base_date=companion_date,
+                source_label="Pipeline / Companion",
+            ),
+        }
+        # Ensure all returned entries are clearly marked as dry-run/skipped
+        for section in results.values():
+            for k, v in section.items():
+                if isinstance(v, dict):
+                    v.setdefault("dry_run", True)
+                    v.setdefault("queued", False)
+                    v.setdefault("skipped", v.get("skipped", False))
+        return results
+
+    # Normal (non-dry) behavior — delegate to _queue_repurposed_bundle which will create DB entries
+    return {
+        "reflection": _queue_repurposed_bundle(
+            repurposed_en=final_result["reflection"]["repurposed_en"],
+            repurposed_es=final_result["reflection"]["repurposed_es"],
+            base_date=reflection_date,
+            source_label="Pipeline / Reflection",
+        ),
+        "companion": _queue_repurposed_bundle(
+            repurposed_en=final_result["companion"]["repurposed_en"],
+            repurposed_es=final_result["companion"]["repurposed_es"],
+            base_date=companion_date,
+            source_label="Pipeline / Companion",
+        ),
+    }
+
+# -----------------------------------------------------------------------------
 
 
 def _queue_repurposed_bundle(
@@ -64,6 +151,10 @@ def _queue_repurposed_bundle(
                 continue
             if platform == "instagram":
                 results[key] = {"skipped": True, "reason": "Instagram requires an image URL"}
+                continue
+            if _DRY_RUN:
+                # Don't create DB entries in dry-run; return a placeholder
+                results[key] = {"queued": False, "dry_run": True, "scheduled_at": scheduled_at}
                 continue
             post_id = storage.create_scheduled_post(
                 platform=platform,
@@ -124,7 +215,7 @@ def build_pipeline_stream(
     def on_step_complete(key: str, data):
         checkpoint_meta["data"][key] = data
         if key in _CHECKPOINT_PERSIST_KEYS:
-            storage.save_checkpoint(checkpoint_meta)
+            _save_checkpoint(checkpoint_meta)
 
     def stream():
         pending_run_id: Optional[int] = None
@@ -132,8 +223,8 @@ def build_pipeline_stream(
             final_result = None
             # Reserve a DB row immediately so history shows the run from the moment it starts
             try:
-                pending_run_id = storage.create_pending_run(reflection_title, article_url)
-                yield f"event: run_pending\ndata: {json.dumps({'run_id': pending_run_id})}\n\n"
+                pending_run_id = _reserve_pending_run(reflection_title, article_url)
+                yield f"event: run_pending\ndata: {json.dumps({'run_id': pending_run_id, 'dry_run': _is_dry_run()})}\n\n"
             except Exception:
                 pass  # non-fatal — run will still be saved at the end
 
@@ -155,7 +246,7 @@ def build_pipeline_stream(
                         final_result = json.loads(data_line)
 
             if cancel_ev.is_set():
-                if pending_run_id:
+                if pending_run_id and not _is_dry_run():
                     try:
                         storage.cancel_run(pending_run_id)
                     except Exception:
@@ -163,25 +254,20 @@ def build_pipeline_stream(
                 yield "event: cancelled\ndata: {}\n\n"
                 return
 
-            storage.clear_checkpoint()
+            if not _is_dry_run():
+                storage.clear_checkpoint()
             token_summary = generator.get_token_summary()
 
             if final_result:
                 try:
-                    run_id = storage.save_run(
-                        reflection_title, article_url, final_result, token_summary,
-                        pending_run_id=pending_run_id,
-                    )
-                    quotes = final_result.get("quotes") or []
-                    if quotes:
-                        storage.save_quotes(run_id, reflection_title, article_url, quotes)
-                    _logger.info(
-                        "Persisted completed pipeline run",
-                        extra={"fields": {"run_id": run_id, "quote_count": len(quotes)}},
-                    )
-                    yield f"event: run_saved\ndata: {json.dumps({'run_id': run_id})}\n\n"
+                    run_id = _persist_completed_run(reflection_title, article_url, final_result, token_summary, pending_run_id)
+                    if run_id is None:
+                        # dry-run case: emit placeholder
+                        yield f"event: run_saved\ndata: {json.dumps({'run_id': None, 'dry_run': True})}\n\n"
+                    else:
+                        yield f"event: run_saved\ndata: {json.dumps({'run_id': run_id})}\n\n"
                 except Exception as exc:
-                    if pending_run_id:
+                    if pending_run_id and not _is_dry_run():
                         try:
                             storage.fail_run(pending_run_id)
                         except Exception:
@@ -204,21 +290,12 @@ def build_pipeline_stream(
                     companion_date = social_client.get_next_weekday(
                         settings.companion_day, *map(int, settings.companion_time.split(":"))
                     )
-                    queue_results = {
-                        "reflection": _queue_repurposed_bundle(
-                            repurposed_en=final_result["reflection"]["repurposed_en"],
-                            repurposed_es=final_result["reflection"]["repurposed_es"],
-                            base_date=reflection_date,
-                            source_label="Pipeline / Reflection",
-                        ),
-                        "companion": _queue_repurposed_bundle(
-                            repurposed_en=final_result["companion"]["repurposed_en"],
-                            repurposed_es=final_result["companion"]["repurposed_es"],
-                            base_date=companion_date,
-                            source_label="Pipeline / Companion",
-                        ),
-                    }
-                    yield f"event: progress\ndata: {json.dumps({'message': 'Queued social posts for publishing', 'done': True})}\n\n"
+
+                    queue_results = _build_queue_results(final_result, reflection_date, companion_date)
+                    if _is_dry_run():
+                        yield f"event: progress\ndata: {json.dumps({'message': 'Dry-run: would queue social posts', 'done': True})}\n\n"
+                    else:
+                        yield f"event: progress\ndata: {json.dumps({'message': 'Queued social posts for publishing', 'done': True})}\n\n"
                     yield f"event: queue_results\ndata: {json.dumps(queue_results)}\n\n"
                 except Exception as exc:
                     yield f"event: progress\ndata: {json.dumps({'message': f'Queue error: {str(exc)}', 'done': True})}\n\n"

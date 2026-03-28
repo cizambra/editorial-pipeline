@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import os
 import threading
 from typing import Any, Dict
 
 from app.core.ai_clients import CLAUDE_SONNET_MODEL, get_claude_client
 
+# Default model (production-quality)
 MODEL = CLAUDE_SONNET_MODEL
+
+# Dry-run / boolean parsing constants
+_DRY_RUN_TRUE = {"1", "true", "yes", "on"}
+DEFAULT_DRYRUN_MODEL = os.getenv("DRY_RUN_MODEL", "deepseek-chat")
 
 _run_tokens: Dict[str, int] = {"input": 0, "output": 0, "cache_write": 0, "cache_read": 0}
 _token_lock = threading.Lock()
@@ -65,9 +71,26 @@ def _track_usage(usage: Any) -> None:
         _run_tokens["cache_read"] += getattr(usage, "cache_read_input_tokens", 0)
 
 
+def _select_model() -> str:
+    """Select model for the current run.
+    Priority:
+      1) MODEL_OVERRIDE env var
+      2) If DRY_RUN enabled and no override, use DEFAULT_DRYRUN_MODEL
+      3) Default CLAUDE_SONNET_MODEL
+    """
+    override = os.getenv("MODEL_OVERRIDE")
+    if override:
+        return override
+    dry = os.getenv("DRY_RUN", "").strip().lower() in _DRY_RUN_TRUE
+    if dry:
+        return DEFAULT_DRYRUN_MODEL
+    return MODEL
+
+
 def call_claude(system: "str | list", user: "str | list", max_tokens: int = 4096) -> str:
+    model = _select_model()
     message = get_claude_client().messages.create(
-        model=MODEL,
+        model=model,
         max_tokens=max_tokens,
         messages=[{"role": "user", "content": user}],
         system=system,
@@ -77,8 +100,9 @@ def call_claude(system: "str | list", user: "str | list", max_tokens: int = 4096
 
 
 def call_platform(config: Dict[str, Any], user: "str | list") -> str:
+    model = _select_model()
     message = get_claude_client().messages.create(
-        model=MODEL,
+        model=model,
         max_tokens=config["max_tokens"],
         messages=[{"role": "user", "content": user}],
         system=config["system"],
