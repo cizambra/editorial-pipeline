@@ -61,8 +61,9 @@ if DEEPSEEK_KEY and texts:
     )
     try:
         ds_headers = {'Authorization': f'Bearer {DEEPSEEK_KEY}', 'Content-Type':'application/json'}
+        model_name = os.environ.get('DEEPSEEK_MODEL', 'deepseek-chat')
         payload = {
-            'model': 'deepseek-chat',
+            'model': model_name,
             'input':[{'role':'user','content': prompt}],
             'max_tokens': 400
         }
